@@ -20,10 +20,12 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    'name',
+    'email',
+    'password',
+    'role', // <--- ¡Asegúrate de agregar esto!
+    'profile_photo_path', // Si usas Jetstream probablemente ya esté
+];
 
     /**
      * The attributes that should be hidden for serialization.
