@@ -15,6 +15,12 @@
                     <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    {{-- BOTÓN SOLO PARA ADMINISTRADORES --}}
+    @if (Auth::user()->role === 'admin')
+        <x-nav-link href="{{ route('admin.users.index') }}" :active="request()->routeIs('admin.users.*')">
+            {{ __('Gestión Usuarios') }}
+        </x-nav-link>
+    @endif
                 </div>
             </div>
 
