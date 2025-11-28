@@ -3,43 +3,16 @@
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
+
+// 1. IMPORTACIONES DE CONTROLADORES
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminDistrictController;
 use App\Http\Controllers\AdminSportController;
-
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    
-    // Dashboard Principal del Admin
-    Route::get('/panel-admin', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
-
-    // --- NUEVAS RUTAS DE GESTIÓN DE USUARIOS ---
-    // Ver lista
-    Route::get('/panel-admin/users', [AdminUserController::class, 'index'])->name('admin.users.index');
-    // Cambiar rol (Usamos PUT para actualizar)
-    Route::put('/panel-admin/users/{id}', [AdminUserController::class, 'update'])->name('admin.users.update');
-    // NUEVA RUTA: ELIMINAR
-    Route::delete('/panel-admin/users/{id}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
-
-    // --- RUTAS DE DISTRITOS (CRUD) ---
-    Route::get('/panel-admin/districts', [AdminDistrictController::class, 'index'])->name('admin.districts.index');
-    Route::post('/panel-admin/districts', [AdminDistrictController::class, 'store'])->name('admin.districts.store');
-    Route::put('/panel-admin/districts/{id}', [AdminDistrictController::class, 'update'])->name('admin.districts.update');
-    Route::delete('/panel-admin/districts/{id}', [AdminDistrictController::class, 'destroy'])->name('admin.districts.destroy');
-
-    // --- RUTAS DE DEPORTES (CRUD) ---
-    Route::get('/panel-admin/sports', [AdminSportController::class, 'index'])->name('admin.sports.index');
-    Route::post('/panel-admin/sports', [AdminSportController::class, 'store'])->name('admin.sports.store');
-    Route::put('/panel-admin/sports/{id}', [AdminSportController::class, 'update'])->name('admin.sports.update');
-    Route::delete('/panel-admin/sports/{id}', [AdminSportController::class, 'destroy'])->name('admin.sports.destroy');
-});
-
-use App\Http\Controllers\CanchaController; // <--- ¡Importante importar esto!
+use App\Http\Controllers\CanchaController; // Controlador del Dueño
 
 /*
 |--------------------------------------------------------------------------
-| 1. RUTA PÚBLICA (Home)
+| 1. PÁGINA DE INICIO (Pública)
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
@@ -48,7 +21,7 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| 2. RUTAS DE CONFIGURACIÓN DE PERFIL (Jetstream / Volt)
+| 2. RUTAS DE PERFIL Y AJUSTES (Jetstream / Volt)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
@@ -58,21 +31,22 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/password', 'settings.password')->name('user-password.edit');
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
 
+    // Autenticación de dos factores (si está habilitada)
     Volt::route('settings/two-factor', 'settings.two-factor')
         ->middleware(
             when(
-                Features::canManageTwoFactorAuthentication()
-                    && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
+                Features::canManageTwoFactorAuthentication() && 
+                Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
                 ['password.confirm'],
-                [],
-            ),
+                []
+            )
         )
         ->name('two-factor.show');
 });
 
 /*
 |--------------------------------------------------------------------------
-| 3. DASHBOARD GENERAL (Usuarios Normales)
+| 3. DASHBOARD GENERAL (Usuarios Clientes / Redirección)
 |--------------------------------------------------------------------------
 */
 Route::middleware([
@@ -87,50 +61,66 @@ Route::middleware([
 
 /*
 |--------------------------------------------------------------------------
-| 4. ZONA DEL ADMINISTRADOR (Role: admin)
+| 4. ZONA ADMINISTRADOR (Prefijo: /panel-admin)
 |--------------------------------------------------------------------------
-| URL Base: /panel-admin
-| Nombre Ruta Base: admin.
+| Aquí gestionas usuarios, distritos y deportes maestros.
 */
-Route::middleware(['auth', 'role:admin'])
+Route::middleware(['auth', 'role:admin']) // Asegúrate de tener el Middleware 'role' registrado
     ->prefix('panel-admin')
     ->name('admin.')
     ->group(function () {
 
-        // Dashboard Principal
+        // Dashboard del Admin
         Route::get('/', function () {
             return view('admin.dashboard');
         })->name('dashboard');
 
-        // Gestión de Usuarios (Controller Agrupado)
+        // Gestión de Usuarios
         Route::controller(AdminUserController::class)->group(function () {
             Route::get('/users', 'index')->name('users.index');
             Route::put('/users/{id}', 'update')->name('users.update');
             Route::delete('/users/{id}', 'destroy')->name('users.destroy');
         });
 
-        // FUTURO: Aquí agregarás las rutas de Deportes y Distritos en el Sprint 3
-        // Route::resource('sports', SportController::class);
+        // Gestión de Distritos
+        Route::controller(AdminDistrictController::class)->group(function () {
+            Route::get('/districts', 'index')->name('districts.index');
+            Route::post('/districts', 'store')->name('districts.store');
+            Route::put('/districts/{id}', 'update')->name('districts.update');
+            Route::delete('/districts/{id}', 'destroy')->name('districts.destroy');
+        });
+
+        // Gestión de Deportes
+        Route::controller(AdminSportController::class)->group(function () {
+            Route::get('/sports', 'index')->name('sports.index');
+            Route::post('/sports', 'store')->name('sports.store');
+            Route::put('/sports/{id}', 'update')->name('sports.update');
+            Route::delete('/sports/{id}', 'destroy')->name('sports.destroy');
+        });
     });
 
 /*
 |--------------------------------------------------------------------------
-| 5. ZONA DEL DUEÑO (Role: owner)
+| 5. ZONA DUEÑO (Prefijo: /panel-dueno)
 |--------------------------------------------------------------------------
-| URL Base: /panel-dueno
-| Nombre Ruta Base: owner.
+| Aquí el dueño gestiona sus canchas y ve sus reservas.
 */
 Route::middleware(['auth', 'role:owner'])
     ->prefix('panel-dueno')
-    ->name('owner.')
+    ->name('owner.') // Esto añade 'owner.' a todas las rutas de adentro
     ->group(function () {
 
-        // Dashboard del Dueño
+        // A. Dashboard Principal del Dueño
+        // Ruta: /panel-dueno/
+        // Nombre: owner.dashboard
+        // Archivo: resources/views/owner/dashboard.blade.php
         Route::get('/', function () {
             return view('owner.dashboard');
         })->name('dashboard');
 
-        // Gestión de Canchas (CRUD Completo)
-        // Esto crea automáticamente: index, create, store, show, edit, update, destroy
+        // B. CRUD de Canchas
+        // Ruta: /panel-dueno/canchas
+        // Nombres generados: owner.canchas.index, owner.canchas.create, etc.
         Route::resource('canchas', CanchaController::class);
+        
     });
