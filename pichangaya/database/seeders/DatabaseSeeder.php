@@ -17,6 +17,11 @@ class DatabaseSeeder extends Seeder
         // Esto está PERFECTO, es lo que necesitábamos.
         $this->call(UserSeeder::class);
 
+        // 2. Distritos y Deportes (NUEVO)
+    $this->call([
+        DistrictSeeder::class,
+        SportSeeder::class,
+    ]);
         // 2. Usuario de prueba adicional (Opcional)
         User::firstOrCreate(
             ['email' => 'test@example.com'],
