@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminDistrictController;
+use App\Http\Controllers\AdminSportController;
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     
@@ -19,6 +21,18 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/panel-admin/users/{id}', [AdminUserController::class, 'update'])->name('admin.users.update');
     // NUEVA RUTA: ELIMINAR
     Route::delete('/panel-admin/users/{id}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
+
+    // --- RUTAS DE DISTRITOS (CRUD) ---
+    Route::get('/panel-admin/districts', [AdminDistrictController::class, 'index'])->name('admin.districts.index');
+    Route::post('/panel-admin/districts', [AdminDistrictController::class, 'store'])->name('admin.districts.store');
+    Route::put('/panel-admin/districts/{id}', [AdminDistrictController::class, 'update'])->name('admin.districts.update');
+    Route::delete('/panel-admin/districts/{id}', [AdminDistrictController::class, 'destroy'])->name('admin.districts.destroy');
+
+    // --- RUTAS DE DEPORTES (CRUD) ---
+    Route::get('/panel-admin/sports', [AdminSportController::class, 'index'])->name('admin.sports.index');
+    Route::post('/panel-admin/sports', [AdminSportController::class, 'store'])->name('admin.sports.store');
+    Route::put('/panel-admin/sports/{id}', [AdminSportController::class, 'update'])->name('admin.sports.update');
+    Route::delete('/panel-admin/sports/{id}', [AdminSportController::class, 'destroy'])->name('admin.sports.destroy');
 });
 
 Route::get('/', function () {
