@@ -21,6 +21,16 @@
             {{ __('Gestión Usuarios') }}
         </x-nav-link>
     @endif
+    @if (Auth::user()->role === 'admin')
+        <x-nav-link href="{{ route('admin.districts.index') }}" :active="request()->routeIs('admin.districts.*')">
+            {{ __('Distritos') }}
+        </x-nav-link>
+    @endif
+    @if (Auth::user()->role === 'admin')
+        <x-nav-link href="{{ route('admin.sports.index') }}" :active="request()->routeIs('admin.sports.*')">
+            {{ __('Deportes') }}
+        </x-nav-link>
+    @endif
                 </div>
             </div>
 
