@@ -44,4 +44,24 @@ class AdminUserController extends Controller
 
         return back()->with('success', 'Rol actualizado correctamente.');
     }
+    // 3. Eliminar usuario
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+
+        // REGLA 1: No puedes eliminarte a ti mismo
+        if ($user->id === Auth::id()) {
+            return back()->with('error', 'No puedes eliminar tu propia cuenta mientras estás conectado.');
+        }
+
+        // REGLA 2: No puedes eliminar al Super Admin (ID 1 o por email)
+        if ($user->id === 1 || $user->email === 'admin@yanakatari.com') {
+            return back()->with('error', 'Este usuario es el Administrador Principal y no puede ser eliminado.');
+        }
+
+        // Si pasa las reglas, procedemos
+        $user->delete();
+
+        return back()->with('success', 'Usuario eliminado correctamente.');
+    }
 }

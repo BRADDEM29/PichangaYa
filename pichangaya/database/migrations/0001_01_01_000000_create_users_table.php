@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             
-            // --- AQUÍ ESTÁ LA COLUMNA QUE FALTABA ---
+            
             // Esto crea el campo para Admin, Owner o User
             $table->enum('role', ['admin', 'owner', 'user'])->default('user');
             // ----------------------------------------

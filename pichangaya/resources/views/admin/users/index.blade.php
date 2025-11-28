@@ -49,20 +49,38 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <form action="{{ route('admin.users.update', $user->id) }}" method="POST" class="flex items-center space-x-2">
-                                        @csrf
-                                        @method('PUT')
-                                        
-                                        <select name="role" class="text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                            <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
-                                            <option value="owner" {{ $user->role == 'owner' ? 'selected' : '' }}>Dueño</option>
-                                            <option value="user" {{ $user->role == 'user' ? 'selected' : '' }}>Usuario</option>
-                                        </select>
-    
-                                        <button type="submit" class="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition">
-                                            Guardar
-                                        </button>
-                                    </form>
+                                    
+                                    @if($user->id === Auth::id() || $user->id === 1)
+                                        <span class="text-gray-400 italic flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                            Protegido
+                                        </span>
+                                    @else
+                                        <div class="flex items-center space-x-2">
+                                            {{-- Formulario Editar Rol --}}
+                                            <form action="{{ route('admin.users.update', $user->id) }}" method="POST" class="flex items-center space-x-2">
+                                                @csrf
+                                                @method('PUT')
+                                                <select name="role" class="text-sm border-gray-300 rounded-md shadow-sm py-1">
+                                                    <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
+                                                    <option value="owner" {{ $user->role == 'owner' ? 'selected' : '' }}>Dueño</option>
+                                                    <option value="user" {{ $user->role == 'user' ? 'selected' : '' }}>Usuario</option>
+                                                </select>
+                                                <button type="submit" class="text-indigo-600 hover:text-indigo-900 font-bold">
+                                                    Guardar
+                                                </button>
+                                            </form>
+
+                                            {{-- Formulario ELIMINAR (Nuevo) --}}
+                                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar a este usuario? Esta acción no se puede deshacer.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:text-red-900 font-bold ml-2">
+                                                    Eliminar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @endif
                                 </td>
                             </tr>
                             @endforeach

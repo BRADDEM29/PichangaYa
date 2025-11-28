@@ -17,6 +17,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/panel-admin/users', [AdminUserController::class, 'index'])->name('admin.users.index');
     // Cambiar rol (Usamos PUT para actualizar)
     Route::put('/panel-admin/users/{id}', [AdminUserController::class, 'update'])->name('admin.users.update');
+    // NUEVA RUTA: ELIMINAR
+    Route::delete('/panel-admin/users/{id}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
 });
 
 Route::get('/', function () {
