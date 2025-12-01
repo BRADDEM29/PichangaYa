@@ -9,7 +9,7 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminDistrictController;
 use App\Http\Controllers\AdminSportController;
 use App\Http\Controllers\CanchaController; // Controlador del Dueño
-
+use App\Http\Controllers\DashboardController;//controlador del dashboard
 /*
 |--------------------------------------------------------------------------
 | 1. PÁGINA DE INICIO (Pública)
@@ -49,14 +49,11 @@ Route::middleware(['auth'])->group(function () {
 | 3. DASHBOARD GENERAL (Usuarios Clientes / Redirección)
 |--------------------------------------------------------------------------
 */
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified',
-])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+Route::middleware(['auth:sanctum',config('jetstream.auth_session'),'verified'])->group(function () {
+    
+    // Ahora el dashboard usa tu lógica de búsqueda
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
 });
 
 /*
