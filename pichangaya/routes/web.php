@@ -31,7 +31,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/password', 'settings.password')->name('user-password.edit');
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
 
-    // Autenticación de dos factores (si está habilitada)
+    // Autenticación de dos factores
     Volt::route('settings/two-factor', 'settings.two-factor')
         ->middleware(
             when(
@@ -63,64 +63,42 @@ Route::middleware([
 |--------------------------------------------------------------------------
 | 4. ZONA ADMINISTRADOR (Prefijo: /panel-admin)
 |--------------------------------------------------------------------------
-| Aquí gestionas usuarios, distritos y deportes maestros.
 */
-Route::middleware(['auth', 'role:admin']) // Asegúrate de tener el Middleware 'role' registrado
+Route::middleware(['auth', 'role:admin']) 
     ->prefix('panel-admin')
     ->name('admin.')
     ->group(function () {
 
-        // Dashboard del Admin
         Route::get('/', function () {
             return view('admin.dashboard');
         })->name('dashboard');
 
-        // Gestión de Usuarios
+        // Gestión de Usuarios, Distritos y Deportes
         Route::controller(AdminUserController::class)->group(function () {
             Route::get('/users', 'index')->name('users.index');
             Route::put('/users/{id}', 'update')->name('users.update');
             Route::delete('/users/{id}', 'destroy')->name('users.destroy');
         });
 
-        // Gestión de Distritos
-        Route::controller(AdminDistrictController::class)->group(function () {
-            Route::get('/districts', 'index')->name('districts.index');
-            Route::post('/districts', 'store')->name('districts.store');
-            Route::put('/districts/{id}', 'update')->name('districts.update');
-            Route::delete('/districts/{id}', 'destroy')->name('districts.destroy');
-        });
-
-        // Gestión de Deportes
-        Route::controller(AdminSportController::class)->group(function () {
-            Route::get('/sports', 'index')->name('sports.index');
-            Route::post('/sports', 'store')->name('sports.store');
-            Route::put('/sports/{id}', 'update')->name('sports.update');
-            Route::delete('/sports/{id}', 'destroy')->name('sports.destroy');
-        });
+        Route::resource('districts', AdminDistrictController::class)->except(['create', 'edit', 'show']);
+        Route::resource('sports', AdminSportController::class)->except(['create', 'edit', 'show']);
     });
-
 /*
 |--------------------------------------------------------------------------
 | 5. ZONA DUEÑO (Prefijo: /panel-dueno)
 |--------------------------------------------------------------------------
-| Aquí el dueño gestiona sus canchas y ve sus reservas.
 */
 Route::middleware(['auth', 'role:owner'])
     ->prefix('panel-dueno')
-    ->name('owner.') // Esto añade 'owner.' a todas las rutas de adentro
+    ->name('owner.')
     ->group(function () {
 
-        // A. Dashboard Principal del Dueño
-        // Ruta: /panel-dueno/
-        // Nombre: owner.dashboard
-        // Archivo: resources/views/owner/dashboard.blade.php
-        Route::get('/', function () {
-            return view('owner.dashboard');
-        })->name('dashboard');
+        // 1. CAMBIO PRINCIPAL: Redireccionar la raíz '/' a 'canchas'
+        // Cuando entren a "127.0.0.1:8000/panel-dueno", Laravel los enviará a ".../canchas"
+        // En routes/web.php dentro del grupo 'panel-dueno'
+Route::redirect('/', '/panel-dueno/canchas')->name('dashboard');
 
-        // B. CRUD de Canchas
-        // Ruta: /panel-dueno/canchas
-        // Nombres generados: owner.canchas.index, owner.canchas.create, etc.
+        // 2. TUS RUTAS DE CANCHAS (Asegúrate de haber quitado ->names() como vimos antes)
         Route::resource('canchas', CanchaController::class);
         
     });

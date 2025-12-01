@@ -1,46 +1,64 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Mis Canchas') }}
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Mis Canchas') }}
+            </h2>
+            <a href="{{ route('owner.canchas.create') }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm">
+                + Nueva Cancha
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-
-                {{-- BOTÓN PARA IR AL FORMULARIO (LO QUE HICIMOS ANTES) --}}
-                <div class="mb-6">
-                    <a href="{{ route('owner.canchas.create') }}" class="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded">
-                        + Registrar Nueva Cancha
-                    </a>
+            
+            @if(session('success'))
+                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+                    {{ session('success') }}
                 </div>
+            @endif
 
-                {{-- LISTA DE CANCHAS --}}
-                @if($canchas->isEmpty())
-                    <p class="text-gray-500 text-center">Aún no has registrado ninguna cancha.</p>
-                @else
-                    <table class="min-w-full border-collapse block md:table">
-                        <thead class="block md:table-header-group">
-                            <tr class="border border-grey-500 md:border-none block md:table-row absolute -top-full md:top-auto -left-full md:left-auto  md:relative ">
-                                <th class="bg-gray-600 p-2 text-white font-bold md:border md:border-grey-500 text-left block md:table-cell">Nombre</th>
-                                <th class="bg-gray-600 p-2 text-white font-bold md:border md:border-grey-500 text-left block md:table-cell">Precio/Hora</th>
-                                <th class="bg-gray-600 p-2 text-white font-bold md:border md:border-grey-500 text-left block md:table-cell">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="block md:table-row-group">
-                            @foreach ($canchas as $cancha)
-                                <tr class="bg-white border border-grey-500 md:border-none block md:table-row">
-                                    <td class="p-2 md:border md:border-grey-500 text-left block md:table-cell">{{ $cancha->name }}</td>
-                                    <td class="p-2 md:border md:border-grey-500 text-left block md:table-cell">S/. {{ $cancha->price_per_hour }}</td>
-                                    <td class="p-2 md:border md:border-grey-500 text-left block md:table-cell">
-                                        <span class="text-blue-600 font-bold">Editar</span> </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                @endif
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @forelse ($canchas as $cancha)
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-full hover:shadow-xl transition-shadow duration-300">
+                        
+                        {{-- Imagen --}}
+                        <div class="h-48 w-full bg-gray-200 relative">
+                            @if($cancha->getFirstMediaUrl('canchas'))
+                                <img src="{{ $cancha->getFirstMediaUrl('canchas') }}" alt="{{ $cancha->name }}" class="w-full h-full object-cover">
+                            @else
+                                <div class="flex items-center justify-center h-full text-gray-400">Sin imagen</div>
+                            @endif
+                            
+                            <div class="absolute top-2 right-2 bg-white px-2 py-1 rounded shadow text-sm font-bold">
+                                S/ {{ $cancha->price_per_hour }}
+                            </div>
+                        </div>
+
+                        {{-- Info --}}
+                        <div class="p-5 flex-1 flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900 mb-1">{{ $cancha->name }}</h3>
+                                <p class="text-sm text-gray-600 mb-2">{{ $cancha->address }}</p>
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                    {{ $cancha->sport->name ?? 'Deporte' }}
+                                </span>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between">
+                                <a href="{{ route('owner.canchas.edit', $cancha) }}" class="text-indigo-600 font-medium hover:text-indigo-900">Editar</a>
+                                {{-- Formulario para eliminar si lo deseas agregar --}}
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-span-full text-center py-10 bg-white rounded-lg shadow">
+                        <p class="text-gray-500">No tienes canchas registradas.</p>
+                    </div>
+                @endforelse
             </div>
+
         </div>
     </div>
 </x-app-layout>

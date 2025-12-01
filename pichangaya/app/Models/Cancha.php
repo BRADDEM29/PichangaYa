@@ -4,41 +4,44 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Cancha extends Model
+class Cancha extends Model implements HasMedia
 {
     use HasFactory;
+    use InteractsWithMedia;
 
-    // 1. Asignación Masiva
-    // Definimos qué campos tienen permiso para ser guardados directamente.
-    // ¡Es vital incluir 'user_id' aquí para que funcione tu controlador!
     protected $fillable = [
         'name',
         'address',
         'price_per_hour',
         'description',
+        'user_id',
         'sport_id',
         'district_id',
-        'user_id', 
     ];
 
-    // 2. Relaciones (Eloquent Relationships)
-    
-    // Una Cancha pertenece a un Usuario (Dueño)
+    // Relaciones
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-
-    // Una Cancha pertenece a un Deporte
+    
     public function sport()
     {
-        return $this->belongsTo(Sport::class);
+        return $this->belongsTo(Sport::class, 'sport_id');
     }
 
-    // Una Cancha pertenece a un Distrito
     public function district()
     {
-        return $this->belongsTo(District::class);
+        return $this->belongsTo(District::class, 'district_id');
+    }
+    
+    // 🔴 Modificación para Múltiples Imágenes
+    public function registerMediaCollections(): void
+    {
+        // Eliminamos el singleFile() para permitir muchas fotos
+        $this->addMediaCollection('canchas'); 
     }
 }
