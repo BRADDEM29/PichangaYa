@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
     $this->call([
         DistrictSeeder::class,
         SportSeeder::class,
+        BusinessSeeder::class, 
     ]);
         // 2. Usuario de prueba adicional (Opcional)
         User::firstOrCreate(
