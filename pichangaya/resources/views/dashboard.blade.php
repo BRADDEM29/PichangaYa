@@ -54,32 +54,44 @@
             </div>
 
             {{-- SECCIÓN 2: RESULTADOS (GRILLA) --}}
-            @if($businesses->isEmpty())
+            @if($canchas->isEmpty()) {{-- Cambiado de businesses a canchas --}}
                 <div class="text-center py-10">
                     <p class="text-gray-500 text-lg">No encontramos canchas con esos filtros. 😢</p>
                     <a href="{{ route('dashboard') }}" class="text-indigo-600 hover:underline">Ver todas</a>
                 </div>
             @else
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach($businesses as $business)
-                        <div class="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-2xl transition duration-300">
-                            {{-- Foto Falsa (Placeholder) --}}
-                            <div class="h-48 bg-gray-300 flex items-center justify-center">
-                                <span class="text-4xl">🏟️</span>
+                    @foreach($canchas as $cancha) {{-- Variable actualizada --}}
+                        <div class="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-2xl transition duration-300 flex flex-col h-full">
+                            
+                            {{-- FOTO (Usando la lógica de tu compañero) --}}
+                            <div class="h-48 w-full bg-gray-200 relative">
+                                @if($cancha->getFirstMediaUrl('canchas'))
+                                    <img src="{{ $cancha->getFirstMediaUrl('canchas') }}" alt="{{ $cancha->name }}" class="w-full h-full object-cover">
+                                @else
+                                    <div class="flex items-center justify-center h-full text-4xl">🏟️</div>
+                                @endif
+                                
+                                {{-- Precio (Nuevo dato) --}}
+                                <div class="absolute top-2 right-2 bg-white px-2 py-1 rounded shadow text-sm font-bold text-gray-800">
+                                    S/ {{ $cancha->price_per_hour }}
+                                </div>
                             </div>
                             
-                            <div class="p-5">
-                                <div class="flex justify-between items-start">
-                                    <h3 class="text-xl font-bold text-gray-900">{{ $business->name }}</h3>
-                                    <span class="bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded">
-                                        {{ $business->district->name }}
+                            <div class="p-5 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex justify-between items-start">
+                                        <h3 class="text-xl font-bold text-gray-900 leading-tight">{{ $cancha->name }}</h3>
+                                    </div>
+                                    <span class="inline-block mt-2 bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                                        {{ $cancha->district->name }} • {{ $cancha->sport->name }}
                                     </span>
+                                    <p class="text-gray-600 mt-2 text-sm line-clamp-2">{{ $cancha->description }}</p>
+                                    <p class="text-gray-500 text-xs mt-1">📍 {{ $cancha->address }}</p>
                                 </div>
-                                <p class="text-gray-600 mt-2 text-sm">📍 {{ $business->address }}</p>
                                 
-                                <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                    <span class="text-sm text-gray-500">Abierto ahora</span>
-                                    <button class="text-indigo-600 hover:text-indigo-900 font-bold text-sm">
+                                <div class="mt-4 pt-4 border-t border-gray-100">
+                                    <button class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 transition">
                                         Ver detalles &rarr;
                                     </button>
                                 </div>

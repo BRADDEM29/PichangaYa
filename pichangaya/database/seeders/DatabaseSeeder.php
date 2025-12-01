@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash; // <--- AGREGAR ESTA LÍNEA ES CRUCIAL
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,26 +13,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Aquí llamamos a tu archivo de Roles (Admin, Dueño, Cliente)
-        // Esto está PERFECTO, es lo que necesitábamos.
-        $this->call(UserSeeder::class);
+        // Llamamos a todos los seeders en UN SOLO GRUPO
+        $this->call([
+            UserSeeder::class,      // 1. Usuarios (Admin, Dueño)
+            DistrictSeeder::class,  // 2. Distritos
+            SportSeeder::class,     // 3. Deportes
+            CanchaSeeder::class,    // 4. Canchas (necesita lo anterior)
+        ]);
 
-        // 2. Distritos y Deportes (NUEVO)
-    $this->call([
-        DistrictSeeder::class,
-        SportSeeder::class,
-        BusinessSeeder::class, 
-    ]);
-        // 2. Usuario de prueba adicional (Opcional)
+        // Usuario de prueba adicional (Opcional, si quieres tenerlo aparte)
         User::firstOrCreate(
             ['email' => 'test@example.com'],
             [
                 'name' => 'Test User',
-                // CORRECCIÓN: La contraseña SIEMPRE debe ir con Hash::make
-                'password' => Hash::make('password'), 
+                'password' => Hash::make('password'),
                 'email_verified_at' => now(),
-                // Como ya tienes roles, es bueno definir qué es este usuario (opcional)
-                'role' => 'user', 
+                'role' => 'user',
             ]
         );
     }
