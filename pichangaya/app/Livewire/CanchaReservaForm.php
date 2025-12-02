@@ -18,7 +18,6 @@ class CanchaReservaForm extends Component
     public $duration = 1;
     public $total_price = 0.00;
     
-    // Lista de horarios inteligentes
     public $timeSlots = []; 
 
     protected $rules = [
@@ -32,7 +31,6 @@ class CanchaReservaForm extends Component
         $this->cancha = $cancha;
         $this->date = Carbon::today()->toDateString();
         
-        // Generar horarios y calcular precio inicial
         $this->generateTimeSlots();
         $this->calculatePrice();
     }
@@ -52,29 +50,35 @@ class CanchaReservaForm extends Component
     public function generateTimeSlots()
     {
         $this->timeSlots = [];
-        $startHour = 7; // 7:00 AM
-        $endHour = 23;  // 11:00 PM
+        $startHour = 7; 
+        $endHour = 23;  
         
-        // Buscar reservas ocupadas
         $occupied = Reserva::where('cancha_id', $this->cancha->id)
             ->whereDate('start_time', $this->date)
             ->whereIn('status', ['confirmed', 'pending'])
             ->get();
 
         $firstAvailableFound = false;
+        $now = Carbon::now(); // Hora actual del servidor
 
         for ($hour = $startHour; $hour < $endHour; $hour++) {
+            // Creamos la fecha/hora del slot
             $slotTime = Carbon::parse($this->date)->setHour($hour)->setMinute(0)->setSecond(0);
             
-            // Verificar si choca con alguna reserva
+            // 1. Verificamos si choca con reservas
             $isOccupied = $occupied->filter(function ($reserva) use ($slotTime) {
                 $resStart = Carbon::parse($reserva->start_time);
                 $resEnd = Carbon::parse($reserva->end_time);
                 return $slotTime->greaterThanOrEqualTo($resStart) && $slotTime->lessThan($resEnd);
             })->isNotEmpty();
 
-            $value = $slotTime->format('H:i'); // Valor interno (24h)
-            $label = $slotTime->format('h:i A'); // Valor visible (12h)
+            // 2. 🟢 CORRECCIÓN: Verificamos si la hora YA PASÓ (solo si es hoy)
+            if (!$isOccupied && $slotTime->isPast()) {
+                $isOccupied = true; // Lo marcamos como ocupado/no disponible
+            }
+
+            $value = $slotTime->format('H:i');
+            $label = $slotTime->format('h:i A');
 
             $this->timeSlots[] = [
                 'value' => $value,
@@ -82,14 +86,13 @@ class CanchaReservaForm extends Component
                 'occupied' => $isOccupied
             ];
 
-            // Auto-seleccionar el primero libre si no está ocupado
+            // Auto-seleccionar el primero libre
             if (!$isOccupied && !$firstAvailableFound) {
                 $this->time = $value;
                 $firstAvailableFound = true;
             }
         }
 
-        // Si no se encontró ninguno libre o todo está ocupado
         if (!$firstAvailableFound) {
             $this->time = '';
         }
@@ -97,7 +100,6 @@ class CanchaReservaForm extends Component
 
     public function calculatePrice()
     {
-        // 🟢 CORRECCIÓN: Convertir a (int) para evitar errores matemáticos
         $this->total_price = $this->cancha->price_per_hour * (int) $this->duration;
     }
 
@@ -111,16 +113,14 @@ class CanchaReservaForm extends Component
         }
 
         $start_time = Carbon::createFromFormat('Y-m-d H:i', $this->date . ' ' . $this->time);
-        
-        // 🟢 CORRECCIÓN CRÍTICA: Convertir duración a (int) para evitar el TypeError de Carbon
         $end_time = $start_time->copy()->addHours((int) $this->duration);
 
-        // Validación extra: verificar que el bloque completo (ej. 2 horas) esté libre
         if (!$this->isRangeAvailable($start_time, $end_time)) {
              $this->addError('availability', 'El bloque de tiempo seleccionado choca con otra reserva.');
              return;
         }
 
+        // Crear Request simulado
         $fakeRequest = new Request([
             'cancha_id' => $this->cancha->id,
             'start_time' => $start_time->format('Y-m-d H:i:s'),
@@ -129,19 +129,19 @@ class CanchaReservaForm extends Component
         ]);
         
         try {
+            // Llamamos al controlador
             $controller = new \App\Http\Controllers\ReservaController();
             $controller->store($fakeRequest);
 
             session()->flash('success', '¡Reserva realizada con éxito!');
             
-            // Recargar slots para reflejar la nueva ocupación
-            $this->generateTimeSlots();
-            
-            // Redirigir al usuario a su lista de reservas
-            return $this->redirect(route('reservas.user.index'), navigate: true);
+            // 🟢 CORRECCIÓN REDIRECCIÓN: Quitamos 'navigate: true' para asegurar compatibilidad
+            return redirect()->route('reservas.user.index');
 
         } catch (ValidationException $e) {
-            throw $e; 
+            // Si el controlador rechaza (ej: 'after:now'), capturamos el error
+            // y lo mostramos en el campo 'time' o 'availability'
+            $this->addError('availability', 'Error de validación: La hora seleccionada no es válida o ya pasó.');
         } catch (\Exception $e) {
             session()->flash('error', 'Ocurrió un error: ' . $e->getMessage());
         }
