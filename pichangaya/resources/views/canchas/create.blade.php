@@ -28,6 +28,17 @@
                             <input type="number" name="price_per_hour" step="0.01" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
                         </div>
 
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+    <div>
+        <label class="block text-sm font-semibold text-gray-700">Hora Apertura</label>
+        <input type="time" name="open_time" value="{{ old('open_time', '08:00') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+    </div>
+    <div>
+        <label class="block text-sm font-semibold text-gray-700">Hora Cierre</label>
+        <input type="time" name="close_time" value="{{ old('close_time', '23:00') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+    </div>
+</div>
+
                         <div class="mb-4">
                             <label class="block text-gray-700 text-sm font-bold mb-2">Descripción</label>
                             <textarea name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>

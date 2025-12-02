@@ -4,14 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+// Importaciones de Spatie
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+// Importaciones de Relaciones
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+// 🔴 CORRECCIÓN 1: 'implements HasMedia' debe ir aquí arriba
 class Cancha extends Model implements HasMedia
 {
     use HasFactory;
+    
+    // 🔴 CORRECCIÓN 2: 'use InteractsWithMedia' es el Trait que va aquí adentro
     use InteractsWithMedia;
 
     protected $fillable = [
@@ -19,15 +24,16 @@ class Cancha extends Model implements HasMedia
         'address',
         'price_per_hour',
         'description',
-        'user_id',
         'sport_id',
         'district_id',
-        // Opcional, si tienes coordenadas para el Sprint 7:
-        // 'latitude', 
-        // 'longitude', 
+        'user_id',
+        'lat', 'lng',
+        // NUEVOS CAMPOS:
+        'open_time',
+        'close_time',
     ];
 
-    // --- RELACIONES DE LA CANCHA ---
+    // --- RELACIONES ---
 
     /**
      * Relación: Una cancha pertenece a un dueño (User).
@@ -38,25 +44,23 @@ class Cancha extends Model implements HasMedia
     }
     
     /**
-     * Relación: Una cancha tiene un deporte (Sport) asignado.
+     * Relación: Una cancha tiene un deporte (Sport).
      */
     public function sport(): BelongsTo
     {
-        // Se puede omitir el segundo argumento ('sport_id') si se sigue la convención de nombres (sport_id)
         return $this->belongsTo(Sport::class); 
     }
 
     /**
-     * Relación: Una cancha está ubicada en un distrito (District).
+     * Relación: Una cancha está en un distrito (District).
      */
     public function district(): BelongsTo
     {
-        // Se puede omitir el segundo argumento ('district_id') si se sigue la convención de nombres (district_id)
         return $this->belongsTo(District::class);
     }
 
     /**
-     * NUEVA RELACIÓN PARA SPRINT 6: Una cancha puede tener muchas reservas.
+     * Relación: Una cancha tiene muchas reservas.
      */
     public function reservas(): HasMany
     {
@@ -65,23 +69,9 @@ class Cancha extends Model implements HasMedia
     
     // --- GESTIÓN DE MEDIA (SPATIE) ---
     
-    /**
-     * Configuración de las colecciones de media.
-     * 🔴 Configurada para Múltiples Imágenes (colección 'canchas').
-     */
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('canchas')
-             ->singleFile(false); // Aseguramos que se permitan múltiples archivos
+             ->singleFile(false); 
     }
-
-    // --- AYUDAS Y SCOPES (OPCIONALES) ---
-
-    /**
-     * Scope local para canchas activas o disponibles si añades un campo 'is_active'.
-     * public function scopeActive($query)
-     * {
-     * return $query->where('is_active', true);
-     * }
-     */
 }

@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class CanchaController extends Controller
 {
     /**
-     * Muestra el listado de canchas del dueño (Tablero).
-     * Ruta: owner.canchas.index
+     * Muestra el listado de canchas del dueño.
      */
     public function index()
     {
@@ -25,8 +24,7 @@ class CanchaController extends Controller
     }
 
     /**
-     * Muestra el formulario para crear una nueva cancha.
-     * Ruta: owner.canchas.create
+     * Formulario para crear.
      */
     public function create()
     {
@@ -37,8 +35,7 @@ class CanchaController extends Controller
     }
 
     /**
-     * Guarda la nueva cancha en la base de datos (con múltiples imágenes).
-     * Ruta: owner.canchas.store
+     * Guarda la nueva cancha (Incluye horarios, mapa y validación de imágenes).
      */
     public function store(Request $request)
     {
@@ -50,35 +47,36 @@ class CanchaController extends Controller
             'sport_id'       => 'required|exists:sports,id',
             'district_id'    => 'required|exists:districts,id',
             'description'    => 'nullable|string|max:1000',
-            // Validación para array de imágenes
+            
+            // IMAGEN OBLIGATORIA AL CREAR
             'images'         => 'required|array|min:1|max:10', 
             'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:2048', 
+            
+            // MAPA
+            'lat'            => 'nullable|numeric|between:-90,90',
+            'lng'            => 'nullable|numeric|between:-180,180',
+
+            // NUEVOS HORARIOS
+            'open_time'      => 'required|date_format:H:i',
+            'close_time'     => 'required|date_format:H:i|after:open_time',
         ]);
 
         // 2. Crear el registro
-        $cancha = Cancha::create([
-            'name'           => $request->name,
-            'address'        => $request->address,
-            'price_per_hour' => $request->price_per_hour,
-            'sport_id'       => $request->sport_id,
-            'district_id'    => $request->district_id,
-            'description'    => $request->description,
-            'user_id'        => Auth::id(),
-        ]);
+        // Usamos except para que 'images' no rompa la creación, pero 'open_time', 'lat', etc. pasen directo.
+        $cancha = Auth::user()->canchas()->create($request->except('images'));
 
-        // 3. Procesar las imágenes con Spatie (Bucle para múltiples archivos)
+        // 3. Procesar las imágenes
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $cancha->addMedia($image)->toMediaCollection('canchas');
             }
         }
 
-        return redirect()->route('owner.canchas.index')->with('success', 'Cancha creada exitosamente.');
+        return redirect()->route('owner.canchas.index')->with('success', 'Cancha creada exitosamente con ubicación y horarios.');
     }
     
     /**
-     * Muestra el formulario de edición.
-     * Ruta: owner.canchas.edit
+     * Formulario de edición.
      */
     public function edit(Cancha $cancha)
     {
@@ -93,8 +91,7 @@ class CanchaController extends Controller
     }
 
     /**
-     * Actualiza la cancha.
-     * Ruta: owner.canchas.update
+     * Actualiza la cancha (Permite borrar fotos específicas y actualizar horarios).
      */
     public function update(Request $request, Cancha $cancha)
     {
@@ -109,25 +106,48 @@ class CanchaController extends Controller
             'sport_id'       => 'required|exists:sports,id',
             'district_id'    => 'required|exists:districts,id',
             'description'    => 'nullable|string|max:1000',
+            'lat'            => 'nullable|numeric',
+            'lng'            => 'nullable|numeric',
+            
+            // VALIDACIONES NUEVAS
+            'open_time'      => 'required|date_format:H:i',
+            'close_time'     => 'required|date_format:H:i|after:open_time',
+            
+            // Imágenes son opcionales al editar (porque ya tiene)
             'images'         => 'nullable|array|max:10', 
-            'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:2048', 
+            'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:2048',
+            
+            // Array de IDs de imágenes para eliminar
+            'delete_images'  => 'nullable|array', 
         ]);
 
-        // Actualizar datos
-        $cancha->update($request->only([
-            'name', 'address', 'price_per_hour', 'sport_id', 'district_id', 'description',
-        ]));
+        // 1. Actualizar datos (Excluimos imágenes para manejarlas manual)
+        $cancha->update($request->except(['images', 'delete_images']));
         
-        // Manejo de nuevas imágenes
+        // 2. ELIMINAR IMÁGENES SELECCIONADAS
+        if ($request->has('delete_images')) {
+            foreach ($request->input('delete_images') as $mediaId) {
+                // Buscamos la imagen asociada a esta cancha
+                $media = $cancha->media()->find($mediaId);
+                if ($media) {
+                    $media->delete(); // Spatie la borra del disco y de la BD
+                }
+            }
+        }
+
+        // 3. AGREGAR NUEVAS IMÁGENES
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $cancha->addMedia($image)->toMediaCollection('canchas');
             }
         }
 
-        return redirect()->route('owner.canchas.index')->with('success', 'Cancha actualizada.');
+        return redirect()->route('owner.canchas.index')->with('success', 'Cancha actualizada correctamente.');
     }
     
+    /**
+     * Eliminar cancha.
+     */
     public function destroy(Cancha $cancha)
     {
         if ($cancha->user_id !== Auth::id()) {

@@ -10,113 +10,105 @@
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     
-                    {{-- OJO: enctype es obligatorio para subir archivos --}}
                     <form action="{{ route('owner.canchas.update', $cancha) }}" method="POST" enctype="multipart/form-data">
                         @csrf 
-                        @method('PUT') {{-- Método para la actualización --}}
+                        @method('PUT')
 
                         {{-- Nombre --}}
                         <div class="mb-4">
                             <label for="name" class="block text-sm font-semibold text-gray-700">Nombre de la Cancha</label>
-                            <input type="text" name="name" id="name" value="{{ old('name', $cancha->name) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Ej: Estadio Monumental" required>
+                            <input type="text" name="name" id="name" value="{{ old('name', $cancha->name) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                             @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- Contenedor Responsivo para Distritos y Deportes --}}
+                        {{-- Selectores --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                             {{-- Distrito --}}
                             <div class="mb-4">
                                 <label for="district_id" class="block text-sm font-semibold text-gray-700">Distrito</label>
                                 <select name="district_id" id="district_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                    <option value="">Seleccione...</option>
                                     @foreach($districts as $district)
                                         <option value="{{ $district->id }}" {{ old('district_id', $cancha->district_id) == $district->id ? 'selected' : '' }}>{{ $district->name }}</option>
                                     @endforeach
                                 </select>
-                                @error('district_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                             </div>
-
-                            {{-- Deporte --}}
                             <div class="mb-4">
                                 <label for="sport_id" class="block text-sm font-semibold text-gray-700">Deporte</label>
                                 <select name="sport_id" id="sport_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                    <option value="">Seleccione...</option>
                                     @foreach($sports as $sport)
                                         <option value="{{ $sport->id }}" {{ old('sport_id', $cancha->sport_id) == $sport->id ? 'selected' : '' }}>{{ $sport->name }}</option>
                                     @endforeach
                                 </select>
-                                @error('sport_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                             </div>
                         </div>
 
                         {{-- Precio --}}
                         <div class="mb-4">
                             <label for="price_per_hour" class="block text-sm font-semibold text-gray-700">Precio por Hora (S/)</label>
-                            <input type="number" step="0.01" name="price_per_hour" id="price_per_hour" value="{{ old('price_per_hour', $cancha->price_per_hour) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" required>
-                            @error('price_per_hour') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            <input type="number" step="0.01" name="price_per_hour" id="price_per_hour" value="{{ old('price_per_hour', $cancha->price_per_hour) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                        </div>
+
+                        {{-- NUEVO: Horarios (Pre-cargados) --}}
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700">Hora Apertura</label>
+                                <input type="time" name="open_time" value="{{ old('open_time', \Carbon\Carbon::parse($cancha->open_time)->format('H:i')) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700">Hora Cierre</label>
+                                <input type="time" name="close_time" value="{{ old('close_time', \Carbon\Carbon::parse($cancha->close_time)->format('H:i')) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                        </div>
+
+                        {{-- NUEVO: GESTIÓN DE IMÁGENES --}}
+                        <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <label class="block text-sm font-bold text-gray-700 mb-3">Imágenes Actuales (Marca para eliminar)</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                @forelse($cancha->getMedia('canchas') as $media)
+                                    <div class="relative group border rounded-lg bg-white p-2 shadow-sm">
+                                        <img src="{{ $media->getUrl() }}" class="w-full h-24 object-cover rounded">
+                                        <div class="mt-2 flex items-center justify-center bg-red-50 py-1 rounded cursor-pointer hover:bg-red-100 transition">
+                                            <label class="inline-flex items-center space-x-2 cursor-pointer w-full justify-center">
+                                                <input type="checkbox" name="delete_images[]" value="{{ $media->id }}" class="form-checkbox text-red-600 rounded focus:ring-red-500 border-gray-300 h-4 w-4">
+                                                <span class="text-xs text-red-600 font-bold">Eliminar</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <p class="text-sm text-gray-500 col-span-full">No hay imágenes cargadas.</p>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        {{-- Subir Nuevas Imágenes --}}
+                        <div class="mb-4">
+                            <label for="images" class="block text-sm font-semibold text-gray-700">Agregar Nuevas Fotos (Opcional)</label>
+                            <input type="file" name="images[]" id="images" multiple accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                            <div id="image-preview" class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
                         </div>
 
                         {{-- Dirección --}}
                         <div class="mb-4">
-                            <label for="address" class="block text-sm font-semibold text-gray-700">Dirección</label>
-                            <input type="text" name="address" id="address" value="{{ old('address', $cancha->address) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Av. Siempre Viva 123" required>
-                            @error('address') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            <label for="address" class="block text-sm font-semibold text-gray-700">Dirección Escrita</label>
+                            <input type="text" name="address" id="address" value="{{ old('address', $cancha->address) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
                         </div>
 
-                        {{-- Campo Oculto para IDs de imágenes a eliminar --}}
-                        <input type="hidden" name="images_to_delete" id="images-to-delete" value="">
-
-                        {{-- SECCIÓN DE IMÁGENES EXISTENTES --}}
-                        @php
-                            $existingMedia = $cancha->getMedia('canchas');
-                        @endphp
-                        <h4 class="text-md font-semibold mt-6 mb-2 text-gray-700">Imágenes Actuales ({{ $existingMedia->count() }} / 10)</h4>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="current-images-container">
-                            @forelse($existingMedia as $media)
-                                <div id="media-{{ $media->id }}" class="relative group">
-                                    <img src="{{ $media->getUrl() }}" alt="Cancha Imagen" class="w-full h-24 object-cover rounded-lg border border-gray-200">
-                                    <button type="button" 
-                                            data-media-id="{{ $media->id }}" 
-                                            class="delete-media-btn absolute top-1 right-1 bg-red-600 hover:bg-red-800 text-white p-1 rounded-full text-xs opacity-0 group-hover:opacity-100 transition duration-300"
-                                            title="Eliminar imagen">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    </button>
-                                </div>
-                            @empty
-                                <div class="col-span-4 text-gray-500">No hay imágenes actuales.</div>
-                            @endforelse
+                        {{-- MAPA (EDICIÓN) --}}
+                        <div class="mt-6 mb-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Ubicación en el Mapa</label>
+                            <div id="map" class="w-full h-96 rounded-lg shadow-md border border-gray-300"></div>
+                            <input type="hidden" name="lat" id="lat" value="{{ old('lat', $cancha->lat) }}">
+                            <input type="hidden" name="lng" id="lng" value="{{ old('lng', $cancha->lng) }}">
                         </div>
-                        <p class="text-sm text-red-500 mb-4">Click en (X) para marcar una imagen para ser eliminada al guardar. Debe quedar un mínimo de 1 foto.</p>
-                        @error('images') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                        {{-- FIN SECCIÓN DE IMÁGENES EXISTENTES --}}
-
-
-                        {{-- CAMPO MÚLTIPLE IMAGEN (NUEVAS) --}}
-                        <div class="mb-4">
-                            <label for="images" class="block text-sm font-semibold text-gray-700">Subir más Fotos</label>
-                            <input type="file" name="images[]" id="images" multiple accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                            <p class="mt-1 text-xs text-gray-500">Máximo 10 imágenes en total (Existentes + Nuevas).</p>
-                            
-                            {{-- Contenedor para previsualización de nuevas imágenes --}}
-                            <div id="image-preview" class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
-                        </div>
-                        {{-- FIN CAMPO MÚLTIPLE IMAGEN --}}
-
 
                         {{-- Descripción --}}
                         <div class="mb-4">
-                            <label for="description" class="block text-sm font-semibold text-gray-700">Descripción (Opcional)</label>
+                            <label for="description" class="block text-sm font-semibold text-gray-700">Descripción</label>
                             <textarea name="description" id="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('description', $cancha->description) }}</textarea>
-                            @error('description') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
                         <div class="flex justify-end gap-2">
-                            <a href="{{ route('owner.canchas.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                                Cancelar
-                            </a>
-                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
-                                Actualizar Cancha
-                            </button>
+                            <a href="{{ route('owner.canchas.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Cancelar</a>
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Actualizar Cancha</button>
                         </div>
                     </form>
 
@@ -126,62 +118,51 @@
     </div>
 </x-app-layout>
 
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_key') }}&callback=initMap" async defer></script>
+
 <script>
-    // Script para manejar la lista de imágenes a eliminar (Edit view)
-    document.addEventListener('DOMContentLoaded', function() {
-        const deleteButtons = document.querySelectorAll('.delete-media-btn');
-        const imagesToDeleteInput = document.getElementById('images-to-delete');
-        let idsToDelete = [];
+    let map;
+    let marker;
 
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const mediaId = this.dataset.mediaId;
-                const imageWrapper = document.getElementById(`media-${mediaId}`);
-                
-                if (imageWrapper.classList.contains('opacity-50')) {
-                    // Revertir (quitar de la lista de eliminación)
-                    imageWrapper.classList.remove('opacity-50', 'grayscale', 'border-red-500');
-                    imageWrapper.classList.add('group');
-                    this.classList.replace('bg-green-600', 'bg-red-600');
-                    
-                    idsToDelete = idsToDelete.filter(id => id != mediaId);
-                } else {
-                    // Marcar para eliminación
-                    imageWrapper.classList.add('opacity-50', 'grayscale', 'border-red-500');
-                    imageWrapper.classList.remove('group');
-                    this.classList.replace('bg-red-600', 'bg-green-600'); // Cambia el color para indicar que está marcado
-                    
-                    idsToDelete.push(mediaId);
-                }
-                
-                imagesToDeleteInput.value = idsToDelete.join(',');
-                console.log('IDs a eliminar:', imagesToDeleteInput.value);
-            });
+    function initMap() {
+        const savedLat = {{ $cancha->lat ?? -13.5167 }};
+        const savedLng = {{ $cancha->lng ?? -71.9788 }};
+        const initialPosition = { lat: savedLat, lng: savedLng };
+        
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: initialPosition,
+            zoom: 16,
         });
 
-        // Script para previsualizar NUEVAS imágenes (igual que en create)
-        document.getElementById('images').addEventListener('change', function(event) {
-            const previewContainer = document.getElementById('image-preview');
-            previewContainer.innerHTML = ''; 
+        marker = new google.maps.Marker({
+            position: initialPosition,
+            map: map,
+            draggable: true,
+            title: "Ubicación de la cancha",
+            animation: google.maps.Animation.DROP
+        });
 
-            for (const file of event.target.files) {
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const imgWrapper = document.createElement('div');
-                        imgWrapper.className = 'relative aspect-w-1 aspect-h-1';
-                        
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.alt = 'Preview';
-                        img.className = 'w-full h-full object-cover rounded-md shadow';
-                        
-                        imgWrapper.appendChild(img);
-                        previewContainer.appendChild(imgWrapper);
-                    };
-                    reader.readAsDataURL(file);
-                }
+        marker.addListener("dragend", () => {
+            const position = marker.getPosition();
+            document.getElementById('lat').value = position.lat();
+            document.getElementById('lng').value = position.lng();
+        });
+    }
+
+    document.getElementById('images').addEventListener('change', function(event) {
+        const previewContainer = document.getElementById('image-preview');
+        previewContainer.innerHTML = '';
+        for (const file of event.target.files) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'w-20 h-20 object-cover rounded-md shadow inline-block mr-2';
+                    previewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
             }
-        });
+        }
     });
 </script>

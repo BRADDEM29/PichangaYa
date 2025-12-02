@@ -46,9 +46,20 @@
                                 </span>
                             </div>
 
-                            <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between">
-                                <a href="{{ route('owner.canchas.edit', $cancha) }}" class="text-indigo-600 font-medium hover:text-indigo-900">Editar</a>
-                                {{-- Formulario para eliminar si lo deseas agregar --}}
+                            <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                                {{-- Botón Editar --}}
+                                <a href="{{ route('owner.canchas.edit', $cancha) }}" class="text-indigo-600 font-medium hover:text-indigo-900 flex items-center gap-1">
+                                    <span>✏️</span> Editar
+                                </a>
+
+                                {{-- Botón Eliminar (NUEVO) --}}
+                                <form action="{{ route('owner.canchas.destroy', $cancha) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar esta cancha permanentemente?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 font-medium hover:text-red-900 flex items-center gap-1">
+                                        <span>🗑️</span> Eliminar
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
