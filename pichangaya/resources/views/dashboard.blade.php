@@ -91,9 +91,10 @@
                                 </div>
                                 
                                 <div class="mt-4 pt-4 border-t border-gray-100">
-                                    <button class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 transition">
+                                    {{-- 💡 CAMBIADO: Button a enlace <a> apuntando a la ruta de detalle --}}
+                                    <a href="{{ route('canchas.show', $cancha) }}" class="block w-full text-center bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 transition">
                                         Ver detalles &rarr;
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                         </div>

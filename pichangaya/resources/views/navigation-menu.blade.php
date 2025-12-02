@@ -7,7 +7,6 @@
                 {{-- Logo de la Aplicación --}}
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        {{-- Componente Blade para el logo --}}
                         <x-application-mark class="block h-9 w-auto" />
                     </a>
                 </div>
@@ -17,7 +16,12 @@
                     
                     {{-- Enlace Principal: Dashboard --}}
                     <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
+                        {{ __('Explorar') }}
+                    </x-nav-link>
+
+                    {{-- 🟢 NUEVO BOTÓN: MIS RESERVAS --}}
+                    <x-nav-link href="{{ route('reservas.user.index') }}" :active="request()->routeIs('reservas.user.*')">
+                        {{ __('📅 Mis Reservas') }}
                     </x-nav-link>
 
                     {{-- MENÚ DE ADMINISTRADOR --}}
@@ -85,6 +89,11 @@
                                     {{-- Enlace limpio directamente a Mis Canchas --}}
                                     <x-dropdown-link href="{{ route('owner.canchas.index') }}">
                                         {{ __('Mis Canchas') }}
+                                    </x-dropdown-link>
+                                    
+                                    {{-- Enlace a Gestión de Reservas (Dueño) --}}
+                                    <x-dropdown-link href="{{ route('owner.reservas.index') }}">
+                                        {{ __('Gestionar Reservas') }}
                                     </x-dropdown-link>
                                 </x-slot>
                             </x-dropdown>
@@ -218,7 +227,12 @@
         {{-- ENLACES PRINCIPALES --}}
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
+                {{ __('Explorar') }}
+            </x-responsive-nav-link>
+
+            {{-- 🟢 NUEVO BOTÓN RESPONSIVE --}}
+            <x-responsive-nav-link href="{{ route('reservas.user.index') }}" :active="request()->routeIs('reservas.user.*')">
+                {{ __('📅 Mis Reservas') }}
             </x-responsive-nav-link>
 
             {{-- ENLACES RESPONSIVE DE ADMINISTRADOR --}}
@@ -249,9 +263,14 @@
                         {{ __('⚽ PANEL PROVEEDOR') }}
                     </div>
                     
-                    {{-- Solo enlace a Mis Canchas --}}
+                    {{-- Enlace a Mis Canchas --}}
                     <x-responsive-nav-link href="{{ route('owner.canchas.index') }}" :active="request()->routeIs('owner.canchas.*')">
                         {{ __('Mis Canchas') }}
+                    </x-responsive-nav-link>
+
+                    {{-- Enlace a Gestión de Reservas --}}
+                    <x-responsive-nav-link href="{{ route('owner.reservas.index') }}" :active="request()->routeIs('owner.reservas.*')">
+                        {{ __('Gestionar Reservas') }}
                     </x-responsive-nav-link>
                 </div>
             @endif

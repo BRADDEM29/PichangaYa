@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cancha; // <--- CAMBIO: Usamos el modelo de tu compañero
+use App\Models\Cancha; 
 use App\Models\District;
 use App\Models\Sport;
+use App\Models\Reserva; // NECESARIO para obtener los horarios ocupados
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
+    /**
+     * Muestra la lista de canchas con filtros (Dashboard principal del cliente).
+     */
     public function index(Request $request)
     {
         // Usamos 'Cancha' y cargamos las relaciones (incluyendo 'media' para las fotos)
@@ -18,6 +22,7 @@ class DashboardController extends Controller
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function($q) use ($search) {
+                // 🔴 CORRECCIÓN AQUÍ: Quitamos los backslashes (\\) que causaban el ParseError.
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('address', 'like', "%{$search}%");
             });
@@ -33,11 +38,35 @@ class DashboardController extends Controller
             $query->where('sport_id', $request->input('sport_id'));
         }
 
-        $canchas = $query->get(); // Cambiamos variable a $canchas
+        $canchas = $query->get(); // Obtenemos las canchas filtradas
         $districts = District::all();
         $sports = Sport::all();
 
-        // Enviamos 'canchas' a la vista en lugar de 'businesses'
+        // Enviamos 'canchas' a la vista
         return view('dashboard', compact('canchas', 'districts', 'sports'));
+    }
+
+    /**
+     * Muestra el detalle de una cancha pública (Ruta: /canchas/{cancha}).
+     * * @param \App\Models\Cancha $cancha
+     * @return \Illuminate\View\View
+     */
+    public function show(Cancha $cancha)
+    {
+        // 1. Cargar la Cancha con sus relaciones necesarias
+        $cancha->load(['district', 'sport', 'media']);
+
+        // 2. Obtener las reservas confirmadas (o pendientes, si aplica) para esta cancha.
+        // Esto es crucial para mostrar un calendario de disponibilidad y evitar choques.
+        $reservasOcupadas = Reserva::where('cancha_id', $cancha->id)
+                                    // Solo las reservas confirmadas o pendientes, no las canceladas.
+                                    ->whereIn('status', ['confirmed', 'pending']) 
+                                    // Solo las reservas futuras (o que no han terminado aún)
+                                    ->where('end_time', '>', now())
+                                    ->select('start_time', 'end_time')
+                                    ->get();
+
+        // La vista será 'canchas.show' (ej. resources/views/canchas/show.blade.php)
+        return view('canchas.show', compact('cancha', 'reservasOcupadas'));
     }
 }
