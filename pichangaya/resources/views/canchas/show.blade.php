@@ -45,20 +45,23 @@
                             </p>
                         </div>
 
-                        {{-- ETIQUETAS (TAGS) - LO QUE PEDISTE --}}
-                        <div class="flex flex-wrap gap-3 mb-6">
-                            {{-- Tag Deporte --}}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                ⚽ {{ $cancha->sport->name ?? 'Deporte General' }}
-                            </span>
+                        {{-- 🟢 ETIQUETAS (TAGS) - CORREGIDO PARA MÚLTIPLES DEPORTES --}}
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            
+                            {{-- Bucle para mostrar TODOS los deportes seleccionados --}}
+                            @foreach($cancha->sports as $sport)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200 shadow-sm">
+                                    {{ $sport->icon }} {{ $sport->name }}
+                                </span>
+                            @endforeach
                             
                             {{-- Tag Distrito --}}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200 shadow-sm">
                                 🏙️ {{ $cancha->district->name ?? 'Distrito' }}
                             </span>
 
-                            {{-- Tag Ciudad (Estático por ahora, o dinámico si tienes modelo City) --}}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                            {{-- Tag Ciudad --}}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200 shadow-sm">
                                 🇵🇪 Cusco
                             </span>
                         </div>
@@ -73,11 +76,12 @@
                             </p>
                         </div>
 
-                        {{-- Botón WhatsApp --}}
+                        {{-- Botón WhatsApp (Con el número específico de la cancha) --}}
                         @php
-                            $telefono = $cancha->user->phone ?? '51984000000'; 
+                            // Usa el número específico de la cancha, o el del dueño si no hay uno asignado
+                            $telefonoDestino = $cancha->contact_phone ?? $cancha->user->phone ?? '51984000000'; 
                             $mensaje = "Hola, vi su cancha " . $cancha->name . " en PichangaYa y me gustaría reservar.";
-                            $urlWa = "https://wa.me/" . $telefono . "?text=" . urlencode($mensaje);
+                            $urlWa = "https://wa.me/" . $telefonoDestino . "?text=" . urlencode($mensaje);
                         @endphp
                         <div>
                             <a href="{{ $urlWa }}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-xl transition duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1">
@@ -104,7 +108,7 @@
                                     const map = new google.maps.Map(document.getElementById("map-view"), {
                                         center: location,
                                         zoom: 16,
-                                        disableDefaultUI: false, // Deja los controles de zoom
+                                        disableDefaultUI: false,
                                         streetViewControl: true
                                     });
 

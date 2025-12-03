@@ -16,7 +16,7 @@ class CanchaController extends Controller
     public function index()
     {
         $canchas = Cancha::where('user_id', Auth::id())
-                    ->with(['media', 'sport', 'district']) 
+                    ->with(['media', 'sports', 'district']) // 🟢 Cambio: 'sports' en plural
                     ->orderBy('created_at', 'desc')
                     ->get();
         
@@ -31,48 +31,57 @@ class CanchaController extends Controller
         $sports = Sport::all();
         $districts = District::all();
         
-        return view('owner.canchas.create', compact('sports', 'districts'));
+        // Lógica de Teléfonos (Principal + Secundarios)
+        $user = Auth::user();
+        $phones = collect([
+            ['number' => $user->phone, 'label' => 'Principal (' . $user->name . ')']
+        ]);
+        foreach($user->secondaryPhones as $p) {
+            $phones->push(['number' => $p->phone_number, 'label' => $p->label]);
+        }
+
+        return view('owner.canchas.create', compact('sports', 'districts', 'phones'));
     }
 
     /**
-     * Guarda la nueva cancha (Incluye horarios, mapa y validación de imágenes).
+     * Guarda la nueva cancha (Multideporte, Horarios, Mapa, Teléfonos).
      */
     public function store(Request $request)
     {
-        // 1. Validación
         $request->validate([
             'name'           => 'required|string|max:255',
             'address'        => 'required|string|max:255',
             'price_per_hour' => 'required|numeric|min:0',
-            'sport_id'       => 'required|exists:sports,id',
             'district_id'    => 'required|exists:districts,id',
             'description'    => 'nullable|string|max:1000',
-            
-            // IMAGEN OBLIGATORIA AL CREAR
-            'images'         => 'required|array|min:1|max:10', 
-            'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:2048', 
-            
-            // MAPA
             'lat'            => 'nullable|numeric|between:-90,90',
             'lng'            => 'nullable|numeric|between:-180,180',
-
-            // NUEVOS HORARIOS
             'open_time'      => 'required|date_format:H:i',
             'close_time'     => 'required|date_format:H:i|after:open_time',
+            'contact_phone'  => 'required|string|max:20', 
+            'images'         => 'required|array|min:1|max:10', 
+            'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:2048',
+            
+            // 🟢 CAMBIO: Validamos que 'sports' sea un array con al menos 1 selección
+            'sports'         => 'required|array|min:1',
+            'sports.*'       => 'exists:sports,id',
         ]);
 
-        // 2. Crear el registro
-        // Usamos except para que 'images' no rompa la creación, pero 'open_time', 'lat', etc. pasen directo.
-        $cancha = Auth::user()->canchas()->create($request->except('images'));
+        // 1. Crear Cancha 
+        // Excluimos 'sports' (porque no es columna directa) e 'images'
+        $cancha = Auth::user()->canchas()->create($request->except(['images', 'sports']));
 
-        // 3. Procesar las imágenes
+        // 2. Guardar Deportes (Llenar tabla intermedia)
+        $cancha->sports()->sync($request->sports);
+
+        // 3. Guardar Imágenes
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $cancha->addMedia($image)->toMediaCollection('canchas');
             }
         }
 
-        return redirect()->route('owner.canchas.index')->with('success', 'Cancha creada exitosamente con ubicación y horarios.');
+        return redirect()->route('owner.canchas.index')->with('success', 'Cancha creada exitosamente.');
     }
     
     /**
@@ -87,11 +96,20 @@ class CanchaController extends Controller
         $sports = Sport::all();
         $districts = District::all();
         
-        return view('owner.canchas.edit', compact('cancha', 'sports', 'districts'));
+        // Lógica de Teléfonos
+        $user = Auth::user();
+        $phones = collect([
+            ['number' => $user->phone, 'label' => 'Principal (' . $user->name . ')']
+        ]);
+        foreach($user->secondaryPhones as $p) {
+            $phones->push(['number' => $p->phone_number, 'label' => $p->label ?? 'Secundario']);
+        }
+        
+        return view('owner.canchas.edit', compact('cancha', 'sports', 'districts', 'phones'));
     }
 
     /**
-     * Actualiza la cancha (Permite borrar fotos específicas y actualizar horarios).
+     * Actualiza la cancha.
      */
     public function update(Request $request, Cancha $cancha)
     {
@@ -103,39 +121,37 @@ class CanchaController extends Controller
             'name'           => 'required|string|max:255',
             'address'        => 'required|string|max:255',
             'price_per_hour' => 'required|numeric|min:0',
-            'sport_id'       => 'required|exists:sports,id',
             'district_id'    => 'required|exists:districts,id',
             'description'    => 'nullable|string|max:1000',
             'lat'            => 'nullable|numeric',
             'lng'            => 'nullable|numeric',
-            
-            // VALIDACIONES NUEVAS
             'open_time'      => 'required|date_format:H:i',
             'close_time'     => 'required|date_format:H:i|after:open_time',
-            
-            // Imágenes son opcionales al editar (porque ya tiene)
+            'contact_phone'  => 'required|string|max:20',
             'images'         => 'nullable|array|max:10', 
             'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:2048',
+            'delete_images'  => 'nullable|array',
             
-            // Array de IDs de imágenes para eliminar
-            'delete_images'  => 'nullable|array', 
+            // 🟢 CAMBIO: Validar array de deportes
+            'sports'         => 'required|array|min:1',
+            'sports.*'       => 'exists:sports,id',
         ]);
 
-        // 1. Actualizar datos (Excluimos imágenes para manejarlas manual)
-        $cancha->update($request->except(['images', 'delete_images']));
+        // 1. Actualizar datos (Excluimos lo que no es columna directa)
+        $cancha->update($request->except(['images', 'delete_images', 'sports']));
         
-        // 2. ELIMINAR IMÁGENES SELECCIONADAS
+        // 2. Sincronizar Deportes (Actualiza la tabla intermedia automáticamente)
+        $cancha->sports()->sync($request->sports);
+        
+        // 3. Eliminar imágenes marcadas
         if ($request->has('delete_images')) {
             foreach ($request->input('delete_images') as $mediaId) {
-                // Buscamos la imagen asociada a esta cancha
                 $media = $cancha->media()->find($mediaId);
-                if ($media) {
-                    $media->delete(); // Spatie la borra del disco y de la BD
-                }
+                if ($media) $media->delete();
             }
         }
 
-        // 3. AGREGAR NUEVAS IMÁGENES
+        // 4. Agregar nuevas imágenes
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $cancha->addMedia($image)->toMediaCollection('canchas');

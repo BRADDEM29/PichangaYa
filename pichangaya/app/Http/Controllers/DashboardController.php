@@ -15,27 +15,30 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
-        // Usamos 'Cancha' y cargamos las relaciones (incluyendo 'media' para las fotos)
-        $query = Cancha::with(['district', 'sport', 'media']); 
+        // 1. Cargar relaciones
+        // 🔴 CORRECCIÓN: 'sports' en plural para la relación Muchos a Muchos
+        $query = Cancha::with(['district', 'sports', 'media']); 
 
-        // 1. Filtro Texto (Nombre o Dirección)
+        // 2. Filtro Texto (Nombre o Dirección)
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function($q) use ($search) {
-                // 🔴 CORRECCIÓN AQUÍ: Quitamos los backslashes (\\) que causaban el ParseError.
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('address', 'like', "%{$search}%");
             });
         }
 
-        // 2. Filtro Distrito
+        // 3. Filtro Distrito
         if ($request->filled('district_id')) {
             $query->where('district_id', $request->input('district_id'));
         }
 
-        // 3. Filtro Deporte
+        // 4. Filtro Deporte (CORRECCIÓN IMPORTANTE)
+        // Usamos whereHas para buscar dentro de la tabla intermedia 'cancha_sport'
         if ($request->filled('sport_id')) {
-            $query->where('sport_id', $request->input('sport_id'));
+            $query->whereHas('sports', function($q) use ($request) {
+                $q->where('sports.id', $request->input('sport_id'));
+            });
         }
 
         $canchas = $query->get(); // Obtenemos las canchas filtradas
@@ -48,13 +51,14 @@ class DashboardController extends Controller
 
     /**
      * Muestra el detalle de una cancha pública (Ruta: /canchas/{cancha}).
-     * * @param \App\Models\Cancha $cancha
+     * @param \App\Models\Cancha $cancha
      * @return \Illuminate\View\View
      */
     public function show(Cancha $cancha)
     {
         // 1. Cargar la Cancha con sus relaciones necesarias
-        $cancha->load(['district', 'sport', 'media']);
+        // 🔴 CORRECCIÓN: 'sports' en plural
+        $cancha->load(['district', 'sports', 'media', 'user']); // Agregué 'user' para el teléfono del dueño
 
         // 2. Obtener las reservas confirmadas (o pendientes, si aplica) para esta cancha.
         // Esto es crucial para mostrar un calendario de disponibilidad y evitar choques.
