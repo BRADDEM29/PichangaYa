@@ -1,12 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
-// Asumo que si estás usando Volt/Jetstream, el helper 'when' se puede importar o ya está disponible.
-// Si hay un error, puedes necesitar importarlo desde Livewire\Volt\When, o simplemente quitarlo si no lo usas.
 
-// 1. IMPORTACIONES DE CONTROLADORES
+// 1. IMPORTACIONES DE MODELOS
+use App\Models\Cancha;
+use App\Models\District;
+use App\Models\Sport;
+
+// 2. IMPORTACIONES DE CONTROLADORES
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminDistrictController;
 use App\Http\Controllers\AdminSportController;
@@ -16,21 +20,44 @@ use App\Http\Controllers\ReservaController; // Controlador de Reservas
 
 /*
 |--------------------------------------------------------------------------
-| 1. PÁGINA DE INICIO (Pública)
+| 1. PÁGINA DE INICIO (Pública / Welcome)
 |--------------------------------------------------------------------------
 */
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/', function (Request $request) {
+    // Lógica de búsqueda
+    $query = Cancha::query();
+
+    // Filtro por Texto
+    if ($request->filled('search')) {
+        $query->where('name', 'like', '%' . $request->input('search') . '%')
+              ->orWhere('address', 'like', '%' . $request->input('search') . '%');
+    }
+
+    // Filtro por Distrito
+    if ($request->filled('district_id')) {
+        $query->where('district_id', $request->input('district_id'));
+    }
+
+    // Filtro por Deporte
+    if ($request->filled('sport_id')) {
+        $query->where('sport_id', $request->input('sport_id'));
+    }
+
+    $canchas = $query->get();
+    $districts = District::all();
+    $sports = Sport::all();
+
+    return view('welcome', compact('canchas', 'districts', 'sports'));
 })->name('home');
 
-// 💡 NUEVA RUTA: Detalle de Cancha Pública
+// RUTA PÚBLICA: Detalle de Cancha
 Route::get('/canchas/{cancha}', [DashboardController::class, 'show'])->name('canchas.show');
+
 
 /*
 |--------------------------------------------------------------------------
 | 2. RUTAS DE PERFIL Y AJUSTES (Jetstream / Volt)
 |--------------------------------------------------------------------------
-| Protegidas por el middleware 'auth'.
 */
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
@@ -39,14 +66,13 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/password', 'settings.password')->name('user-password.edit');
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
 
-    // Autenticación de dos factores
     Volt::route('settings/two-factor', 'settings.two-factor')
         ->middleware(
-            when(
+            \Illuminate\Support\Arr::wrap(
                 Features::canManageTwoFactorAuthentication() && 
-                Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
-                ['password.confirm'],
-                []
+                Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword')
+                ? ['password.confirm']
+                : []
             )
         )
         ->name('two-factor.show');
@@ -57,7 +83,7 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 | 3. DASHBOARD GENERAL (Usuarios Clientes)
 |--------------------------------------------------------------------------
-| Rutas accesibles para cualquier usuario autenticado y verificado.
+| Rutas para usuarios logueados: Reservar, ver mis reservas, etc.
 */
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
     
@@ -66,28 +92,28 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     // --- RUTAS DE RESERVAS DEL CLIENTE ---
     
-    // Crear reserva
+    // 🟢 [CORRECCIÓN] ESTA ES LA RUTA QUE FALTABA
+    // Muestra el formulario para crear una reserva nueva
+    Route::get('/reservas/crear/{cancha}', [ReservaController::class, 'create'])->name('reservas.create');
+
+    // Procesar el formulario (Guardar en BD)
     Route::post('/reservas', [ReservaController::class, 'store'])->name('reservas.store');
 
     // Ver mis reservas
     Route::get('/reservas/mis-reservas', [ReservaController::class, 'userReservasIndex'])->name('reservas.user.index');
     
-    // Detalle de cancha pública
-    Route::get('/canchas/{cancha}', [DashboardController::class, 'show'])->name('canchas.show');
-
-    // 🟢 NUEVO: Cancelar mi reserva
+    // Cancelar mi reserva
     Route::put('/reservas/{reserva}/cancel', [ReservaController::class, 'cancelUser'])->name('reservas.cancel');
 
-    // 🟢 NUEVO: Editar mi reserva (Muestra el formulario)
+    // Editar mi reserva
     Route::get('/reservas/{reserva}/edit', [ReservaController::class, 'editUser'])->name('reservas.edit');
-
 });
+
 
 /*
 |--------------------------------------------------------------------------
-| 4. ZONA ADMINISTRADOR (Prefijo: /panel-admin)
+| 4. ZONA ADMINISTRADOR
 |--------------------------------------------------------------------------
-| Protegido por el middleware 'role:admin'.
 */
 Route::middleware(['auth', 'role:admin']) 
     ->prefix('panel-admin')
@@ -105,32 +131,35 @@ Route::middleware(['auth', 'role:admin'])
             Route::delete('/users/{id}', 'destroy')->name('users.destroy');
         });
 
-        // Gestión de Distritos y Deportes (CRUD sin create, edit, show)
+        // Distritos y Deportes
         Route::resource('districts', AdminDistrictController::class)->except(['create', 'edit', 'show']);
         Route::resource('sports', AdminSportController::class)->except(['create', 'edit', 'show']);
     });
     
+
 /*
 |--------------------------------------------------------------------------
-| 5. ZONA DUEÑO (Prefijo: /panel-dueno)
+| 5. ZONA DUEÑO
 |--------------------------------------------------------------------------
-| Protegido por el middleware 'role:owner'.
 */
 Route::middleware(['auth', 'role:owner'])
     ->prefix('panel-dueno')
     ->name('owner.')
     ->group(function () {
 
-        // 1. Redirección Principal
         Route::redirect('/', '/panel-dueno/canchas')->name('dashboard');
 
-        // 2. Rutas de Canchas (CRUD)
+        // Rutas de Canchas
         Route::resource('canchas', CanchaController::class);
         
-        // RUTAS DE GESTIÓN DE RESERVAS DEL DUEÑO
-        // GET: Para que el dueño pueda ver las reservas de SUS canchas.
+        // Gestión de Reservas (Dueño)
         Route::get('/reservas', [ReservaController::class, 'ownerReservasIndex'])->name('reservas.index');
-        // PUT: Para actualizar el estado de una reserva (ej: confirmar, cancelar)
         Route::put('/reservas/{reserva}/update-status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
         
     });
+
+// REDIRECCIÓN INTELIGENTE
+Route::get('/login-redirect', function () {
+    session()->put('url.intended', url()->previous());
+    return redirect()->route('login');
+})->name('login.redirect');
