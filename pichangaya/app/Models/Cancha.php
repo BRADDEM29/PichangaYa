@@ -70,9 +70,11 @@ class Cancha extends Model implements HasMedia
     
     // --- GESTIÓN DE MEDIA (SPATIE) ---
     
+    // --- GESTIÓN DE MEDIA (SPATIE) ---
+    
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('canchas')
-             ->singleFile(false); 
+        // 🟢 CORRECCIÓN: Quitamos ->singleFile()
+        $this->addMediaCollection('canchas'); 
     }
 }

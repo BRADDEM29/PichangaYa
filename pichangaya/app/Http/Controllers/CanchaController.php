@@ -77,6 +77,7 @@ class CanchaController extends Controller
         // 3. Guardar Imágenes
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
+                // en lugar de reemplazar.
                 $cancha->addMedia($image)->toMediaCollection('canchas');
             }
         }
