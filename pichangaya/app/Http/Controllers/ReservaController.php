@@ -7,10 +7,13 @@ use App\Models\Cancha;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-use Carbon\Carbon; // Usaremos Carbon para manejar fechas más fácil
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests; // Importante
+use Carbon\Carbon;
 
 class ReservaController extends Controller
 {
+    use AuthorizesRequests; // Habilita $this->authorize
+
     /**
      * Valida si un horario solicitado está disponible.
      */
@@ -22,56 +25,41 @@ class ReservaController extends Controller
         $existingReserva = Reserva::where('cancha_id', $canchaId)
             ->where('end_time', '>', $start)
             ->where('start_time', '<', $end)
-            ->where('status', '!=', 'cancelled') // Ignoramos las canceladas
+            ->where('status', '!=', 'cancelled')
             ->exists();
             
         return !$existingReserva;
     }
 
     // -------------------------------------------------------------------------
-    // 🟢 MÉTODO NUEVO: CREATE (Formulario de Reserva)
+    // CLIENTE: CREAR RESERVA
     // -------------------------------------------------------------------------
-    /**
-     * Muestra la vista con el formulario para crear la reserva.
-     * Recibe la cancha seleccionada desde la ruta.
-     */
     public function create(Cancha $cancha)
     {
-        // Retorna la vista resources/views/reservas/create.blade.php
         return view('reservas.create', compact('cancha'));
     }
 
-    /**
-     * Procesa el formulario y guarda la reserva en la base de datos.
-     */
     public function store(Request $request)
     {
-        // 1. Validación de datos
         $request->validate([
             'cancha_id' => 'required|exists:canchas,id',
             'start_time' => 'required|date|after:now',
             'end_time'   => 'required|date|after:start_time',
-            // 'total_price' => se calcula abajo por seguridad, aunque puedes recibirlo si prefieres
         ]);
 
         $cancha = Cancha::findOrFail($request->cancha_id);
         $start = Carbon::parse($request->start_time);
         $end = Carbon::parse($request->end_time);
 
-        // 2. Verificar Disponibilidad
         if (!$this->isAvailable($cancha->id, $start, $end)) {
-            // Si no hay sitio, regresamos al formulario con un error
             return back()
                 ->withInput()
                 ->withErrors(['availability' => 'El horario solicitado ya está ocupado. Por favor elige otro.']);
         }
 
-        // 3. Calcular Precio (Más seguro hacerlo en el servidor)
-        // Calculamos la diferencia en horas (pueden ser decimales, ej: 1.5 horas)
         $hours = $start->diffInMinutes($end) / 60;
         $totalPrice = round($hours * $cancha->price_per_hour, 2);
 
-        // 4. Crear la Reserva
         Reserva::create([
             'cancha_id'   => $cancha->id,
             'user_id'     => Auth::id(),
@@ -81,13 +69,16 @@ class ReservaController extends Controller
             'status'      => 'confirmed', 
         ]);
 
-        // 5. Redireccionar al usuario a "Mis Reservas" con mensaje de éxito
         return redirect()->route('reservas.user.index')
             ->with('success', '¡Reserva creada exitosamente!');
     }
 
+    // -------------------------------------------------------------------------
+    // LISTADOS (Index)
+    // -------------------------------------------------------------------------
+    
     /**
-     * Muestra el listado de reservas hechas por el usuario autenticado (Cliente).
+     * Mis Reservas (Cliente)
      */
     public function userReservasIndex()
     {
@@ -100,12 +91,12 @@ class ReservaController extends Controller
     }
 
     /**
-     * Muestra el listado de reservas para las canchas propiedad del dueño.
+     * Reservas en mis Canchas (Dueño)
      */
     public function ownerReservasIndex()
     {
-        // Obtenemos los IDs de las canchas del dueño actual
-        $canchaIds = Cancha::where('owner_id', Auth::id())->pluck('id');
+        // 🟢 CORRECCIÓN: Usamos 'user_id' en lugar de 'owner_id' para coincidir con el modelo Cancha
+        $canchaIds = Cancha::where('user_id', Auth::id())->pluck('id');
 
         $reservas = Reserva::whereIn('cancha_id', $canchaIds)
             ->with('user', 'cancha') 
@@ -115,19 +106,21 @@ class ReservaController extends Controller
         return view('owner-reservas-index', compact('reservas'));
     }
 
+    // -------------------------------------------------------------------------
+    // ACCIONES DUEÑO
+    // -------------------------------------------------------------------------
+
     /**
      * Permite al dueño actualizar el estado (confirmar/cancelar).
      */
     public function updateStatus(Reserva $reserva, Request $request)
     {
+        // 🔒 SEGURIDAD: Usamos la Policy 'updateStatus'
+        $this->authorize('updateStatus', $reserva);
+
         $request->validate([
             'status' => 'required|in:confirmed,cancelled',
         ]);
-
-        // Verificar que la cancha pertenezca al dueño logueado
-        if ($reserva->cancha->owner_id !== Auth::id()) {
-            return back()->with('error', 'No tienes permiso para gestionar esta reserva.');
-        }
 
         $reserva->update([
             'status' => $request->status,
@@ -137,7 +130,7 @@ class ReservaController extends Controller
     }
 
     // -------------------------------------------------------------------------
-    // MÉTODOS DE GESTIÓN DE USUARIO (Cancelar / Editar)
+    // ACCIONES USUARIO (Cancelar / Editar)
     // -------------------------------------------------------------------------
 
     /**
@@ -145,17 +138,14 @@ class ReservaController extends Controller
      */
     public function cancelUser(Reserva $reserva)
     {
-        // 1. Seguridad: Solo el dueño de la reserva puede cancelar
-        if ($reserva->user_id !== Auth::id()) {
-            abort(403, 'No tienes permiso para cancelar esta reserva.');
-        }
+        // 🔒 SEGURIDAD: Usamos la Policy 'cancel'
+        $this->authorize('cancel', $reserva);
 
-        // 2. Validación: No se puede cancelar si ya pasó
+        // Validación de Negocio: No cancelar fechas pasadas
         if ($reserva->start_time < now()) {
              return back()->with('error', 'No puedes cancelar una reserva que ya pasó.');
         }
 
-        // 3. Actualizar estado
         $reserva->update(['status' => 'cancelled']);
 
         return back()->with('success', 'Reserva cancelada exitosamente.');
@@ -166,9 +156,12 @@ class ReservaController extends Controller
      */
     public function editUser(Reserva $reserva)
     {
-        // 1. Seguridad
+        // 🔒 SEGURIDAD: Verificamos que sea el dueño de la reserva
+        // Usamos 'view' o 'cancel' como proxy de propiedad, o idealmente 'update'
+        $this->authorize('view', $reserva); 
+
         if ($reserva->user_id !== Auth::id()) {
-            abort(403);
+             abort(403); // Doble chequeo por si la policy view es permisiva
         }
 
         if ($reserva->status === 'cancelled') {
@@ -179,7 +172,6 @@ class ReservaController extends Controller
             return back()->with('error', 'No puedes editar una reserva pasada.');
         }
 
-        // Retornamos la vista de edición
         return view('reservas.edit', compact('reserva'));
     }
 }

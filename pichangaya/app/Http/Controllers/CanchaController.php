@@ -7,16 +7,22 @@ use App\Models\Sport;
 use App\Models\District;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests; // Importante para usar authorize
 
 class CanchaController extends Controller
 {
+    use AuthorizesRequests; // Habilita el uso de $this->authorize
+
     /**
      * Muestra el listado de canchas del dueño.
      */
     public function index()
     {
+        // Verificamos si tiene permiso global para ver el panel de canchas
+        $this->authorize('viewAny', Cancha::class);
+
         $canchas = Cancha::where('user_id', Auth::id())
-                    ->with(['media', 'sports', 'district']) // 🟢 Cambio: 'sports' en plural
+                    ->with(['media', 'sports', 'district'])
                     ->orderBy('created_at', 'desc')
                     ->get();
         
@@ -28,6 +34,8 @@ class CanchaController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Cancha::class);
+
         $sports = Sport::all();
         $districts = District::all();
         
@@ -36,18 +44,24 @@ class CanchaController extends Controller
         $phones = collect([
             ['number' => $user->phone, 'label' => 'Principal (' . $user->name . ')']
         ]);
-        foreach($user->secondaryPhones as $p) {
-            $phones->push(['number' => $p->phone_number, 'label' => $p->label]);
+        
+        // Validamos si existe la relación secondaryPhones antes de iterar
+        if ($user->secondaryPhones) {
+            foreach($user->secondaryPhones as $p) {
+                $phones->push(['number' => $p->phone_number, 'label' => $p->label]);
+            }
         }
 
         return view('owner.canchas.create', compact('sports', 'districts', 'phones'));
     }
 
     /**
-     * Guarda la nueva cancha (Multideporte, Horarios, Mapa, Teléfonos).
+     * Guarda la nueva cancha.
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Cancha::class);
+
         $request->validate([
             'name'           => 'required|string|max:255',
             'address'        => 'required|string|max:255',
@@ -61,23 +75,19 @@ class CanchaController extends Controller
             'contact_phone'  => 'required|string|max:20', 
             'images'         => 'required|array|min:1|max:10', 
             'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:2048',
-            
-            // 🟢 CAMBIO: Validamos que 'sports' sea un array con al menos 1 selección
             'sports'         => 'required|array|min:1',
             'sports.*'       => 'exists:sports,id',
         ]);
 
         // 1. Crear Cancha 
-        // Excluimos 'sports' (porque no es columna directa) e 'images'
         $cancha = Auth::user()->canchas()->create($request->except(['images', 'sports']));
 
-        // 2. Guardar Deportes (Llenar tabla intermedia)
+        // 2. Guardar Deportes
         $cancha->sports()->sync($request->sports);
 
         // 3. Guardar Imágenes
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                // en lugar de reemplazar.
                 $cancha->addMedia($image)->toMediaCollection('canchas');
             }
         }
@@ -90,20 +100,21 @@ class CanchaController extends Controller
      */
     public function edit(Cancha $cancha)
     {
-        if ($cancha->user_id !== Auth::id()) {
-            abort(403);
-        }
+        // REEMPLAZADO: if ($cancha->user_id !== Auth::id()) ...
+        $this->authorize('update', $cancha);
         
         $sports = Sport::all();
         $districts = District::all();
         
-        // Lógica de Teléfonos
         $user = Auth::user();
         $phones = collect([
             ['number' => $user->phone, 'label' => 'Principal (' . $user->name . ')']
         ]);
-        foreach($user->secondaryPhones as $p) {
-            $phones->push(['number' => $p->phone_number, 'label' => $p->label ?? 'Secundario']);
+        
+        if ($user->secondaryPhones) {
+            foreach($user->secondaryPhones as $p) {
+                $phones->push(['number' => $p->phone_number, 'label' => $p->label ?? 'Secundario']);
+            }
         }
         
         return view('owner.canchas.edit', compact('cancha', 'sports', 'districts', 'phones'));
@@ -114,9 +125,8 @@ class CanchaController extends Controller
      */
     public function update(Request $request, Cancha $cancha)
     {
-        if ($cancha->user_id !== Auth::id()) {
-            abort(403);
-        }
+        // REEMPLAZADO: if ($cancha->user_id !== Auth::id()) ...
+        $this->authorize('update', $cancha);
 
         $request->validate([
             'name'           => 'required|string|max:255',
@@ -132,19 +142,14 @@ class CanchaController extends Controller
             'images'         => 'nullable|array|max:10', 
             'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             'delete_images'  => 'nullable|array',
-            
-            // 🟢 CAMBIO: Validar array de deportes
             'sports'         => 'required|array|min:1',
             'sports.*'       => 'exists:sports,id',
         ]);
 
-        // 1. Actualizar datos (Excluimos lo que no es columna directa)
         $cancha->update($request->except(['images', 'delete_images', 'sports']));
         
-        // 2. Sincronizar Deportes (Actualiza la tabla intermedia automáticamente)
         $cancha->sports()->sync($request->sports);
         
-        // 3. Eliminar imágenes marcadas
         if ($request->has('delete_images')) {
             foreach ($request->input('delete_images') as $mediaId) {
                 $media = $cancha->media()->find($mediaId);
@@ -152,7 +157,6 @@ class CanchaController extends Controller
             }
         }
 
-        // 4. Agregar nuevas imágenes
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $cancha->addMedia($image)->toMediaCollection('canchas');
@@ -167,9 +171,9 @@ class CanchaController extends Controller
      */
     public function destroy(Cancha $cancha)
     {
-        if ($cancha->user_id !== Auth::id()) {
-            abort(403);
-        }
+        // REEMPLAZADO: if ($cancha->user_id !== Auth::id()) ...
+        $this->authorize('delete', $cancha);
+
         $cancha->delete();
         return redirect()->route('owner.canchas.index')->with('success', 'Cancha eliminada.');
     }
