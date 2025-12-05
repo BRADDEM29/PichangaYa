@@ -10,54 +10,50 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 // Importaciones de Relaciones
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; // <--- NUEVA IMPORTACIÓN
 
 class Cancha extends Model implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;
 
-    /**
-     * Usamos guarded vacío para permitir asignación masiva en todos los campos.
-     * Es más práctico que fillable cuando tienes muchos campos.
-     */
-    protected $guarded = [];
-
-    /**
-     * Los casts aseguran que los datos tengan el tipo correcto al salir de la BD.
-     */
-    protected $casts = [
-        'price_per_hour' => 'decimal:2', // Siempre con 2 decimales
-        'lat' => 'double',               // Coordenadas como números, no strings
-        'lng' => 'double',
-        'user_id' => 'integer',
-        'district_id' => 'integer',
-        // 'open_time' y 'close_time' se pueden castear a 'datetime' si fuera necesario
+    protected $fillable = [
+        'name',
+        'address',
+        'price_per_hour',
+        'description',
+        'user_id',
+        // 'sport_id', // Ya no lo guardamos aquí directo, pero si lo dejas no pasa nada.
+        'district_id',
+        'lat',
+        'lng',
+        'open_time',
+        'close_time',
+        'contact_phone',
     ];
 
     // --- RELACIONES ---
 
     /**
-     * Relación: El dueño de la cancha.
+     * Relación: Una cancha pertenece a un dueño (User).
      */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-
+    
     /**
-     * 🟢 SPRINT 7: Multideporte
-     * Relación Muchos a Muchos con Sport.
-     * Requiere la tabla pivote 'cancha_sport'.
+     * 🟢 CAMBIO PRINCIPAL (Sprint 7 - Multideporte):
+     * Ahora usamos belongsToMany para conectar con varios deportes.
      */
     public function sports(): BelongsToMany
     {
-        return $this->belongsToMany(Sport::class, 'cancha_sport')
-                    ->withTimestamps(); // Para guardar created_at/updated_at en la tabla pivote
+        // 'cancha_sport' es el nombre de la tabla intermedia que creamos en el Paso 1
+        return $this->belongsToMany(Sport::class, 'cancha_sport');
     }
 
     /**
-     * Relación: Distrito donde se ubica.
+     * Relación: Una cancha está en un distrito (District).
      */
     public function district(): BelongsTo
     {
@@ -65,7 +61,7 @@ class Cancha extends Model implements HasMedia
     }
 
     /**
-     * Relación: Reservas asociadas.
+     * Relación: Una cancha tiene muchas reservas.
      */
     public function reservas(): HasMany
     {
@@ -73,10 +69,12 @@ class Cancha extends Model implements HasMedia
     }
     
     // --- GESTIÓN DE MEDIA (SPATIE) ---
-
+    
+    // --- GESTIÓN DE MEDIA (SPATIE) ---
+    
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('canchas')
-             ->singleFile(false); 
+        // 🟢 CORRECCIÓN: Quitamos ->singleFile()
+        $this->addMediaCollection('canchas'); 
     }
 }
