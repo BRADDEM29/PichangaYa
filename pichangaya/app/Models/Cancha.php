@@ -71,23 +71,12 @@ class Cancha extends Model implements HasMedia
     {
         return $this->hasMany(Reserva::class);
     }
-
+    
     // --- GESTIÓN DE MEDIA (SPATIE) ---
 
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('canchas')
-             ->singleFile(false); // Permite múltiples fotos
-    }
-
-    // --- ACCESORS (AYUDAS EXTRA) ---
-
-    /**
-     * Ayuda para obtener la URL de la primera imagen o null si no hay.
-     * Uso en Blade: $cancha->primary_image_url
-     */
-    public function getPrimaryImageUrlAttribute()
-    {
-        return $this->getFirstMediaUrl('canchas');
+             ->singleFile(false); 
     }
 }
