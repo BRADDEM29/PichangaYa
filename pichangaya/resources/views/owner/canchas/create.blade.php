@@ -95,6 +95,9 @@
                                 @endforeach
                             </select>
                             <p class="text-xs text-gray-500 mt-1">Este será el número al que los clientes escribirán por WhatsApp.</p>
+                            {{-- 👇👇 AGREGA ESTA LÍNEA QUE FALTABA 👇👇 --}}
+                            @error('contact_phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        
                         </div>
 
                         {{-- 8. Mapa --}}

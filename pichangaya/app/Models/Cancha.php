@@ -11,6 +11,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany; // <--- NUEVA IMPORTACIÓN
+use Illuminate\Support\Str;
+
 
 class Cancha extends Model implements HasMedia
 {
@@ -30,10 +32,29 @@ class Cancha extends Model implements HasMedia
         'open_time',
         'close_time',
         'contact_phone',
+        'slug',
     ];
 
     // --- RELACIONES ---
 
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+    /**
+     * BOOT: Generar el slug automáticamente al crear o guardar.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($cancha) {
+            // Crea el slug basado en el nombre. Ej: "Cancha Sur" -> "cancha-sur"
+            // Le concatenamos un uniqid corto para evitar duplicados si hay nombres iguales
+            $cancha->slug = Str::slug($cancha->name) . '-' . substr(uniqid(), -4);
+        });
+    }
     /**
      * Relación: Una cancha pertenece a un dueño (User).
      */
@@ -77,4 +98,6 @@ class Cancha extends Model implements HasMedia
         // 🟢 CORRECCIÓN: Quitamos ->singleFile()
         $this->addMediaCollection('canchas'); 
     }
+
+    
 }
