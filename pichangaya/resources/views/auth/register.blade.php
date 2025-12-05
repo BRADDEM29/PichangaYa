@@ -9,6 +9,7 @@
         <form method="POST" action="{{ route('register') }}" x-data="{
             name: '{{ old('name') }}',
             email: '{{ old('email') }}',
+            phone: '{{ old('phone') }}',
             password: '',
             password_confirmation: '',
             showPassword: false,
@@ -24,6 +25,11 @@
                 }
                 if (!this.email) {
                     this.errors.email = 'Falta completar el email';
+                    isValid = false;
+                }
+                // VALIDACIÓN DEL TELÉFONO
+                if (!this.phone) {
+                    this.errors.phone = 'Número de celular requerido';
                     isValid = false;
                 }
                 if (!this.password) {
@@ -62,20 +68,30 @@
         }" @submit="validateForm">
             @csrf
 
+            <!-- Nombre -->
             <div>
-                <x-label for="name" value="{{ __('Name') }}" />
+                <x-label for="name" value="Nombre Completo" />
                 <x-input id="name" class="block mt-1 w-full" type="text" name="name" x-model="name" required autofocus autocomplete="name" />
                 <span class="text-red-500 text-xs mt-1" x-show="errors.name" x-text="errors.name"></span>
             </div>
 
+            <!-- Email -->
             <div class="mt-4">
-                <x-label for="email" value="{{ __('Email') }}" />
+                <x-label for="email" value="Correo Electrónico" />
                 <x-input id="email" class="block mt-1 w-full" type="email" name="email" x-model="email" required autocomplete="username" />
                 <span class="text-red-500 text-xs mt-1" x-show="errors.email" x-text="errors.email"></span>
             </div>
 
+            <!-- ✅ NUEVO CAMPO: TELÉFONO (Estilo Jetstream) -->
             <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
+                <x-label for="phone" value="Número de Celular" />
+                <x-input id="phone" class="block mt-1 w-full" type="tel" name="phone" x-model="phone" required placeholder="" />
+                <span class="text-red-500 text-xs mt-1" x-show="errors.phone" x-text="errors.phone"></span>
+            </div>
+
+            <!-- Contraseña -->
+            <div class="mt-4">
+                <x-label for="password" value="Contraseña" />
                 <div class="relative">
                     <x-input id="password" class="block mt-1 w-full pr-10" type="password" name="password" required autocomplete="new-password" x-model="password" x-bind:type="showPassword ? 'text' : 'password'" />
                     <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600 hover:text-gray-900 focus:outline-none">
@@ -94,6 +110,7 @@
                 </div>
                 <span class="text-red-500 text-xs mt-1" x-show="errors.password" x-text="errors.password"></span>
 
+                <!-- Medidor de fuerza -->
                 <div class="mt-2" x-show="password.length > 0">
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-xs text-gray-600" x-text="strengthLabel"></span>
@@ -103,31 +120,24 @@
                     </div>
                     <ul class="mt-2 text-xs space-y-1">
                         <li :class="password.length >= 8 ? 'text-green-600' : 'text-gray-500'">
-                            <span x-show="password.length >= 8">✓</span>
-                            <span x-show="password.length < 8">○</span>
-                            Mínimo 8 caracteres
+                            <span x-show="password.length >= 8">✓</span><span x-show="password.length < 8">○</span> Mínimo 8 caracteres
                         </li>
                         <li :class="/[A-Z]/.test(password) && /[a-z]/.test(password) ? 'text-green-600' : 'text-gray-500'">
-                            <span x-show="/[A-Z]/.test(password) && /[a-z]/.test(password)">✓</span>
-                            <span x-show="! (/[A-Z]/.test(password) && /[a-z]/.test(password))">○</span>
-                            Mayúsculas y minúsculas
+                            <span x-show="/[A-Z]/.test(password) && /[a-z]/.test(password)">✓</span><span x-show="! (/[A-Z]/.test(password) && /[a-z]/.test(password))">○</span> Mayúsculas y minúsculas
                         </li>
                         <li :class="/[0-9]/.test(password) ? 'text-green-600' : 'text-gray-500'">
-                            <span x-show="/[0-9]/.test(password)">✓</span>
-                            <span x-show="! /[0-9]/.test(password)">○</span>
-                            Números
+                            <span x-show="/[0-9]/.test(password)">✓</span><span x-show="! /[0-9]/.test(password)">○</span> Números
                         </li>
                         <li :class="/[^A-Za-z0-9]/.test(password) ? 'text-green-600' : 'text-gray-500'">
-                            <span x-show="/[^A-Za-z0-9]/.test(password)">✓</span>
-                            <span x-show="! /[^A-Za-z0-9]/.test(password)">○</span>
-                            Caracteres especiales
+                            <span x-show="/[^A-Za-z0-9]/.test(password)">✓</span><span x-show="! /[^A-Za-z0-9]/.test(password)">○</span> Caracteres especiales
                         </li>
                     </ul>
                 </div>
             </div>
 
+            <!-- Confirmar Contraseña -->
             <div class="mt-4">
-                <x-label for="password_confirmation" value="{{ __('Confirm Password') }}" />
+                <x-label for="password_confirmation" value="Confirmar Contraseña" />
                 <div class="relative">
                     <x-input id="password_confirmation" class="block mt-1 w-full pr-10" type="password" name="password_confirmation" required autocomplete="new-password" x-model="password_confirmation" x-bind:type="showConfirmPassword ? 'text' : 'password'" />
                     <button type="button" @click="showConfirmPassword = !showConfirmPassword" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600 hover:text-gray-900 focus:outline-none">
@@ -146,18 +156,16 @@
                 </div>
                 <span class="text-red-500 text-xs mt-1" x-show="errors.password_confirmation" x-text="errors.password_confirmation"></span>
             </div>
-            
 
             @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
                 <div class="mt-4">
                     <x-label for="terms">
                         <div class="flex items-center">
                             <x-checkbox name="terms" id="terms" required />
-
                             <div class="ms-2">
-                                {!! __('I agree to the :terms_of_service and :privacy_policy', [
-                                        'terms_of_service' => '<a target="_blank" href="'.route('terms.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Terms of Service').'</a>',
-                                        'privacy_policy' => '<a target="_blank" href="'.route('policy.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Privacy Policy').'</a>',
+                                {!! __('Acepto los :terms_of_service y :privacy_policy', [
+                                        'terms_of_service' => '<a target="_blank" href="'.route('terms.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Términos de Servicio').'</a>',
+                                        'privacy_policy' => '<a target="_blank" href="'.route('policy.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Políticas de Privacidad').'</a>',
                                 ]) !!}
                             </div>
                         </div>
@@ -167,14 +175,13 @@
 
             <div class="flex items-center justify-end mt-4">
                 <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                    {{ __('Already registered?') }}
+                    ¿Ya estás registrado?
                 </a>
 
                 <x-button class="ms-4">
-                    {{ __('Register') }}
+                    Registrarse
                 </x-button>
             </div>
         </form>
     </x-authentication-card>
 </x-guest-layout>
-

@@ -35,7 +35,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role', 
-        'profile_photo_path', 
+        'profile_photo_path',
+        'phone',
     ];
 
     /**
@@ -120,5 +121,10 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->hasRole('admin');
+    }
+
+    public function secondaryPhones()
+    {
+        return $this->hasMany(UserPhone::class);
     }
 }

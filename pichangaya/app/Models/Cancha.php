@@ -10,13 +10,11 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 // Importaciones de Relaciones
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; // <--- NUEVA IMPORTACIÓN
 
-// 🔴 CORRECCIÓN 1: 'implements HasMedia' debe ir aquí arriba
 class Cancha extends Model implements HasMedia
 {
     use HasFactory;
-    
-    // 🔴 CORRECCIÓN 2: 'use InteractsWithMedia' es el Trait que va aquí adentro
     use InteractsWithMedia;
 
     protected $fillable = [
@@ -24,13 +22,14 @@ class Cancha extends Model implements HasMedia
         'address',
         'price_per_hour',
         'description',
-        'sport_id',
-        'district_id',
         'user_id',
-        'lat', 'lng',
-        // NUEVOS CAMPOS:
+        // 'sport_id', // Ya no lo guardamos aquí directo, pero si lo dejas no pasa nada.
+        'district_id',
+        'lat',
+        'lng',
         'open_time',
         'close_time',
+        'contact_phone',
     ];
 
     // --- RELACIONES ---
@@ -44,11 +43,13 @@ class Cancha extends Model implements HasMedia
     }
     
     /**
-     * Relación: Una cancha tiene un deporte (Sport).
+     * 🟢 CAMBIO PRINCIPAL (Sprint 7 - Multideporte):
+     * Ahora usamos belongsToMany para conectar con varios deportes.
      */
-    public function sport(): BelongsTo
+    public function sports(): BelongsToMany
     {
-        return $this->belongsTo(Sport::class); 
+        // 'cancha_sport' es el nombre de la tabla intermedia que creamos en el Paso 1
+        return $this->belongsToMany(Sport::class, 'cancha_sport');
     }
 
     /**

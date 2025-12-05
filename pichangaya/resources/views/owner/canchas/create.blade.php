@@ -20,39 +20,50 @@
                             @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- 2. Selectores de Distrito y Deporte --}}
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="mb-4">
-                                <label for="district_id" class="block text-sm font-semibold text-gray-700">Distrito</label>
-                                <select name="district_id" id="district_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                    <option value="">Seleccione...</option>
-                                    @foreach($districts as $district)
-                                        <option value="{{ $district->id }}" {{ old('district_id') == $district->id ? 'selected' : '' }}>{{ $district->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('district_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="sport_id" class="block text-sm font-semibold text-gray-700">Deporte</label>
-                                <select name="sport_id" id="sport_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                    <option value="">Seleccione...</option>
-                                    @foreach($sports as $sport)
-                                        <option value="{{ $sport->id }}" {{ old('sport_id') == $sport->id ? 'selected' : '' }}>{{ $sport->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('sport_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                            </div>
+                        {{-- 2. Distrito (Ahora está solo en esta fila) --}}
+                        <div class="mb-4">
+                            <label for="district_id" class="block text-sm font-semibold text-gray-700">Distrito</label>
+                            <select name="district_id" id="district_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                <option value="">Seleccione...</option>
+                                @foreach($districts as $district)
+                                    <option value="{{ $district->id }}" {{ old('district_id') == $district->id ? 'selected' : '' }}>{{ $district->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('district_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- 3. Precio --}}
+                        {{-- 3. DEPORTES (MULTISELECCIÓN) - NUEVO --}}
+                        <div class="mb-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Deportes Disponibles (Selecciona al menos uno)</label>
+                            
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                @foreach($sports as $sport)
+                                    <label class="cursor-pointer relative">
+                                        {{-- Checkbox oculto pero funcional --}}
+                                        <input type="checkbox" name="sports[]" value="{{ $sport->id }}" 
+                                            class="peer sr-only"
+                                            {{-- Mantener selección si falla validación --}}
+                                            @if(is_array(old('sports')) && in_array($sport->id, old('sports'))) checked @endif
+                                        >
+                                        
+                                        {{-- Estilo visual del botón --}}
+                                        <div class="p-3 bg-white border rounded-lg hover:bg-gray-50 peer-checked:bg-indigo-50 peer-checked:border-indigo-500 peer-checked:text-indigo-700 transition-all flex items-center justify-center gap-2 text-sm font-medium text-gray-600 shadow-sm">
+                                            <span class="text-xl">{{ $sport->icon }}</span> {{ $sport->name }}
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('sports') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- 4. Precio --}}
                         <div class="mb-4">
                             <label for="price_per_hour" class="block text-sm font-semibold text-gray-700">Precio por Hora (S/)</label>
                             <input type="number" step="0.01" name="price_per_hour" id="price_per_hour" value="{{ old('price_per_hour') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" required>
                             @error('price_per_hour') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- 4. NUEVO: Horarios de Atención --}}
+                        {{-- 5. Horarios --}}
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700">Hora Apertura</label>
@@ -66,38 +77,44 @@
                             </div>
                         </div>
 
-                        {{-- 5. Dirección Texto --}}
+                        {{-- 6. Dirección --}}
                         <div class="mb-4">
                             <label for="address" class="block text-sm font-semibold text-gray-700">Dirección Escrita</label>
                             <input type="text" name="address" id="address" value="{{ old('address') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Av. Siempre Viva 123" required>
                             @error('address') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- 6. MAPA INTERACTIVO --}}
-                        <div class="mt-6 mb-6">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Ubicación en el Mapa (Arrastra el marcador rojo)</label>
-                            
-                            <div id="map" class="w-full h-96 rounded-lg shadow-md border border-gray-300"></div>
-                            
-                            <input type="hidden" name="lat" id="lat" value="{{ old('lat') }}">
-                            <input type="hidden" name="lng" id="lng" value="{{ old('lng') }}">
-                            
-                            <p class="text-xs text-gray-500 mt-2">
-                                * Permite el acceso a tu ubicación para centrar el mapa, o arrastra el marcador manualmente.
-                            </p>
+                        {{-- 7. Teléfono de Contacto (Selector) --}}
+                        <div class="mb-4">
+                            <label for="contact_phone" class="block text-sm font-semibold text-gray-700">Teléfono de Contacto (WhatsApp)</label>
+                            <select name="contact_phone" id="contact_phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                @foreach($phones as $phone)
+                                    <option value="{{ $phone['number'] }}" {{ old('contact_phone') == $phone['number'] ? 'selected' : '' }}>
+                                        {{ $phone['number'] }} - {{ $phone['label'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Este será el número al que los clientes escribirán por WhatsApp.</p>
                         </div>
 
-                        {{-- 7. Imágenes (Múltiples y Obligatorias) --}}
+                        {{-- 8. Mapa --}}
+                        <div class="mt-6 mb-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Ubicación en el Mapa</label>
+                            <div id="map" class="w-full h-96 rounded-lg shadow-md border border-gray-300"></div>
+                            <input type="hidden" name="lat" id="lat" value="{{ old('lat') }}">
+                            <input type="hidden" name="lng" id="lng" value="{{ old('lng') }}">
+                            <p class="text-xs text-gray-500 mt-2">* Arrastra el marcador rojo para fijar la ubicación exacta.</p>
+                        </div>
+
+                        {{-- 9. Imágenes --}}
                         <div class="mb-4">
                             <label for="images" class="block text-sm font-semibold text-gray-700">Fotos de la Cancha (Mínimo 1)</label>
                             <input type="file" name="images[]" id="images" multiple accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" required>
-                            
                             <div id="image-preview" class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
-                            
                             @error('images') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- 8. Descripción --}}
+                        {{-- 10. Descripción --}}
                         <div class="mb-4">
                             <label for="description" class="block text-sm font-semibold text-gray-700">Descripción (Opcional)</label>
                             <textarea name="description" id="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('description') }}</textarea>
@@ -115,11 +132,10 @@
     </div>
 </x-app-layout>
 
-{{-- SCRIPTS --}}
 <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_key') }}&callback=initMap" async defer></script>
 
 <script>
-    // 1. Script de Imágenes
+    // Script Imágenes
     document.getElementById('images').addEventListener('change', function(event) {
         const previewContainer = document.getElementById('image-preview');
         previewContainer.innerHTML = ''; 
@@ -137,14 +153,12 @@
         }
     });
 
-    // 2. Script del Mapa (Con Persistencia)
+    // Script Mapa (Con persistencia)
     let map;
     let marker;
 
     function initMap() {
         const defaultCusco = { lat: -13.5167, lng: -71.9788 };
-        
-        // Recuperamos valores antiguos si falló la validación
         const oldLat = "{{ old('lat') }}";
         const oldLng = "{{ old('lng') }}";
 
@@ -178,10 +192,7 @@
         if (useGps && navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    const userPos = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                    };
+                    const userPos = { lat: position.coords.latitude, lng: position.coords.longitude };
                     map.setCenter(userPos);
                     marker.setPosition(userPos);
                     document.getElementById('lat').value = userPos.lat;
