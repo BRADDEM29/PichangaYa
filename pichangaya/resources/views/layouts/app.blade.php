@@ -5,14 +5,21 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        {{-- 🟢 TÍTULO DINÁMICO (Si la vista no define uno, usa PichangaYa) --}}
+        {{-- 🟢 TÍTULO DINÁMICO --}}
         <title>@yield('title', config('app.name', 'PichangaYa'))</title>
 
-        {{-- 🟢 AQUÍ SE INYECTARÁN LOS METADATOS DE CADA PÁGINA --}}
+        {{-- 🟢 METADATOS --}}
         @stack('meta')
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+        {{-- 🟢 CONFIGURACIÓN DE USUARIO GLOBAL --}}
+        <script>
+            // Pasamos true/false y también el ID del usuario (si no hay usuario, es null)
+            window.usuarioLogueado = {{ auth()->check() ? 'true' : 'false' }};
+            window.usuarioId = {{ auth()->id() ?? 'null' }};
+        </script>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 

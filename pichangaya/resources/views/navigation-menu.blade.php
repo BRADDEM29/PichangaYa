@@ -7,8 +7,9 @@
             <div class="flex">
                 {{-- Logo (Redirige al Home) --}}
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('home') }}">
-                        <x-application-mark class="block h-12 w-auto" />
+                    {{-- 📍 TOUR: ID DEL LOGO --}}
+                    <a href="{{ route('dashboard') }}" id="tour-logo"> 
+                        <x-application-mark class="block h-9 w-auto" />
                     </a>
                 </div>
 
@@ -16,7 +17,8 @@
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
                     
                     {{-- Enlace Inicio (Visible para todos) --}}
-                    <x-nav-link href="{{ route('home') }}" :active="request()->routeIs('home')">
+                    {{-- 📍 TOUR: ID DEL DASHBOARD/INICIO --}}
+                    <x-nav-link href="{{ route('home') }}" :active="request()->routeIs('home')" id="tour-dashboard">
                         {{ __('Inicio') }}
                     </x-nav-link>
 
@@ -157,12 +159,14 @@
                         <x-dropdown align="right" width="48">
                             <x-slot name="trigger">
                                 @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-                                    <button class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
+                                    {{-- 📍 TOUR: ID DEL PERFIL (Con foto) --}}
+                                    <button id="tour-perfil" class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
                                         <img class="size-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
                                     </button>
                                 @else
                                     <span class="inline-flex rounded-md">
-                                        <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
+                                        {{-- 📍 TOUR: ID DEL PERFIL (Sin foto) --}}
+                                        <button id="tour-perfil" type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
                                             {{ Auth::user()->name }}
                                             <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />

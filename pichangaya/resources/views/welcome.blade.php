@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    {{-- 🟢 LA CLAVE MAESTRA: Variable Global JS para el Tour --}}
+    <script>
+        window.usuarioEstaLogueado = {{ auth()->check() ? 'true' : 'false' }};
+    </script>
+
     {{-- ============================================================== --}}
-    {{-- 🚀 SEO OPTIMIZATION (LO QUE FALTABA) --}}
+    {{-- 🚀 SEO OPTIMIZATION --}}
     {{-- ============================================================== --}}
     <title>PichangaYa - Reserva Canchas de Fútbol y Vóley en Cusco</title>
     <meta name="description" content="La plataforma #1 en Cusco para reservar canchas deportivas. Encuentra losas de fútbol, vóley y básquet, compara precios y reserva al instante sin llamadas.">
@@ -14,7 +19,7 @@
     <meta name="author" content="PichangaYa">
     <meta name="robots" content="index, follow">
 
-    {{-- Open Graph (Para que se vea bonito en WhatsApp/Facebook) --}}
+    {{-- Open Graph --}}
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url('/') }}">
     <meta property="og:title" content="PichangaYa - Tu partido empieza con un clic">
@@ -22,10 +27,13 @@
     <meta property="og:image" content="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1000&auto=format&fit=crop">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    {{-- Scroll suave para el botón del Hero --}}
+    <style>html { scroll-behavior: smooth; }</style>
 </head>
 <body class="font-sans antialiased bg-gray-50">
 
-    {{-- 1. NAVBAR (Mantenemos tu lógica de Auth) --}}
+    {{-- 1. NAVBAR --}}
     <nav class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
@@ -57,7 +65,7 @@
         </div>
     </nav>
 
-    {{-- 2. HERO SECTION (NUEVO: Vital para Marketing y SEO visual) --}}
+    {{-- 2. HERO SECTION --}}
     <div class="relative bg-gray-900 text-white overflow-hidden">
         <div class="absolute inset-0">
             <img src="https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover opacity-30">
@@ -67,11 +75,18 @@
             <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
                 Juega sin límites en <span class="text-yellow-400">Cusco</span>
             </h1>
-            <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+            <p class="text-xl text-gray-300 mb-6 max-w-2xl mx-auto">
                 La forma más rápida de encontrar y reservar canchas de fútbol, vóley y más. Sin llamadas, sin esperas.
             </p>
+
+            {{-- 👉 ID="TOUR-RESERVAS" --}}
+            <div class="mb-10">
+                <a href="#seccion-canchas" id="tour-reservas" class="inline-block bg-yellow-400 text-gray-900 font-black text-lg px-8 py-3 rounded-full hover:bg-yellow-300 transition shadow-lg transform hover:scale-105">
+                    ¡Reserva tu Cancha Ahora!
+                </a>
+            </div>
             
-            {{-- BUSCADOR (Movido al Hero para más impacto) --}}
+            {{-- BUSCADOR --}}
             <div class="bg-white p-2 rounded-lg shadow-2xl max-w-3xl mx-auto transform translate-y-6">
                 <form method="GET" action="{{ route('home') }}" class="grid grid-cols-1 md:grid-cols-4 gap-2">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="¿Nombre de la cancha?" class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-900">
@@ -98,8 +113,8 @@
         </div>
     </div>
 
-    {{-- 3. RESULTADOS (Tu lógica original mejorada visualmente) --}}
-    <div class="py-16 bg-gray-50">
+    {{-- 3. RESULTADOS --}}
+    <div id="seccion-canchas" class="py-16 bg-gray-50">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             <div class="flex justify-between items-end mb-8 px-4 sm:px-0">
@@ -121,7 +136,7 @@
                     @foreach($canchas as $cancha)
                         <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition duration-300 group">
                             
-                            {{-- FOTO CON ZOOM EFFECT --}}
+                            {{-- FOTO --}}
                             <div class="h-56 w-full bg-gray-200 relative overflow-hidden">
                                 @if($cancha->getFirstMediaUrl('canchas'))
                                     <img src="{{ $cancha->getFirstMediaUrl('canchas') }}" alt="{{ $cancha->name }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
@@ -143,7 +158,7 @@
                                     </div>
                                 </div>
 
-                                {{-- TAGS DEPORTES --}}
+                                {{-- TAGS --}}
                                 <div class="flex flex-wrap gap-2 mb-4">
                                     @foreach($cancha->sports->take(3) as $sport) 
                                         <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-md border border-indigo-100">
@@ -157,8 +172,11 @@
 
                                 <div class="border-t border-gray-100 pt-4 mt-4">
                                     @auth
-                                        <a href="{{ route('canchas.show', $cancha) }}" class="block w-full py-3 bg-gray-900 text-white text-center rounded-xl font-bold hover:bg-indigo-600 transition shadow-md">
-                                            Reservar Ahora
+                                        {{-- 👉 ID="TOUR-DETALLES" (Solo en la primera tarjeta) --}}
+                                        <a href="{{ route('canchas.show', $cancha) }}" 
+                                           class="block w-full py-3 bg-gray-900 text-white text-center rounded-xl font-bold hover:bg-indigo-600 transition shadow-md"
+                                           @if($loop->first) id="tour-detalles" @endif>
+                                            Ver Detalles
                                         </a>
                                     @else
                                         <a href="{{ route('register') }}" class="block w-full py-3 bg-indigo-600 text-white text-center rounded-xl font-bold hover:bg-indigo-700 transition shadow-md">
@@ -174,7 +192,7 @@
         </div>
     </div>
 
-    {{-- 4. SEO CONTENT (Texto oculto para Google pero útil para el usuario) --}}
+    {{-- 4. SEO CONTENT --}}
     <div class="bg-white py-16 border-t border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="text-3xl font-extrabold text-gray-900 mb-8">¿Por qué elegir PichangaYa?</h2>
