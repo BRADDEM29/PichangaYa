@@ -7,6 +7,7 @@ use App\Models\District;
 use App\Models\Sport;
 use App\Models\Reserva;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache; // 🟢 IMPORTANTE: Importar la fachada Cache
 
 class DashboardController extends Controller
 {
@@ -15,10 +16,9 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
-        // Reutiliza la lógica del método getCanchasData para cargar los datos
+        // Reutiliza la lógica optimizada
         $data = $this->getCanchasData($request);
 
-        // Envía los datos a la vista del dashboard para usuarios logueados
         return view('dashboard', $data);
     }
 
@@ -27,21 +27,19 @@ class DashboardController extends Controller
      */
     public function welcome(Request $request)
     {
-        // Reutiliza la misma lógica de carga de datos
+        // Reutiliza la misma lógica optimizada
         $data = $this->getCanchasData($request);
 
-        // Envía los datos a la vista pública 'welcome'
         return view('welcome', $data);
     }
 
     /**
-     * Lógica compartida para obtener canchas, distritos y deportes según los filtros.
-     * @param \Illuminate\Http\Request $request
-     * @return array
+     * Lógica compartida para obtener canchas, distritos y deportes.
+     * 🟢 AQUI APLICAMOS LA OPTIMIZACIÓN Y EL CACHE
      */
     protected function getCanchasData(Request $request): array
     {
-        // 1. Cargar relaciones: 'district', 'sports', 'media'
+        // 1. Cargar relaciones con Eager Loading
         $query = Cancha::with(['district', 'sports', 'media']); 
 
         // 2. Filtro Texto (Nombre o Dirección)
@@ -58,16 +56,27 @@ class DashboardController extends Controller
             $query->where('district_id', $request->input('district_id'));
         }
 
-        // 4. Filtro Deporte (Usando whereHas)
+        // 4. Filtro Deporte (Usando whereHas para muchos a muchos)
         if ($request->filled('sport_id')) {
             $query->whereHas('sports', function($q) use ($request) {
                 $q->where('sports.id', $request->input('sport_id'));
             });
         }
 
+        // Obtenemos las canchas (Dinámico, no se cachea por los filtros)
         $canchas = $query->get();
-        $districts = District::all();
-        $sports = Sport::all();
+
+        // 🟢 OPTIMIZACIÓN DE CACHE: Distritos y Deportes
+        // Guardamos estas listas en memoria por 1 hora (3600 seg) porque casi nunca cambian.
+        // Esto evita hacer 2 consultas a la base de datos cada vez que alguien entra a la página.
+        
+        $districts = Cache::remember('all_districts', 3600, function () {
+            return District::all();
+        });
+
+        $sports = Cache::remember('all_sports', 3600, function () {
+            return Sport::all();
+        });
 
         return compact('canchas', 'districts', 'sports');
     }
@@ -80,12 +89,12 @@ class DashboardController extends Controller
         // Cargar relaciones necesarias
         $cancha->load(['district', 'sports', 'media', 'user']); 
 
-        // Obtener las reservas ocupadas (confirmadas o pendientes)
+        // Obtener las reservas ocupadas
         $reservasOcupadas = Reserva::where('cancha_id', $cancha->id)
-                                 ->whereIn('status', ['confirmed', 'pending']) 
-                                 ->where('end_time', '>', now())
-                                 ->select('start_time', 'end_time')
-                                 ->get();
+                                   ->whereIn('status', ['confirmed', 'pending']) 
+                                   ->where('end_time', '>', now())
+                                   ->select('start_time', 'end_time')
+                                   ->get();
 
         return view('canchas.show', compact('cancha', 'reservasOcupadas'));
     }
