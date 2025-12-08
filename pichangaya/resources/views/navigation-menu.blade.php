@@ -27,7 +27,8 @@
                         {{-- Se eliminó "Explorar" (Dashboard) para evitar redundancia con Inicio --}}
 
                         {{-- 🟢 BOTÓN: MIS RESERVAS --}}
-                        <x-nav-link href="{{ route('reservas.user.index') }}" :active="request()->routeIs('reservas.user.*')">
+                        {{-- 👉 MEJORA: AGREGADO EL ID PARA EL TOUR --}}
+                        <x-nav-link href="{{ route('reservas.user.index') }}" :active="request()->routeIs('reservas.user.*')" id="tour-mis-reservas">
                             {{ __('📅 Mis Reservas') }}
                         </x-nav-link>
 

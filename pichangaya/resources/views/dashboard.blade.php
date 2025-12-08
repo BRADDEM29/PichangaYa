@@ -8,54 +8,71 @@
     {{-- 📍 TOUR: ID DEL CONTENEDOR PRINCIPAL --}}
     <div class="py-12" id="tour-contenido"> 
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            
+            {{-- SECCIÓN 1: BUSCADOR Y FILTROS (DISEÑO RECTO) --}}
+            {{-- 🟢 MEJORA: Este bloque ahora es independiente y tiene mb-8 para separarse de los resultados --}}
+            <div class="bg-white shadow-xl sm:rounded-lg p-6 mb-8">
+                <form method="GET" action="{{ route('dashboard') }}" class="flex flex-col md:flex-row gap-4 items-end">
+                    
+                    {{-- 1. Buscador de Texto (Se estira para llenar espacio) --}}
+                    <div class="w-full md:flex-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                            Buscar
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            <input type="text" name="search" value="{{ request('search') }}" 
+                                placeholder="Nombre de la cancha..." 
+                                class="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-10">
+                        </div>
+                    </div>
+
+                    {{-- 2. Filtro Deporte --}}
+                    <div class="w-full md:w-48">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                            Deporte
+                        </label>
+                        <select name="sport_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-10">
+                            <option value="">Todos los deportes</option>
+                            @foreach($sports as $sport)
+                                <option value="{{ $sport->id }}" {{ request('sport_id') == $sport->id ? 'selected' : '' }}>
+                                    {{ $sport->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- 3. Filtro Distrito --}}
+                    <div class="w-full md:w-48">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                            Distrito
+                        </label>
+                        <select name="district_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-10">
+                            <option value="">Todos los distritos</option>
+                            @foreach($districts as $district)
+                                <option value="{{ $district->id }}" {{ request('district_id') == $district->id ? 'selected' : '' }}>
+                                    {{ $district->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- 4. Botón de Filtrar (Alineado) --}}
+                    <div class="w-full md:w-auto">
+                        <button type="submit" class="w-full inline-flex items-center justify-center px-6 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring focus:ring-indigo-300 disabled:opacity-25 transition h-10">
+                            🔍 Buscar 
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- SECCIÓN 2: RESULTADOS (GRILLA) --}}
+            {{-- 🟢 MEJORA: Contenedor separado para los resultados --}}
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                
-                {{-- SECCIÓN 1: BUSCADOR (Ahora dentro del contenedor blanco) --}}
-                <div class="p-6 border-b border-gray-200 bg-gray-50">
-                    <form method="GET" action="{{ route('dashboard') }}" class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        
-                        {{-- Buscador de Texto --}}
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700">Buscar</label>
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Nombre o dirección..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-
-                        {{-- Filtro Deporte --}}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Deporte</label>
-                            <select name="sport_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">Todos los deportes</option>
-                                @foreach($sports as $sport)
-                                    <option value="{{ $sport->id }}" {{ request('sport_id') == $sport->id ? 'selected' : '' }}>
-                                        {{ $sport->icon }} {{ $sport->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        {{-- Filtro Distrito --}}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Distrito</label>
-                            <select name="district_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">Todos los distritos</option>
-                                @foreach($districts as $district)
-                                    <option value="{{ $district->id }}" {{ request('district_id') == $district->id ? 'selected' : '' }}>
-                                        {{ $district->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        {{-- Botón Buscar --}}
-                        <div class="flex items-end md:col-start-4">
-                            <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 font-bold shadow-md transition">
-                                🔍 Buscar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                {{-- SECCIÓN 2: RESULTADOS (GRILLA) --}}
                 <div class="p-6">
                     @if($canchas->isEmpty())
                         <div class="text-center py-10">
@@ -109,7 +126,7 @@
                                             <p class="text-gray-500 text-xs mt-1">📍 {{ $cancha->address }}</p>
                                         </div>
                                         
-                                        {{-- 🟢 AQUÍ ESTÁ EL CAMBIO SOLICITADO --}}
+                                        {{-- Botón Ver Detalles --}}
                                         <div class="mt-4 pt-4 border-t border-gray-100">
                                             {{-- 📍 TOUR: ID PARA EL BOTÓN VER DETALLES --}}
                                             <a href="{{ route('canchas.show', $cancha) }}" 
@@ -125,8 +142,8 @@
                         </div>
                     @endif
                 </div>
-
             </div>
+
         </div>
     </div>
 </x-app-layout>

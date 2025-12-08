@@ -186,7 +186,8 @@
 
                 {{-- COLUMNA DERECHA --}}
                 <div class="lg:col-span-1">
-                    <div class="sticky top-8 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-10">
+                    {{-- 🟢 AQUÍ ESTÁ EL ID QUE AGREGAMOS PARA EL TOUR --}}
+                    <div id="tour-calendario" class="sticky top-8 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-10">
                         <div class="bg-indigo-600 p-4 sm:p-6">
                             <h3 class="text-xl font-bold text-white flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>

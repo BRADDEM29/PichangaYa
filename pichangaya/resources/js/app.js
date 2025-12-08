@@ -4,115 +4,153 @@ import Swal from 'sweetalert2';
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. SEGURIDAD Y VALIDACIÓN DE USUARIO
+    // 1. SEGURIDAD
     if (window.usuarioLogueado !== true || !window.usuarioId) {
-        return; // Si es invitado, no hacemos nada
+        return;
     }
 
-    // Creamos una "llave" única para este usuario específico
-    // Ej: tutorial_visto_user_5 (Así si entra el user 6, le saldrá de nuevo)
-    const storageKey = `tutorial_visto_user_${window.usuarioId}`;
-    const yaVioTutorial = localStorage.getItem(storageKey);
+    const path = window.location.pathname;
+    const storageKeyGeneral = `tutorial_dashboard_user_${window.usuarioId}`;
+    const storageKeyDetalles = `tutorial_detalles_user_${window.usuarioId}`;
 
-    // 2. CONFIGURACIÓN DEL TOUR (Sin PDF)
-    const driverObj = driver({
-        showProgress: true,
-        animate: true,
-        allowClose: false,
-        nextBtnText: 'Siguiente ➡',
-        prevBtnText: '⬅ Atrás',
-        doneBtnText: '¡A Jugar!',
-        steps: [
-            {
-                element: '#tour-logo',
-                popover: { title: 'Panel de Control', description: 'Estás en tu zona de mando.' }
-            },
-            {
-                element: '#tour-detalles',
-                popover: { title: 'Analiza antes de elegir', description: 'Mira fotos y precios aquí.' }
-            },
-            {
-                element: '#tour-reservas',
-                popover: { title: '¡Reserva Ya!', description: 'Usa el calendario para asegurar tu partido.' }
-            },
-            {
-                element: '#tour-mis-canchas',
-                popover: { title: 'Tu Historial', description: 'Aquí verás tus reservaciones pasadas.' }
+    // ============================================================
+    // ESCENARIO A: DASHBOARD
+    // ============================================================
+    if (path === '/dashboard' || path === '/' || path === '/home') {
+
+        const yaVioGeneral = localStorage.getItem(storageKeyGeneral);
+
+        const driverGeneral = driver({
+            showProgress: true,
+            animate: true,
+            allowClose: false,
+            nextBtnText: 'Siguiente ➡',
+            prevBtnText: '⬅ Atrás',
+            doneBtnText: 'Entendido',
+            steps: [
+                {
+                    element: '#tour-logo',
+                    popover: { title: 'Panel Principal', description: 'Aquí inicia todo.' }
+                },
+                {
+                    element: '#tour-mis-reservas',
+                    popover: { title: 'Tu Historial', description: 'En este menú verás todas tus reservaciones pasadas.' }
+                },
+                {
+                    element: '#tour-detalles',
+                    popover: {
+                        title: 'El Siguiente Paso',
+                        description: 'Para reservar, haz clic en "Ver Detalles" en cualquier cancha. ¡Inténtalo!'
+                    }
+                }
+            ],
+            onDestroyed: () => {
+                localStorage.setItem(storageKeyGeneral, 'true');
+                mostrarBotonReplay(() => driverGeneral.drive());
             }
-        ],
-        onDestroyed: () => {
-            // Al terminar, marcamos como visto Y mostramos el botón pequeño
-            localStorage.setItem(storageKey, 'true');
-            mostrarBotonReplay();
+        });
+
+        if (!yaVioGeneral) {
+            Swal.fire({
+                title: '¡Bienvenido!',
+                text: "¿Quieres un tour rápido?",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Sí',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    driverGeneral.drive();
+                } else {
+                    localStorage.setItem(storageKeyGeneral, 'true');
+                    mostrarBotonReplay(() => driverGeneral.drive());
+                }
+            });
+        } else {
+            mostrarBotonReplay(() => driverGeneral.drive());
         }
-    });
-
-    // 3. LÓGICA DE INICIO
-    if (!yaVioTutorial) {
-        // --- CASO A: PRIMERA VEZ QUE ENTRA ---
-        Swal.fire({
-            title: '¡Bienvenido!',
-            html: '<span style="color: #4a5568;">¿Quieres una guía rápida de la plataforma?</span>',
-            icon: 'info',
-            background: 'rgba(255, 255, 255, 0.9)',
-            backdrop: `rgba(0,0,0,0.5)`,
-            showCancelButton: true,
-            confirmButtonColor: '#4f46e5',
-            cancelButtonColor: '#718096',
-            confirmButtonText: 'Sí, guíame',
-            cancelButtonText: 'No, gracias'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                driverObj.drive();
-            } else {
-                // Si dice que no, guardamos que ya decidió y mostramos el botón pequeño por si se arrepiente
-                localStorage.setItem(storageKey, 'true');
-                mostrarBotonReplay();
-            }
-        });
-    } else {
-        // --- CASO B: YA LO VIO ANTES ---
-        // Directamente mostramos el botón pequeño en la esquina
-        mostrarBotonReplay();
     }
 
-    // 4. FUNCIÓN PARA CREAR EL BOTÓN PEQUEÑO
-    function mostrarBotonReplay() {
-        // Evitar crear el botón si ya existe
-        if (document.getElementById('btn-replay-tutorial')) return;
+    // ============================================================
+    // ESCENARIO B: DETALLES
+    // ============================================================
+    if (path.includes('/canchas/')) {
 
-        const boton = document.createElement('button');
-        boton.id = 'btn-replay-tutorial';
-        boton.innerHTML = '❔ Guía';
+        const yaVioDetalles = localStorage.getItem(storageKeyDetalles);
 
-        // Estilos CSS directos para el botón (Pequeño, esquina inferior derecha)
-        Object.assign(boton.style, {
-            position: 'fixed',
-            bottom: '20px',
-            right: '20px',
-            backgroundColor: '#4f46e5', // Color Indigo
-            color: 'white',
-            border: 'none',
-            borderRadius: '20px',
-            padding: '5px 12px',
-            fontSize: '12px',
-            fontWeight: 'bold',
-            boxShadow: '0 2px 5px rgba(0,0,0,0.3)',
-            cursor: 'pointer',
-            zIndex: '9999',
-            opacity: '0.8',
-            transition: 'opacity 0.3s'
+        const driverDetalles = driver({
+            showProgress: true,
+            animate: true,
+            doneBtnText: 'Finalizar',
+            steps: [
+                {
+                    element: '#tour-calendario',
+                    popover: {
+                        title: '¡Reserva Aquí!',
+                        description: 'Selecciona la fecha y hora en este calendario para asegurar tu partido.'
+                    }
+                },
+                {
+                    element: 'body',
+                    popover: {
+                        title: '¿Dudas?',
+                        description: 'Si necesitas ayuda extra, contáctanos por WhatsApp.',
+                        align: 'center'
+                    }
+                }
+            ],
+            onDestroyed: () => {
+                localStorage.setItem(storageKeyDetalles, 'true');
+                mostrarBotonReplay(() => driverDetalles.drive());
+            }
         });
 
-        // Efecto hover
-        boton.onmouseover = () => boton.style.opacity = '1';
-        boton.onmouseout = () => boton.style.opacity = '0.8';
+        if (!yaVioDetalles) {
+            driverDetalles.drive();
+        } else {
+            mostrarBotonReplay(() => driverDetalles.drive());
+        }
+    }
 
-        // Acción al hacer clic: Reiniciar el tour
-        boton.onclick = () => {
-            driverObj.drive();
-        };
+    // ============================================================
+    // BOTÓN REPLAY (VERSIÓN MINI)
+    // ============================================================
+    function mostrarBotonReplay(onClickFunction) {
+        let boton = document.getElementById('btn-replay-tutorial');
 
-        document.body.appendChild(boton);
+        if (!boton) {
+            boton = document.createElement('button');
+            boton.id = 'btn-replay-tutorial';
+            boton.innerHTML = '❔'; // Solo el icono para que sea muy pequeño
+            boton.title = 'Ver Guía de Ayuda'; // Tooltip al pasar el mouse
+
+            Object.assign(boton.style, {
+                position: 'fixed',
+                bottom: '15px',      // Más pegado abajo
+                right: '15px',       // Más pegado a la derecha
+                backgroundColor: '#4f46e5',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50%', // Redondo perfecto
+                width: '25px',       // Ancho fijo pequeño
+                height: '25px',      // Alto fijo pequeño
+                fontSize: '12px',    // Letra pequeña
+                lineHeight: '25px',  // Centrado vertical
+                textAlign: 'center', // Centrado horizontal
+                zIndex: '9999',
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                opacity: '0.7',      // Un poco transparente
+                transition: 'all 0.3s'
+            });
+
+            // Efecto Hover (se vuelve opaco y crece un pelín)
+            boton.onmouseover = () => { boton.style.opacity = '1'; boton.style.transform = 'scale(1.1)'; };
+            boton.onmouseout = () => { boton.style.opacity = '0.7'; boton.style.transform = 'scale(1)'; };
+
+            document.body.appendChild(boton);
+        }
+
+        boton.onclick = onClickFunction;
     }
 });
