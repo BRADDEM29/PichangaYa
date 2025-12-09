@@ -144,3 +144,21 @@ Route::middleware(['auth', 'role:owner'])
         Route::get('/reservas', [ReservaController::class, 'ownerReservasIndex'])->name('reservas.index');
         Route::put('/reservas/{reserva}/update-status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
+
+
+Route::get('/test-gd', function () {
+    if (extension_loaded('gd')) {
+        return "✅ GD ESTÁ ACTIVADO. El problema es otra cosa.";
+    } else {
+        return "❌ GD ESTÁ APAGADO. Tienes que activarlo en el php.ini";
+    }
+});
+
+Route::get('/test-webp', function () {
+    $gdInfo = gd_info();
+    if ($gdInfo['WebP Support']) {
+        return "✅ SÍ soporta WebP.";
+    } else {
+        return "❌ NO soporta WebP (La conversión fallará).";
+    }
+});

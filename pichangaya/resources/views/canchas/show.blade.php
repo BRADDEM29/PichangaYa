@@ -37,7 +37,8 @@
                     {{-- ========================================== --}}
                     @php
                         $photos = $cancha->getMedia('canchas');
-                        $photoUrls = $photos->map(fn($media) => $media->getUrl())->toArray();
+                        // 🟢 MEJORA SPRINT 8: Pedimos la versión 'large' optimizada a WebP
+                        $photoUrls = $photos->map(fn($media) => $media->getUrl('large'))->toArray();
                         $totalPhotos = count($photoUrls);
                     @endphp
 
@@ -81,7 +82,8 @@
                                          x-transition:leave-start="opacity-100 scale-100"
                                          x-transition:leave-end="opacity-0 scale-95"
                                          class="absolute inset-0 w-full h-full">
-                                        <img :src="photo" class="w-full h-full object-cover">
+                                        {{-- 🟢 MEJORA: loading="lazy" para optimización adicional --}}
+                                        <img :src="photo" class="w-full h-full object-cover" loading="lazy">
                                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                                     </div>
                                 </template>
@@ -186,7 +188,6 @@
 
                 {{-- COLUMNA DERECHA --}}
                 <div class="lg:col-span-1">
-                    {{-- 🟢 AQUÍ ESTÁ EL ID QUE AGREGAMOS PARA EL TOUR --}}
                     <div id="tour-calendario" class="sticky top-8 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-10">
                         <div class="bg-indigo-600 p-4 sm:p-6">
                             <h3 class="text-xl font-bold text-white flex items-center">

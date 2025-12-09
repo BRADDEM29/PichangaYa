@@ -7,18 +7,17 @@ use App\Models\Sport;
 use App\Models\District;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests; // Importante para usar authorize
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class CanchaController extends Controller
 {
-    use AuthorizesRequests; // Habilita el uso de $this->authorize
+    use AuthorizesRequests;
 
     /**
      * Muestra el listado de canchas del dueño.
      */
     public function index()
     {
-        // Verificamos si tiene permiso global para ver el panel de canchas
         $this->authorize('viewAny', Cancha::class);
 
         $canchas = Cancha::where('user_id', Auth::id())
@@ -39,13 +38,11 @@ class CanchaController extends Controller
         $sports = Sport::all();
         $districts = District::all();
         
-        // Lógica de Teléfonos (Principal + Secundarios)
         $user = Auth::user();
         $phones = collect([
             ['number' => $user->phone, 'label' => 'Principal (' . $user->name . ')']
         ]);
         
-        // Validamos si existe la relación secondaryPhones antes de iterar
         if ($user->secondaryPhones) {
             foreach($user->secondaryPhones as $p) {
                 $phones->push(['number' => $p->phone_number, 'label' => $p->label]);
@@ -74,7 +71,7 @@ class CanchaController extends Controller
             'close_time'     => 'required|date_format:H:i|after:open_time',
             'contact_phone'  => 'required|string|max:20', 
             'images'         => 'required|array|min:1|max:10', 
-            'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:2048',
+            'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:20480',
             'sports'         => 'required|array|min:1',
             'sports.*'       => 'exists:sports,id',
         ]);
@@ -100,7 +97,6 @@ class CanchaController extends Controller
      */
     public function edit(Cancha $cancha)
     {
-        // REEMPLAZADO: if ($cancha->user_id !== Auth::id()) ...
         $this->authorize('update', $cancha);
         
         $sports = Sport::all();
@@ -125,9 +121,9 @@ class CanchaController extends Controller
      */
     public function update(Request $request, Cancha $cancha)
     {
-        // REEMPLAZADO: if ($cancha->user_id !== Auth::id()) ...
         $this->authorize('update', $cancha);
 
+        // 1. Validación (Mejorada con 5MB límite)
         $request->validate([
             'name'           => 'required|string|max:255',
             'address'        => 'required|string|max:255',
@@ -139,17 +135,22 @@ class CanchaController extends Controller
             'open_time'      => 'required|date_format:H:i',
             'close_time'     => 'required|date_format:H:i|after:open_time',
             'contact_phone'  => 'required|string|max:20',
-            'images'         => 'nullable|array|max:10', 
-            'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:2048',
-            'delete_images'  => 'nullable|array',
             'sports'         => 'required|array|min:1',
             'sports.*'       => 'exists:sports,id',
+            
+            // Validación de imágenes (Opcional en update, permitimos arrays vacíos)
+            'images'         => 'nullable|array|max:10', 
+            'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:20480', // 20MB
+            'delete_images'  => 'nullable|array',
         ]);
 
+        // 2. Actualizar Datos Básicos
         $cancha->update($request->except(['images', 'delete_images', 'sports']));
         
+        // 3. Sincronizar Deportes
         $cancha->sports()->sync($request->sports);
         
+        // 4. Eliminar Imágenes Marcadas (Si el usuario seleccionó alguna)
         if ($request->has('delete_images')) {
             foreach ($request->input('delete_images') as $mediaId) {
                 $media = $cancha->media()->find($mediaId);
@@ -157,6 +158,7 @@ class CanchaController extends Controller
             }
         }
 
+        // 5. Agregar NUEVAS Imágenes (Se añaden a la colección, no reemplazan)
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $cancha->addMedia($image)->toMediaCollection('canchas');
@@ -171,7 +173,6 @@ class CanchaController extends Controller
      */
     public function destroy(Cancha $cancha)
     {
-        // REEMPLAZADO: if ($cancha->user_id !== Auth::id()) ...
         $this->authorize('delete', $cancha);
 
         $cancha->delete();

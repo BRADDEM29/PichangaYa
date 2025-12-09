@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 // Importaciones de Spatie
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media; // 🟢 NUEVA IMPORTACIÓN NECESARIA
 // Importaciones de Relaciones
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany; // <--- NUEVA IMPORTACIÓN
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; 
 use Illuminate\Support\Str;
 
 
@@ -25,7 +26,7 @@ class Cancha extends Model implements HasMedia
         'price_per_hour',
         'description',
         'user_id',
-        // 'sport_id', // Ya no lo guardamos aquí directo, pero si lo dejas no pasa nada.
+        // 'sport_id', 
         'district_id',
         'lat',
         'lng',
@@ -50,11 +51,11 @@ class Cancha extends Model implements HasMedia
         parent::boot();
 
         static::saving(function ($cancha) {
-            // Crea el slug basado en el nombre. Ej: "Cancha Sur" -> "cancha-sur"
-            // Le concatenamos un uniqid corto para evitar duplicados si hay nombres iguales
+            // Crea el slug basado en el nombre.
             $cancha->slug = Str::slug($cancha->name) . '-' . substr(uniqid(), -4);
         });
     }
+    
     /**
      * Relación: Una cancha pertenece a un dueño (User).
      */
@@ -69,7 +70,6 @@ class Cancha extends Model implements HasMedia
      */
     public function sports(): BelongsToMany
     {
-        // 'cancha_sport' es el nombre de la tabla intermedia que creamos en el Paso 1
         return $this->belongsToMany(Sport::class, 'cancha_sport');
     }
 
@@ -91,13 +91,34 @@ class Cancha extends Model implements HasMedia
     
     // --- GESTIÓN DE MEDIA (SPATIE) ---
     
-    // --- GESTIÓN DE MEDIA (SPATIE) ---
-    
     public function registerMediaCollections(): void
     {
         // 🟢 CORRECCIÓN: Quitamos ->singleFile()
         $this->addMediaCollection('canchas'); 
     }
 
+    /**
+     * 🟢 SPRINT 8: Conversión automática a WebP y Redimensionado
+     * Agregado manteniendo tu diseño de código.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        
+        // 1. Conversión 'thumb': Para tarjetas de listado
+        $this->addMediaConversion('thumb')
+            ->width(400)
+            ->height(300)
+            ->sharpen(10)
+            ->format('webp')   // Convierte a WebP
+            ->nonQueued();     // Procesa al instante
+
+        // 2. Conversión 'large': Para el detalle y carrusel
+        $this->addMediaConversion('large')
+            ->width(1200)
+            ->height(800)
+            ->format('webp')   // Convierte a WebP
+            ->nonQueued();
+            
+    }
     
 }
