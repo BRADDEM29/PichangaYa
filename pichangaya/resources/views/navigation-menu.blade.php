@@ -24,10 +24,7 @@
 
                     {{-- ENLACES SOLO PARA USUARIOS REGISTRADOS --}}
                     @auth
-                        {{-- Se eliminó "Explorar" (Dashboard) para evitar redundancia con Inicio --}}
-
                         {{-- 🟢 BOTÓN: MIS RESERVAS --}}
-                        {{-- 👉 MEJORA: AGREGADO EL ID PARA EL TOUR --}}
                         <x-nav-link href="{{ route('reservas.user.index') }}" :active="request()->routeIs('reservas.user.*')" id="tour-mis-reservas">
                             {{ __('📅 Mis Reservas') }}
                         </x-nav-link>
@@ -68,6 +65,11 @@
 
                                         <x-dropdown-link href="{{ route('admin.sports.index') }}">
                                             {{ __('Deportes') }}
+                                        </x-dropdown-link>
+
+                                        {{-- 🟢 NUEVO: SERVICIOS --}}
+                                        <x-dropdown-link href="{{ route('admin.services.index') }}">
+                                            {{ __('Servicios') }}
                                         </x-dropdown-link>
                                     </x-slot>
                                 </x-dropdown>
@@ -112,7 +114,7 @@
             {{-- SECCIÓN DERECHA: PERFIL / LOGIN --}}
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 @auth
-                    {{-- Selector de Equipos (Solo si está habilitado en Jetstream) --}}
+                    {{-- Selector de Equipos --}}
                     @if (Laravel\Jetstream\Jetstream::hasTeamFeatures())
                         <div class="ms-3 relative">
                             <x-dropdown align="right" width="60">
@@ -160,13 +162,11 @@
                         <x-dropdown align="right" width="48">
                             <x-slot name="trigger">
                                 @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-                                    {{-- 📍 TOUR: ID DEL PERFIL (Con foto) --}}
                                     <button id="tour-perfil" class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
                                         <img class="size-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
                                     </button>
                                 @else
                                     <span class="inline-flex rounded-md">
-                                        {{-- 📍 TOUR: ID DEL PERFIL (Sin foto) --}}
                                         <button id="tour-perfil" type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
                                             {{ Auth::user()->name }}
                                             <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -206,7 +206,7 @@
                         </x-dropdown>
                     </div>
                 @else
-                    {{-- BOTONES PARA INVITADOS (Escritorio) --}}
+                    {{-- BOTONES PARA INVITADOS --}}
                     <div class="space-x-4 flex items-center">
                         <a href="{{ route('login') }}" class="text-sm text-gray-700 font-bold hover:text-indigo-600 transition">
                             Iniciar Sesión
@@ -240,8 +240,6 @@
             </x-responsive-nav-link>
 
             @auth
-                {{-- Se eliminó "Explorar" en móvil también --}}
-
                 <x-responsive-nav-link href="{{ route('reservas.user.index') }}" :active="request()->routeIs('reservas.user.*')">
                     {{ __('📅 Mis Reservas') }}
                 </x-responsive-nav-link>
@@ -263,6 +261,10 @@
                         </x-responsive-nav-link>
                         <x-responsive-nav-link href="{{ route('admin.sports.index') }}" :active="request()->routeIs('admin.sports.*')">
                             {{ __('Deportes') }}
+                        </x-responsive-nav-link>
+                        {{-- 🟢 NUEVO: SERVICIOS MÓVIL --}}
+                        <x-responsive-nav-link href="{{ route('admin.services.index') }}" :active="request()->routeIs('admin.services.*')">
+                            {{ __('Servicios') }}
                         </x-responsive-nav-link>
                     </div>
                 @endif

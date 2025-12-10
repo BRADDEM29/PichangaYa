@@ -4,12 +4,13 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Http\Request; // 🟢 Necesario para el buscador
+use Illuminate\Http\Request; 
 
 // 1. IMPORTACIONES DE CONTROLADORES Y MODELOS
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminDistrictController;
 use App\Http\Controllers\AdminSportController;
+use App\Http\Controllers\AdminServiceController;
 use App\Http\Controllers\CanchaController; 
 use App\Http\Controllers\DashboardController; 
 use App\Http\Controllers\ReservaController; 
@@ -23,10 +24,8 @@ use App\Models\Sport;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function (Request $request) {
-    // 1. Preparar la consulta base con relaciones
     $query = Cancha::with(['media', 'district', 'sports']);
 
-    // 2. Aplicar Filtros (Si el usuario usó el buscador)
     if ($request->filled('search')) {
         $search = $request->input('search');
         $query->where(function($q) use ($search) {
@@ -45,29 +44,22 @@ Route::get('/', function (Request $request) {
         });
     }
 
-    // 3. Decidir qué mostrar
-    // Si hay filtros activos, mostramos todos los resultados.
-    // Si NO hay filtros (es la primera vez que entra), mostramos solo las 3 últimas (Destacadas).
     if ($request->anyFilled(['search', 'district_id', 'sport_id'])) {
         $canchas = $query->get();
     } else {
         $canchas = $query->latest()->take(3)->get();
     }
 
-    // 4. Datos para los selectores (Cacheados)
     $districts = Cache::remember('all_districts', 3600, fn() => District::all());
     $sports = Cache::remember('all_sports', 3600, fn() => Sport::all());
 
-    // 5. Enviar todo a la vista como '$canchas' (para arreglar el error Undefined variable)
-    // También enviamos $canchasDestacadas con los mismos datos por si acaso dejaste alguna referencia vieja.
     return view('welcome', [
         'canchas' => $canchas, 
-        'canchasDestacadas' => $canchas, // Compatibilidad
+        'canchasDestacadas' => $canchas, 
         'districts' => $districts,
         'sports' => $sports
     ]);
 })->name('home');
-
 
 // Detalle de Cancha Pública
 Route::get('/canchas/{cancha}', [DashboardController::class, 'show'])->name('canchas.show');
@@ -99,10 +91,7 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
-    
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // Reservas
     Route::post('/reservas', [ReservaController::class, 'store'])->name('reservas.store');
     Route::get('/reservas/mis-reservas', [ReservaController::class, 'userReservasIndex'])->name('reservas.user.index');
     Route::put('/reservas/{reserva}/cancel', [ReservaController::class, 'cancelUser'])->name('reservas.cancel');
@@ -128,6 +117,8 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::resource('districts', AdminDistrictController::class)->except(['create', 'edit', 'show']);
         Route::resource('sports', AdminSportController::class)->except(['create', 'edit', 'show']);
+        
+        Route::resource('services', AdminServiceController::class)->except(['create', 'edit', 'show']);
     });
     
 /*
@@ -140,25 +131,21 @@ Route::middleware(['auth', 'role:owner'])
     ->name('owner.')
     ->group(function () {
         Route::redirect('/', '/panel-dueno/canchas')->name('dashboard');
+        
+        // 🟢 NUEVA RUTA: Historial de Reservas (Antes del resource para evitar conflictos)
+        Route::get('/canchas/{cancha}/historial', [CanchaController::class, 'history'])->name('canchas.history');
+
         Route::resource('canchas', CanchaController::class);
+        
         Route::get('/reservas', [ReservaController::class, 'ownerReservasIndex'])->name('reservas.index');
         Route::put('/reservas/{reserva}/update-status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
 
-
+// Pruebas Técnicas
 Route::get('/test-gd', function () {
-    if (extension_loaded('gd')) {
-        return "✅ GD ESTÁ ACTIVADO. El problema es otra cosa.";
-    } else {
-        return "❌ GD ESTÁ APAGADO. Tienes que activarlo en el php.ini";
-    }
+    return extension_loaded('gd') ? "✅ GD ACTIVADO" : "❌ GD APAGADO";
 });
 
 Route::get('/test-webp', function () {
-    $gdInfo = gd_info();
-    if ($gdInfo['WebP Support']) {
-        return "✅ SÍ soporta WebP.";
-    } else {
-        return "❌ NO soporta WebP (La conversión fallará).";
-    }
+    return gd_info()['WebP Support'] ? "✅ WebP OK" : "❌ WebP OFF";
 });

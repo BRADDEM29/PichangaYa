@@ -10,8 +10,6 @@
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     
-                    {{-- FORMULARIO DE EDICIÓN --}}
-                    {{-- Nota: enctype="multipart/form-data" es vital para las fotos --}}
                     <form action="{{ route('owner.canchas.update', $cancha) }}" method="POST" enctype="multipart/form-data">
                         @csrf 
                         @method('PUT')
@@ -34,24 +32,45 @@
                             @error('district_id') <p class="text-red-600 text-sm mt-1 font-bold">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- DEPORTES (MULTISELECCIÓN) --}}
+                        {{-- DEPORTES (MÁXIMO 2) --}}
                         <div class="mb-6">
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">Deportes Disponibles</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Deportes Disponibles</label>
+                            <p class="text-xs text-gray-500 mb-3">Selecciona máximo 2 deportes.</p>
+
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 @foreach($sports as $sport)
                                     <label class="cursor-pointer relative">
+                                        {{-- 🟢 Agregamos clase 'sport-checkbox' para el JS --}}
                                         <input type="checkbox" name="sports[]" value="{{ $sport->id }}" 
-                                            class="peer sr-only"
-                                            {{-- Marca si estaba guardado o si falló la validación y estaba seleccionado --}}
+                                            class="peer sr-only sport-checkbox"
                                             @if(in_array($sport->id, old('sports', $cancha->sports->pluck('id')->toArray()))) checked @endif
                                         >
-                                        <div class="p-3 bg-white border rounded-lg hover:bg-gray-50 peer-checked:bg-indigo-50 peer-checked:border-indigo-500 peer-checked:text-indigo-700 transition-all flex items-center justify-center gap-2 text-sm font-medium text-gray-600 shadow-sm">
+                                        <div class="p-3 bg-white border rounded-lg hover:bg-gray-50 peer-checked:bg-indigo-50 peer-checked:border-indigo-500 peer-checked:text-indigo-700 transition-all flex items-center justify-center gap-2 text-sm font-medium text-gray-600 shadow-sm peer-disabled:opacity-50 peer-disabled:cursor-not-allowed">
                                             <span class="text-xl">{{ $sport->icon }}</span> {{ $sport->name }}
                                         </div>
                                     </label>
                                 @endforeach
                             </div>
                             @error('sports') <p class="text-red-600 text-sm mt-1 font-bold">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- SERVICIOS (SIN LÍMITE) --}}
+                        <div class="mb-6 border-t border-gray-100 pt-4">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Servicios Adicionales</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                @foreach($services as $service)
+                                    <label class="cursor-pointer relative">
+                                        <input type="checkbox" name="services[]" value="{{ $service->id }}" 
+                                            class="peer sr-only"
+                                            @if(in_array($service->id, old('services', $cancha->services->pluck('id')->toArray()))) checked @endif
+                                        >
+                                        <div class="p-3 bg-white border rounded-lg hover:bg-gray-50 peer-checked:bg-green-50 peer-checked:border-green-500 peer-checked:text-green-700 transition-all flex items-center justify-center gap-2 text-sm font-medium text-gray-600 shadow-sm">
+                                            <span class="text-xl">{{ $service->icon }}</span> {{ $service->name }}
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('services') <p class="text-red-600 text-sm mt-1 font-bold">{{ $message }}</p> @enderror
                         </div>
 
                         {{-- Precio --}}
@@ -102,6 +121,7 @@
                             <div id="map" class="w-full h-96 rounded-lg shadow-md border border-gray-300"></div>
                             <input type="hidden" name="lat" id="lat" value="{{ old('lat', $cancha->lat) }}">
                             <input type="hidden" name="lng" id="lng" value="{{ old('lng', $cancha->lng) }}">
+                            <p class="text-xs text-gray-500 mt-2">* Arrastra el marcador rojo para fijar la ubicación exacta.</p>
                             @error('lat') <p class="text-red-600 text-sm mt-1 font-bold">Selecciona una ubicación en el mapa.</p> @enderror
                         </div>
 
@@ -132,20 +152,11 @@
                             <input type="file" name="images[]" id="images" multiple accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                             <div id="image-preview" class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
 
-                            {{-- 🟢 AGREGADO: Mensajes de error para imágenes --}}
-                            @error('images')
-                                <p class="text-red-600 text-sm mt-2 font-bold flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                            {{-- Errores individuales por archivo --}}
+                            @error('images') <p class="text-red-600 text-sm mt-2 font-bold">{{ $message }}</p> @enderror
                             @if($errors->has('images.*'))
                                 <ul class="mt-2 list-disc list-inside text-sm text-red-600 font-bold">
                                     @foreach($errors->get('images.*') as $errorsArray)
-                                        @foreach($errorsArray as $error)
-                                            <li>{{ $error }}</li>
-                                        @endforeach
+                                        @foreach($errorsArray as $error) <li>{{ $error }}</li> @endforeach
                                     @endforeach
                                 </ul>
                             @endif
@@ -171,15 +182,49 @@
     </div>
 </x-app-layout>
 
-{{-- SCRIPTS JS (Mapa y Previsualización de Imágenes) --}}
+{{-- SCRIPTS JS --}}
 <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_key') }}&callback=initMap" async defer></script>
 
 <script>
+    // --- 🟢 LÓGICA DE MÁXIMO 2 DEPORTES (IMPLEMENTADA) ---
+    const sportCheckboxes = document.querySelectorAll('.sport-checkbox');
+    const maxSports = 2; 
+
+    // Función para validar y bloquear
+    function checkSportsLimit() {
+        const selected = document.querySelectorAll('.sport-checkbox:checked');
+        
+        if (selected.length >= maxSports) {
+            sportCheckboxes.forEach(cb => {
+                if (!cb.checked) {
+                    cb.disabled = true;
+                    // Agregar estilo visual de deshabilitado
+                    cb.parentElement.querySelector('div').classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            });
+        } else {
+            sportCheckboxes.forEach(cb => {
+                cb.disabled = false;
+                // Quitar estilo visual
+                cb.parentElement.querySelector('div').classList.remove('opacity-50', 'cursor-not-allowed');
+            });
+        }
+    }
+
+    // Event Listeners
+    sportCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', checkSportsLimit);
+    });
+
+    // 🟢 EJECUTAR AL CARGAR (Importante para Edit: si ya tiene 2, bloquea al entrar)
+    document.addEventListener('DOMContentLoaded', checkSportsLimit);
+
+
+    // --- SCRIPT MAPA ---
     let map;
     let marker;
 
     function initMap() {
-        // Usamos coordenadas por defecto si la cancha no tiene (ej: Plaza de Armas Cusco)
         const savedLat = {{ $cancha->lat ?? -13.5167 }};
         const savedLng = {{ $cancha->lng ?? -71.9788 }};
         const initialPosition = { lat: savedLat, lng: savedLng };
@@ -204,10 +249,10 @@
         });
     }
 
-    // Previsualización de imágenes seleccionadas
+    // --- PREVISUALIZACIÓN IMÁGENES ---
     document.getElementById('images').addEventListener('change', function(event) {
         const previewContainer = document.getElementById('image-preview');
-        previewContainer.innerHTML = ''; // Limpiar previsualización anterior
+        previewContainer.innerHTML = '';
         for (const file of event.target.files) {
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();

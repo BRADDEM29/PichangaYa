@@ -120,5 +120,12 @@ class Cancha extends Model implements HasMedia
             ->nonQueued();
             
     }
+    /**
+     * Relación: Una cancha tiene muchos servicios.
+     */
+    public function services(): BelongsToMany
+    {
+        return $this->belongsToMany(Service::class, 'cancha_service');
+    }
     
 }

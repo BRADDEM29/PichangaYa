@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cancha;
 use App\Models\Sport;
 use App\Models\District;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -37,6 +38,7 @@ class CanchaController extends Controller
 
         $sports = Sport::all();
         $districts = District::all();
+        $services = Service::all();
         
         $user = Auth::user();
         $phones = collect([
@@ -49,7 +51,7 @@ class CanchaController extends Controller
             }
         }
 
-        return view('owner.canchas.create', compact('sports', 'districts', 'phones'));
+        return view('owner.canchas.create', compact('sports', 'districts', 'phones', 'services'));
     }
 
     /**
@@ -74,15 +76,20 @@ class CanchaController extends Controller
             'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:20480',
             'sports'         => 'required|array|min:1',
             'sports.*'       => 'exists:sports,id',
+            'services'       => 'nullable|array',
+            'services.*'     => 'exists:services,id',
         ]);
 
-        // 1. Crear Cancha 
-        $cancha = Auth::user()->canchas()->create($request->except(['images', 'sports']));
+        // 1. Crear Cancha
+        $cancha = Auth::user()->canchas()->create($request->except(['images', 'sports', 'services']));
 
         // 2. Guardar Deportes
         $cancha->sports()->sync($request->sports);
 
-        // 3. Guardar Imágenes
+        // 3. Guardar Servicios
+        $cancha->services()->sync($request->input('services', []));
+
+        // 4. Guardar Imágenes
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $cancha->addMedia($image)->toMediaCollection('canchas');
@@ -101,6 +108,7 @@ class CanchaController extends Controller
         
         $sports = Sport::all();
         $districts = District::all();
+        $services = Service::all();
         
         $user = Auth::user();
         $phones = collect([
@@ -113,7 +121,7 @@ class CanchaController extends Controller
             }
         }
         
-        return view('owner.canchas.edit', compact('cancha', 'sports', 'districts', 'phones'));
+        return view('owner.canchas.edit', compact('cancha', 'sports', 'districts', 'phones', 'services'));
     }
 
     /**
@@ -123,7 +131,6 @@ class CanchaController extends Controller
     {
         $this->authorize('update', $cancha);
 
-        // 1. Validación (Mejorada con 5MB límite)
         $request->validate([
             'name'           => 'required|string|max:255',
             'address'        => 'required|string|max:255',
@@ -137,20 +144,24 @@ class CanchaController extends Controller
             'contact_phone'  => 'required|string|max:20',
             'sports'         => 'required|array|min:1',
             'sports.*'       => 'exists:sports,id',
+            'services'       => 'nullable|array',
+            'services.*'     => 'exists:services,id',
             
-            // Validación de imágenes (Opcional en update, permitimos arrays vacíos)
             'images'         => 'nullable|array|max:10', 
-            'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:20480', // 20MB
+            'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:20480',
             'delete_images'  => 'nullable|array',
         ]);
 
         // 2. Actualizar Datos Básicos
-        $cancha->update($request->except(['images', 'delete_images', 'sports']));
+        $cancha->update($request->except(['images', 'delete_images', 'sports', 'services']));
         
         // 3. Sincronizar Deportes
         $cancha->sports()->sync($request->sports);
+
+        // 4. Sincronizar Servicios
+        $cancha->services()->sync($request->input('services', []));
         
-        // 4. Eliminar Imágenes Marcadas (Si el usuario seleccionó alguna)
+        // 5. Eliminar Imágenes Marcadas
         if ($request->has('delete_images')) {
             foreach ($request->input('delete_images') as $mediaId) {
                 $media = $cancha->media()->find($mediaId);
@@ -158,7 +169,7 @@ class CanchaController extends Controller
             }
         }
 
-        // 5. Agregar NUEVAS Imágenes (Se añaden a la colección, no reemplazan)
+        // 6. Agregar NUEVAS Imágenes
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $cancha->addMedia($image)->toMediaCollection('canchas');
@@ -177,5 +188,30 @@ class CanchaController extends Controller
 
         $cancha->delete();
         return redirect()->route('owner.canchas.index')->with('success', 'Cancha eliminada.');
+    }
+
+    /**
+     * 🟢 NUEVO: Muestra el historial financiero agrupado por meses.
+     */
+    public function history(Cancha $cancha)
+    {
+        // 1. Seguridad: Solo el dueño puede ver esto
+        $this->authorize('update', $cancha);
+
+        // 2. Obtener reservas ordenadas por fecha (más recientes primero)
+        $reservas = $cancha->reservas()
+                           ->with('user')
+                           ->orderBy('start_time', 'desc')
+                           ->get();
+
+        // 3. Agrupar por "Mes Año" (Ej: "Diciembre 2025")
+        // Usamos Carbon para formatear la fecha
+        $reservasPorMes = $reservas->groupBy(function($reserva) {
+            return \Carbon\Carbon::parse($reserva->start_time)
+                    ->locale('es')
+                    ->isoFormat('MMMM YYYY'); 
+        });
+
+        return view('owner.canchas.history', compact('cancha', 'reservasPorMes'));
     }
 }
