@@ -48,7 +48,6 @@
                                             {{ $reserva->cancha->name }}
                                         </td>
                                         
-                                        {{-- 🟢 FECHA CORREGIDA: DÍA/MES/AÑO --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-gray-600">
                                             {{ $reserva->start_time->format('d/m/Y') }}
                                         </td>
@@ -59,25 +58,25 @@
                                         <td class="px-6 py-4 whitespace-nowrap font-bold text-indigo-600">
                                             S/ {{ number_format($reserva->total_price, 2) }}
                                         </td>
+                                        
+                                        {{-- 🟢 ESTADO TRADUCIDO Y CON COLORES --}}
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             @php
-                                                $styles = [
-                                                    'confirmed' => 'bg-green-100 text-green-800',
-                                                    'pending' => 'bg-yellow-100 text-yellow-800',
-                                                    'cancelled' => 'bg-red-100 text-red-800',
+                                                $statusConfig = [
+                                                    'pending'      => ['label' => 'Pendiente',       'class' => 'bg-gray-100 text-gray-800'],
+                                                    'confirmed'    => ['label' => 'Confirmada',      'class' => 'bg-blue-100 text-blue-800'],
+                                                    'advance_paid' => ['label' => 'Adelanto Pagado', 'class' => 'bg-yellow-100 text-yellow-800 border border-yellow-200'],
+                                                    'fully_paid'   => ['label' => 'Pago Completo',   'class' => 'bg-green-100 text-green-800 border border-green-200'],
+                                                    'cancelled'    => ['label' => 'Cancelada',       'class' => 'bg-red-100 text-red-800'],
                                                 ];
-                                                $labels = [
-                                                    'confirmed' => 'Confirmada',
-                                                    'pending' => 'Pendiente',
-                                                    'cancelled' => 'Cancelada',
-                                                ];
+                                                
+                                                $currentStatus = $statusConfig[$reserva->status] ?? ['label' => $reserva->status, 'class' => 'bg-gray-100'];
                                             @endphp
-                                            <span class="px-3 py-1 text-xs font-semibold rounded-full {{ $styles[$reserva->status] ?? 'bg-gray-100' }}">
-                                                {{ $labels[$reserva->status] ?? ucfirst($reserva->status) }}
+                                            <span class="px-3 py-1 text-xs font-bold rounded-full {{ $currentStatus['class'] }}">
+                                                {{ $currentStatus['label'] }}
                                             </span>
                                         </td>
                                         
-                                        {{-- 🟢 ACCIONES CRUD --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             @if ($reserva->status !== 'cancelled' && $reserva->start_time > now())
                                                 

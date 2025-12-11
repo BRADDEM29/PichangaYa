@@ -38,7 +38,7 @@
                                         <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Día</th>
                                         <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cliente</th>
                                         <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Horario</th>
-                                        <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Estado</th>
+                                        <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Estado de Pago</th>
                                         <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Costo</th>
                                     </tr>
                                 </thead>
@@ -47,13 +47,13 @@
                                     
                                     @foreach($reservas as $reserva)
                                         @php 
-                                            // Solo sumamos al total si no está cancelada
+                                            // Solo sumamos al total si NO está cancelada
                                             if($reserva->status !== 'cancelled') {
                                                 $totalMes += $reserva->total_price;
                                             }
                                         @endphp
                                         <tr class="hover:bg-gray-50 transition">
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">
                                                 {{ \Carbon\Carbon::parse($reserva->start_time)->format('d/m/Y') }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
@@ -64,26 +64,36 @@
                                                 {{ \Carbon\Carbon::parse($reserva->start_time)->format('H:i') }} - 
                                                 {{ \Carbon\Carbon::parse($reserva->end_time)->format('H:i') }}
                                             </td>
+                                            
+                                            {{-- 🟢 ESTADO CON COLORES Y TRADUCCIÓN --}}
                                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                @if($reserva->status === 'confirmed')
-                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                        Confirmado
-                                                    </span>
-                                                @elseif($reserva->status === 'pending')
-                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                                        Pendiente
-                                                    </span>
-                                                @else
-                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                                        Cancelado
-                                                    </span>
-                                                @endif
+                                                @php
+                                                    $statusConfig = [
+                                                        'pending'      => ['label' => 'Pendiente',       'class' => 'bg-gray-100 text-gray-800'],
+                                                        'confirmed'    => ['label' => 'Confirmada',      'class' => 'bg-blue-100 text-blue-800'],
+                                                        'advance_paid' => ['label' => 'Adelanto Pagado', 'class' => 'bg-yellow-100 text-yellow-800 border border-yellow-200'],
+                                                        'fully_paid'   => ['label' => 'Pago Completo',   'class' => 'bg-green-100 text-green-800 border border-green-200'],
+                                                        'cancelled'    => ['label' => 'Cancelada',       'class' => 'bg-red-100 text-red-800'],
+                                                    ];
+                                                    
+                                                    $currentStatus = $statusConfig[$reserva->status] ?? ['label' => ucfirst($reserva->status), 'class' => 'bg-gray-100'];
+                                                @endphp
+                                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full {{ $currentStatus['class'] }}">
+                                                    {{ $currentStatus['label'] }}
+                                                </span>
                                             </td>
+
+                                            {{-- 🟢 COSTO: TACHADO SI ES CANCELADO --}}
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 @if($reserva->status === 'cancelled')
-                                                    <span class="text-gray-400 line-through">S/ {{ number_format($reserva->total_price, 2) }}</span>
+                                                    <span class="text-gray-400 line-through decoration-red-500 decoration-2">
+                                                        S/ {{ number_format($reserva->total_price, 2) }}
+                                                    </span>
+                                                    <span class="text-xs text-red-500 block">(Anulado)</span>
                                                 @else
-                                                    <span class="text-gray-900">S/ {{ number_format($reserva->total_price, 2) }}</span>
+                                                    <span class="text-gray-900 font-bold">
+                                                        S/ {{ number_format($reserva->total_price, 2) }}
+                                                    </span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -92,7 +102,7 @@
                                     {{-- FILA TOTAL DEL MES --}}
                                     <tr class="bg-indigo-50 border-t-2 border-indigo-100">
                                         <td colspan="4" class="px-6 py-4 text-right font-bold text-indigo-800 uppercase text-sm">
-                                            Total {{ $mes }}:
+                                            Total Ingresos {{ $mes }}:
                                         </td>
                                         <td class="px-6 py-4 text-right font-black text-indigo-700 text-lg">
                                             S/ {{ number_format($totalMes, 2) }}
