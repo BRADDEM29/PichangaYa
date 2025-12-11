@@ -6,13 +6,12 @@ use App\Models\Reserva;
 use App\Models\Cancha;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests; // Importante
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
 use Carbon\Carbon;
 
 class ReservaController extends Controller
 {
-    use AuthorizesRequests; // Habilita $this->authorize
+    use AuthorizesRequests; 
 
     /**
      * Valida si un horario solicitado está disponible.
@@ -66,11 +65,11 @@ class ReservaController extends Controller
             'start_time'  => $start,
             'end_time'    => $end,
             'total_price' => $totalPrice,
-            'status'      => 'confirmed', 
+            'status'      => 'pending', // Nace como pendiente
         ]);
 
         return redirect()->route('reservas.user.index')
-            ->with('success', '¡Reserva creada exitosamente!');
+            ->with('success', '¡Solicitud de reserva enviada! Espera la confirmación del dueño.');
     }
 
     // -------------------------------------------------------------------------
@@ -95,38 +94,53 @@ class ReservaController extends Controller
      */
     public function ownerReservasIndex()
     {
-        // 🟢 CORRECCIÓN: Usamos 'user_id' en lugar de 'owner_id' para coincidir con el modelo Cancha
-        $canchaIds = Cancha::where('user_id', Auth::id())->pluck('id');
+        // 1. Obtener ID del usuario autenticado (dueño)
+        $userId = Auth::id();
 
+        // 2. Obtener IDs de sus canchas
+        $canchaIds = Cancha::where('user_id', $userId)->pluck('id');
+
+        // 3. Obtener reservas de ESAS canchas
         $reservas = Reserva::whereIn('cancha_id', $canchaIds)
-            ->with('user', 'cancha') 
+            ->with('user', 'cancha') // Cargar relaciones
             ->latest()
             ->paginate(10); 
 
-        return view('owner-reservas-index', compact('reservas'));
+        // Retornar vista correcta en la carpeta owner
+        return view('owner.reservas.index', compact('reservas'));
     }
 
     // -------------------------------------------------------------------------
-    // ACCIONES DUEÑO
+    // ACCIONES DUEÑO (ACTUALIZADO)
     // -------------------------------------------------------------------------
 
     /**
-     * Permite al dueño actualizar el estado (confirmar/cancelar).
+     * Permite al dueño actualizar el estado (Adelantos, Pagos, Cancelaciones).
      */
     public function updateStatus(Reserva $reserva, Request $request)
     {
-        // 🔒 SEGURIDAD: Usamos la Policy 'updateStatus'
+        // 🔒 SEGURIDAD: Policy 'updateStatus' debe permitir esto
         $this->authorize('updateStatus', $reserva);
 
+        // 🟢 VALIDACIÓN ACTUALIZADA: Acepta los nuevos estados de pago
         $request->validate([
-            'status' => 'required|in:confirmed,cancelled',
+            'status' => 'required|in:pending,advance_paid,fully_paid,cancelled',
         ]);
 
         $reserva->update([
             'status' => $request->status,
         ]);
         
-        return back()->with('success', 'Estado actualizado correctamente.');
+        // Mensaje personalizado según el estado para mejor feedback
+        $msg = match($request->status) {
+            'advance_paid' => 'Adelanto registrado correctamente. 🟡',
+            'fully_paid'   => 'Pago completo registrado. ¡Cancha pagada! 🟢',
+            'cancelled'    => 'La reserva ha sido cancelada. 🔴',
+            'pending'      => 'Estado cambiado a pendiente.',
+            default        => 'Estado de la reserva actualizado.',
+        };
+
+        return back()->with('success', $msg);
     }
 
     // -------------------------------------------------------------------------
@@ -138,7 +152,7 @@ class ReservaController extends Controller
      */
     public function cancelUser(Reserva $reserva)
     {
-        // 🔒 SEGURIDAD: Usamos la Policy 'cancel'
+        // 🔒 SEGURIDAD: Policy
         $this->authorize('cancel', $reserva);
 
         // Validación de Negocio: No cancelar fechas pasadas
@@ -156,14 +170,10 @@ class ReservaController extends Controller
      */
     public function editUser(Reserva $reserva)
     {
-        // 🔒 SEGURIDAD: Verificamos que sea el dueño de la reserva
-        // Usamos 'view' o 'cancel' como proxy de propiedad, o idealmente 'update'
+        // 🔒 SEGURIDAD: Policy 'view' verifica propiedad
         $this->authorize('view', $reserva); 
 
-        if ($reserva->user_id !== Auth::id()) {
-             abort(403); // Doble chequeo por si la policy view es permisiva
-        }
-
+        // Validaciones extra de negocio
         if ($reserva->status === 'cancelled') {
             return back()->with('error', 'No puedes editar una reserva cancelada.');
         }
