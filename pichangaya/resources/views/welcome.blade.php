@@ -5,184 +5,221 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- 🟢 LA CLAVE MAESTRA: Variable Global JS para el Tour --}}
     <script>
         window.usuarioEstaLogueado = {{ auth()->check() ? 'true' : 'false' }};
     </script>
 
-    {{-- ============================================================== --}}
-    {{-- 🚀 SEO OPTIMIZATION --}}
-    {{-- ============================================================== --}}
     <title>PichangaYa - Reserva Canchas de Fútbol y Vóley en Cusco</title>
-    <meta name="description" content="La plataforma #1 en Cusco para reservar canchas deportivas. Encuentra losas de fútbol, vóley y básquet, compara precios y reserva al instante sin llamadas.">
-    <meta name="keywords" content="canchas cusco, pichanga cusco, alquiler losas deportivas, reserva futbol, voley cusco, wanchaq deportes">
-    <meta name="author" content="PichangaYa">
-    <meta name="robots" content="index, follow">
-
-    {{-- Open Graph --}}
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ url('/') }}">
-    <meta property="og:title" content="PichangaYa - Tu partido empieza con un clic">
-    <meta property="og:description" content="Reserva canchas deportivas en Cusco fácil y rápido. Mira fotos, horarios y precios reales.">
-    <meta property="og:image" content="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1000&auto=format&fit=crop">
-
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
-    {{-- Scroll suave para el botón del Hero --}}
-    <style>html { scroll-behavior: smooth; }</style>
+    <style>
+        html { scroll-behavior: smooth; }
+        .text-shadow-strong { text-shadow: 0 4px 10px rgba(0, 0, 0, 0.9); }
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
 <body class="font-sans antialiased bg-gray-50">
 
-    {{-- 1. NAVBAR --}}
-    <nav class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                {{-- Logo --}}
-                <div class="flex items-center">
-                    <a href="{{ route('home') }}" class="text-2xl font-black text-indigo-700 hover:text-indigo-800 transition tracking-tighter">
-                        ⚽ Pichanga<span class="text-yellow-500">Ya</span>
-                    </a>
-                </div>
+    @include('navigation-menu')
 
-                {{-- Menú --}}
-                <div class="hidden sm:flex sm:items-center sm:ms-6">
-                    @auth
-                        <a href="{{ route('dashboard') }}" class="text-sm font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-full hover:bg-indigo-100 transition">
-                            Ir al Dashboard
-                        </a>
-                    @else
-                        <a href="{{ route('login') }}" class="text-sm font-semibold text-gray-600 hover:text-indigo-600 px-3 py-2 transition">
-                            Iniciar Sesión
-                        </a>
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="ml-4 text-sm text-white bg-indigo-600 px-5 py-2 rounded-full font-bold hover:bg-indigo-700 transition shadow-lg transform hover:-translate-y-0.5">
-                                Registrarse
-                            </a>
-                        @endif
-                    @endauth
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    {{-- 2. HERO SECTION --}}
-    <div class="relative bg-gray-900 text-white overflow-hidden">
+    {{-- 1. HERO SECTION --}}
+    <div class="relative bg-gray-900 text-white overflow-hidden pb-10">
         <div class="absolute inset-0">
             <img src="https://images.unsplash.com/photo-1529900748604-07564a03e7a6?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover opacity-30">
             <div class="absolute inset-0 bg-gradient-to-t from-gray-50 via-gray-900/40 to-gray-900/60"></div>
         </div>
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
+        
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 text-center">
+            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 text-shadow-strong">
                 Juega sin límites en <span class="text-yellow-400">Cusco</span>
             </h1>
-            <p class="text-xl text-gray-300 mb-6 max-w-2xl mx-auto">
-                La forma más rápida de encontrar y reservar canchas de fútbol, vóley y más. Sin llamadas, sin esperas.
+            <p class="text-xl text-gray-300 mb-10 max-w-2xl mx-auto font-medium">
+                Reserva canchas de fútbol, vóley y más al instante.
             </p>
-
-            {{-- 👉 ID="TOUR-RESERVAS" --}}
-            <div class="mb-10">
-                <a href="#seccion-canchas" id="tour-reservas" class="inline-block bg-yellow-400 text-gray-900 font-black text-lg px-8 py-3 rounded-full hover:bg-yellow-300 transition shadow-lg transform hover:scale-105">
-                    ¡Reserva tu Cancha Ahora!
-                </a>
-            </div>
             
-            {{-- BUSCADOR --}}
-            <div class="bg-white p-2 rounded-lg shadow-2xl max-w-3xl mx-auto transform translate-y-6">
-                <form method="GET" action="{{ route('home') }}" class="grid grid-cols-1 md:grid-cols-4 gap-2">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="¿Nombre de la cancha?" class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-900">
+            <div class="bg-white p-3 rounded-xl shadow-2xl max-w-4xl mx-auto backdrop-blur-sm bg-white/95">
+                <form method="GET" action="{{ route('home') }}" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="¿Nombre de la cancha?" class="block w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-900 h-12">
                     
-                    <select name="district_id" class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-900">
+                    <select name="district_id" class="block w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-900 h-12">
                         <option value="">Todo Cusco</option>
-                        @foreach($districts as $district)
-                            <option value="{{ $district->id }}" {{ request('district_id') == $district->id ? 'selected' : '' }}>{{ $district->name }}</option>
-                        @endforeach
+                        @isset($districts)
+                            @foreach($districts as $district)
+                                <option value="{{ $district->id }}" {{ request('district_id') == $district->id ? 'selected' : '' }}>{{ $district->name }}</option>
+                            @endforeach
+                        @endisset
                     </select>
-
-                    <select name="sport_id" class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-900">
+                    
+                    <select name="sport_id" class="block w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-900 h-12">
                         <option value="">Deporte</option>
-                        @foreach($sports as $sport)
-                            <option value="{{ $sport->id }}" {{ request('sport_id') == $sport->id ? 'selected' : '' }}>{{ $sport->name }}</option>
-                        @endforeach
+                        @isset($sports)
+                            @foreach($sports as $sport)
+                                <option value="{{ $sport->id }}" {{ request('sport_id') == $sport->id ? 'selected' : '' }}>{{ $sport->name }}</option>
+                            @endforeach
+                        @endisset
                     </select>
-
-                    <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition">
-                        🔍 Buscar
+                    
+                    <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition shadow-md h-12 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        Buscar
                     </button>
                 </form>
             </div>
         </div>
     </div>
 
-    {{-- 3. RESULTADOS --}}
-    <div id="seccion-canchas" class="py-16 bg-gray-50">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            
-            <div class="flex justify-between items-end mb-8 px-4 sm:px-0">
-                <div>
-                    <h2 class="text-3xl font-bold text-gray-900">Canchas Disponibles</h2>
-                    <p class="text-gray-500 mt-1">Explora las mejores opciones cerca de ti.</p>
-                </div>
+    {{-- 🟢 2. CARRUSEL DE LAS MEJORES CANCHAS (LÓGICA CORREGIDA) --}}
+    @if(isset($featuredCanchas) && $featuredCanchas->isNotEmpty() && !request()->has('search') && !request()->has('sport_id'))
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10 mb-16">
+        
+        <div class="flex items-center gap-3 mb-6">
+            <span class="text-3xl">⭐</span>
+            <h3 class="text-2xl font-black text-gray-900 uppercase tracking-wide">Las Mejores Canchas</h3>
+        </div>
+        
+        {{-- CONTENEDOR CARRUSEL --}}
+        <div x-data="{ 
+                activeSlide: 0, 
+                slidesCount: {{ $featuredCanchas->count() }}, 
+                timer: null,
+                start() {
+                    // Limpiar timer previo para evitar duplicados
+                    if(this.timer) clearInterval(this.timer);
+                    this.timer = setInterval(() => {
+                        this.activeSlide = (this.activeSlide === this.slidesCount - 1) ? 0 : this.activeSlide + 1;
+                    }, 5000);
+                },
+                stop() {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                },
+                next() {
+                    this.stop();
+                    this.activeSlide = (this.activeSlide === this.slidesCount - 1) ? 0 : this.activeSlide + 1;
+                    this.start();
+                },
+                prev() {
+                    this.stop();
+                    this.activeSlide = (this.activeSlide === 0) ? this.slidesCount - 1 : this.activeSlide - 1;
+                    this.start();
+                }
+             }"
+             x-init="start()"
+             @mouseenter="stop()" 
+             @mouseleave="start()"
+             class="relative w-full h-[550px] bg-black rounded-3xl shadow-2xl overflow-hidden group border-4 border-white">
+
+            {{-- PISTA DESLIZANTE --}}
+            <div class="flex h-full transition-transform duration-700 ease-out will-change-transform"
+                 :style="'transform: translateX(-' + (activeSlide * 100) + '%)'">
+                
+                @foreach($featuredCanchas as $fc)
+                    <div class="min-w-full h-full relative">
+                        {{-- Enlace --}}
+                        <a href="{{ route('canchas.show', $fc) }}" class="absolute inset-0 z-30 w-full h-full cursor-pointer"></a>
+
+                        {{-- Imagen --}}
+                        @if($fc->getFirstMediaUrl('canchas'))
+                            <img src="{{ $fc->getFirstMediaUrl('canchas', 'large') }}" class="absolute inset-0 w-full h-full object-cover brightness-[0.45] transition-transform duration-[10000ms] ease-linear group-hover:scale-110">
+                        @else
+                            <img src="https://images.unsplash.com/photo-1529900748604-07564a03e7a6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80" class="absolute inset-0 w-full h-full object-cover brightness-[0.45]">
+                        @endif
+
+                        {{-- Texto --}}
+                        <div class="absolute inset-0 flex flex-col justify-center items-center text-center z-20 px-6 pointer-events-none">
+                            <span class="inline-block bg-yellow-400 text-black text-xs font-black px-4 py-1.5 rounded-full mb-6 uppercase tracking-widest shadow-lg transform -skew-x-12">
+                                ★ Destacada
+                            </span>
+                            <h2 class="text-5xl md:text-7xl font-black text-white mb-4 drop-shadow-xl text-shadow-strong leading-tight">
+                                {{ $fc->name }}
+                            </h2>
+                            <p class="text-gray-200 text-lg md:text-xl mb-8 font-medium max-w-3xl drop-shadow-md line-clamp-2">
+                                {{ $fc->description ?? 'Disfruta de la mejor experiencia deportiva en ' . ($fc->district->name ?? 'Cusco') . '. ¡Reserva tu horario ahora!' }}
+                            </p>
+                            <div class="bg-indigo-600 text-white text-lg font-bold py-4 px-10 rounded-full shadow-2xl border-2 border-white/20 flex items-center gap-2 group-hover:bg-indigo-500 transition-colors">
+                                <span>Reservar Ahora</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
 
+            {{-- BOTONES (Llaman a las funciones corregidas next() y prev()) --}}
+            <button @click.prevent="prev()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-md transition z-40 cursor-pointer opacity-0 group-hover:opacity-100 border border-white/20">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <button @click.prevent="next()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-md transition z-40 cursor-pointer opacity-0 group-hover:opacity-100 border border-white/20">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </button>
+
+            {{-- PUNTOS --}}
+            <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 z-40">
+                <template x-for="i in slidesCount">
+                    <button @click.prevent="activeSlide = i - 1; stop(); start();" 
+                            :class="{'bg-yellow-400 w-10': activeSlide === i - 1, 'bg-white/40 w-3 hover:bg-white': activeSlide !== i - 1}"
+                            class="h-3 rounded-full transition-all duration-300 shadow-sm cursor-pointer"></button>
+                </template>
+            </div>
+
+        </div>
+    </div>
+    @endif
+
+    {{-- 3. RESULTADOS CANCHAS GENERALES --}}
+    <div id="seccion-canchas" class="py-8 bg-gray-50">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 border-l-4 border-indigo-600 pl-4">Explora Todas las Canchas</h2>
+
             @if($canchas->isEmpty())
-                <div class="text-center py-16 bg-white rounded-2xl shadow-sm">
-                    <div class="text-6xl mb-4">😢</div>
-                    <h3 class="text-xl font-bold text-gray-900">No encontramos resultados</h3>
-                    <p class="text-gray-500">Intenta cambiar los filtros de búsqueda.</p>
-                    <a href="{{ route('home') }}" class="mt-4 inline-block text-indigo-600 font-bold hover:underline">Ver todo</a>
+                <div class="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
+                    <div class="text-7xl mb-4">🏟️</div>
+                    <h3 class="text-2xl font-bold text-gray-900">No encontramos resultados</h3>
+                    <p class="text-gray-500 mt-2">Intenta cambiar los filtros de búsqueda o el distrito.</p>
+                    <a href="{{ route('home') }}" class="mt-6 inline-block bg-indigo-50 text-indigo-700 px-6 py-2 rounded-full font-bold hover:bg-indigo-100 transition">Limpiar Filtros</a>
                 </div>
             @else
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     @foreach($canchas as $cancha)
-                        <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition duration-300 group">
-                            
-                            {{-- FOTO --}}
+                        <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group flex flex-col h-full transform hover:-translate-y-1">
                             <div class="h-56 w-full bg-gray-200 relative overflow-hidden">
                                 @if($cancha->getFirstMediaUrl('canchas'))
-                                    <img src="{{ $cancha->getFirstMediaUrl('canchas') }}" alt="{{ $cancha->name }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                                    <img src="{{ $cancha->getFirstMediaUrl('canchas', 'large') }}" alt="{{ $cancha->name }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                                 @else
-                                    <div class="flex items-center justify-center h-full text-4xl bg-gray-100 text-gray-400">🏟️</div>
+                                    <div class="flex items-center justify-center h-full text-4xl bg-gray-100 text-gray-400 flex-col">
+                                        <span>📷</span>
+                                        <span class="text-xs mt-2">Sin Foto</span>
+                                    </div>
                                 @endif
-                                
-                                <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm font-bold text-indigo-700 text-sm">
-                                    S/ {{ $cancha->price_per_hour }}
+                                <div class="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm font-bold text-indigo-700 text-sm border border-gray-100">
+                                    S/ {{ $cancha->price_per_hour }} <span class="text-xs font-normal text-gray-500">/h</span>
                                 </div>
                             </div>
                             
-                            <div class="p-6">
-                                <div class="mb-3">
-                                    <h3 class="text-xl font-bold text-gray-900 leading-tight mb-1">{{ $cancha->name }}</h3>
-                                    <div class="flex items-center text-sm text-gray-500">
-                                        <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                        {{ $cancha->district->name }}
+                            <div class="p-6 flex-grow flex flex-col justify-between">
+                                <div>
+                                    <div class="mb-3">
+                                        <h3 class="text-xl font-bold text-gray-900 leading-tight mb-2 group-hover:text-indigo-600 transition-colors">{{ $cancha->name }}</h3>
+                                        <div class="flex items-center text-sm text-gray-500 font-medium">
+                                            <svg class="w-4 h-4 mr-1 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            {{ $cancha->district->name ?? 'Cusco' }}
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-wrap gap-2 mb-4">
+                                        @if($cancha->sports && $cancha->sports->count() > 0)
+                                            @foreach($cancha->sports->take(2) as $sport) 
+                                                <span class="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-md border border-blue-100 uppercase tracking-wide">{{ $sport->name }}</span>
+                                            @endforeach
+                                        @else
+                                            <span class="bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-1 rounded-md border border-gray-200">DEPORTE GENERAL</span>
+                                        @endif
                                     </div>
                                 </div>
-
-                                {{-- TAGS --}}
-                                <div class="flex flex-wrap gap-2 mb-4">
-                                    @foreach($cancha->sports->take(3) as $sport) 
-                                        <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-md border border-indigo-100">
-                                            {{ $sport->icon }} {{ $sport->name }}
-                                        </span>
-                                    @endforeach
-                                    @if($cancha->sports->count() > 3)
-                                        <span class="text-xs text-gray-400 font-semibold flex items-center">+{{ $cancha->sports->count() - 3 }}</span>
-                                    @endif
-                                </div>
-
-                                <div class="border-t border-gray-100 pt-4 mt-4">
-                                    @auth
-                                        {{-- 👉 ID="TOUR-DETALLES" (Solo en la primera tarjeta) --}}
-                                        <a href="{{ route('canchas.show', $cancha) }}" 
-                                           class="block w-full py-3 bg-gray-900 text-white text-center rounded-xl font-bold hover:bg-indigo-600 transition shadow-md"
-                                           @if($loop->first) id="tour-detalles" @endif>
-                                            Ver Detalles
-                                        </a>
-                                    @else
-                                        <a href="{{ route('register') }}" class="block w-full py-3 bg-indigo-600 text-white text-center rounded-xl font-bold hover:bg-indigo-700 transition shadow-md">
-                                            Regístrate para Reservar
-                                        </a>
-                                    @endauth
+                                <div class="border-t border-gray-100 pt-4 mt-2">
+                                    <a href="{{ route('canchas.show', $cancha) }}" class="block w-full py-3 bg-gray-900 text-white text-center rounded-xl font-bold hover:bg-indigo-600 transition shadow-md group-hover:shadow-lg">
+                                        Ver Detalles
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -192,37 +229,12 @@
         </div>
     </div>
 
-    {{-- 4. SEO CONTENT --}}
-    <div class="bg-white py-16 border-t border-gray-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl font-extrabold text-gray-900 mb-8">¿Por qué elegir PichangaYa?</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="p-6">
-                    <div class="text-4xl mb-4">⚡</div>
-                    <h3 class="text-lg font-bold mb-2">Rápido y Fácil</h3>
-                    <p class="text-gray-500">Reserva en menos de 1 minuto desde tu celular o computadora.</p>
-                </div>
-                <div class="p-6">
-                    <div class="text-4xl mb-4">📍</div>
-                    <h3 class="text-lg font-bold mb-2">Ubicación Exacta</h3>
-                    <p class="text-gray-500">Mapas integrados para que tú y tu equipo lleguen sin problemas.</p>
-                </div>
-                <div class="p-6">
-                    <div class="text-4xl mb-4">📱</div>
-                    <h3 class="text-lg font-bold mb-2">Contacto Directo</h3>
-                    <p class="text-gray-500">Comunícate con el dueño vía WhatsApp con un solo clic.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
     {{-- FOOTER --}}
-    <footer class="bg-gray-900 text-white py-10">
+    <footer class="bg-gray-900 text-white py-12 border-t border-gray-800">
         <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="font-bold text-lg">⚽ Pichanga<span class="text-yellow-500">Ya</span></p>
-            <p class="text-gray-400 text-sm mt-2">&copy; {{ date('Y') }} Todos los derechos reservados. Cusco, Perú.</p>
+            <p class="font-bold text-2xl mb-2">⚽ Pichanga<span class="text-yellow-500">Ya</span></p>
+            <p class="text-gray-400 text-sm">&copy; {{ date('Y') }} Todos los derechos reservados. Cusco, Perú.</p>
         </div>
     </footer>
-
 </body>
 </html>

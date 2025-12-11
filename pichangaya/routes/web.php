@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminDistrictController;
 use App\Http\Controllers\AdminSportController;
 use App\Http\Controllers\AdminServiceController;
+use App\Http\Controllers\AdminOwnerController; // 🟢 NUEVO CONTROLADOR IMPORTADO
 use App\Http\Controllers\CanchaController; 
 use App\Http\Controllers\DashboardController; 
 use App\Http\Controllers\ReservaController; 
@@ -24,6 +25,7 @@ use App\Models\Sport;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function (Request $request) {
+    // Consulta base para el listado general (Buscador)
     $query = Cancha::with(['media', 'district', 'sports']);
 
     if ($request->filled('search')) {
@@ -44,18 +46,26 @@ Route::get('/', function (Request $request) {
         });
     }
 
+    // Lógica para obtener las canchas del listado normal
     if ($request->anyFilled(['search', 'district_id', 'sport_id'])) {
         $canchas = $query->get();
     } else {
-        $canchas = $query->latest()->take(3)->get();
+        $canchas = $query->latest()->take(6)->get();
     }
+
+    // 🟢 NUEVO: Obtener canchas destacadas para el Carrusel
+    // Solo obtenemos las que tienen is_featured = true
+    $featuredCanchas = Cancha::where('is_featured', true)
+                             ->with(['district', 'media']) // Usamos 'media' por Spatie
+                             ->take(5) // Máximo 5 en el carrusel
+                             ->get();
 
     $districts = Cache::remember('all_districts', 3600, fn() => District::all());
     $sports = Cache::remember('all_sports', 3600, fn() => Sport::all());
 
     return view('welcome', [
         'canchas' => $canchas, 
-        'canchasDestacadas' => $canchas, 
+        'featuredCanchas' => $featuredCanchas, // 🟢 Pasamos la variable correcta al carrusel
         'districts' => $districts,
         'sports' => $sports
     ]);
@@ -117,8 +127,24 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::resource('districts', AdminDistrictController::class)->except(['create', 'edit', 'show']);
         Route::resource('sports', AdminSportController::class)->except(['create', 'edit', 'show']);
-        
         Route::resource('services', AdminServiceController::class)->except(['create', 'edit', 'show']);
+
+        // 🟢 GESTIÓN DE DUEÑOS Y CANCHAS (ADMIN)
+        Route::controller(AdminOwnerController::class)->group(function () {
+            // Dueños
+            Route::get('/owners', 'index')->name('owners.index');
+            Route::get('/owners/{user}/courts', 'courts')->name('owners.courts');
+            
+            // Acciones en Canchas
+            Route::put('/canchas/{cancha}/toggle-featured', 'toggleFeatured')->name('canchas.toggleFeatured');
+            
+            // 🟢 NUEVAS RUTAS PARA EDITAR CANCHA
+            Route::get('/canchas/{cancha}/edit', 'editCancha')->name('canchas.edit');
+            Route::put('/canchas/{cancha}', 'updateCancha')->name('canchas.update');
+
+            // 🟢 NUEVA RUTA: ELIMINAR
+            Route::delete('/canchas/{cancha}', 'destroy')->name('canchas.destroy');
+        });
     });
     
 /*
@@ -132,7 +158,7 @@ Route::middleware(['auth', 'role:owner'])
     ->group(function () {
         Route::redirect('/', '/panel-dueno/canchas')->name('dashboard');
         
-        // 🟢 NUEVA RUTA: Historial de Reservas (Antes del resource para evitar conflictos)
+        // Historial de Reservas
         Route::get('/canchas/{cancha}/historial', [CanchaController::class, 'history'])->name('canchas.history');
 
         Route::resource('canchas', CanchaController::class);

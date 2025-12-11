@@ -7,13 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 // Importaciones de Spatie
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Spatie\MediaLibrary\MediaCollections\Models\Media; // 🟢 NUEVA IMPORTACIÓN NECESARIA
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 // Importaciones de Relaciones
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany; 
 use Illuminate\Support\Str;
-
 
 class Cancha extends Model implements HasMedia
 {
@@ -25,6 +24,7 @@ class Cancha extends Model implements HasMedia
         'address',
         'price_per_hour',
         'description',
+        'is_featured', // 🟢 AGREGADO: Necesario para poder guardar el estado destacado
         'user_id',
         // 'sport_id', 
         'district_id',
@@ -34,6 +34,17 @@ class Cancha extends Model implements HasMedia
         'close_time',
         'contact_phone',
         'slug',
+    ];
+
+    /**
+     * 🟢 NUEVO: Casts para asegurar tipos de datos correctos.
+     * Convierte 'is_featured' automáticamente en true/false (booleano).
+     */
+    protected $casts = [
+        'price_per_hour' => 'decimal:2',
+        'lat' => 'double',
+        'lng' => 'double',
+        'is_featured' => 'boolean',
     ];
 
     // --- RELACIONES ---
@@ -120,6 +131,7 @@ class Cancha extends Model implements HasMedia
             ->nonQueued();
             
     }
+
     /**
      * Relación: Una cancha tiene muchos servicios.
      */
