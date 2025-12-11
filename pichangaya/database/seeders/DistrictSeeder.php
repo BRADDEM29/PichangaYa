@@ -17,11 +17,11 @@ class DistrictSeeder extends Seeder
             'Santiago',
             'Poroy',
             'Saylla',
-            'Wimpillay' // Agregamos zonas populares si deseas
+            'Wimpillay'
         ];
 
         foreach ($districts as $district) {
-            District::create(['name' => $district]);
+            District::firstOrCreate(['name' => $district]);
         }
     }
 }

@@ -20,7 +20,10 @@ class SportSeeder extends Seeder
         ];
 
         foreach ($sports as $sport) {
-            Sport::create($sport);
+            Sport::firstOrCreate(
+                ['name' => $sport['name']],
+                ['icon' => $sport['icon']]
+            );
         }
     }
 }

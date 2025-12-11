@@ -19,6 +19,7 @@ class UserSeeder extends Seeder
             'email' => 'admin@yanakatari.com',
             'password' => Hash::make('password'),
             'role' => 'admin',
+            'phone' => '999999999', // 🟢 Teléfono Agregado
         ]);
 
         // 2. Dueño
@@ -27,6 +28,7 @@ class UserSeeder extends Seeder
             'email' => 'dueno@yanakatari.com',
             'password' => Hash::make('password'),
             'role' => 'owner',
+            'phone' => '999999999', // 🟢 Teléfono Agregado
         ]);
 
         // 3. Usuario Normal
@@ -35,6 +37,7 @@ class UserSeeder extends Seeder
             'email' => 'cliente@yanakatari.com',
             'password' => Hash::make('password'),
             'role' => 'user',
+            'phone' => '999999999', // 🟢 Teléfono Agregado
         ]);
     }
 }

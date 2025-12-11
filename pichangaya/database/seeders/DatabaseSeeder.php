@@ -8,28 +8,14 @@ use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // Llamamos a todos los seeders en UN SOLO GRUPO
         $this->call([
-            UserSeeder::class,      // 1. Usuarios (Admin, Dueño)
+            UserSeeder::class,      // 1. Usuarios
             DistrictSeeder::class,  // 2. Distritos
             SportSeeder::class,     // 3. Deportes
-            CanchaSeeder::class,    // 4. Canchas (necesita lo anterior)
+            ServiceSeeder::class,   // 4. Servicios (ANTES de Canchas)
+            CanchaSeeder::class,    // 5. Canchas (Usa todo lo anterior)
         ]);
-
-        // Usuario de prueba adicional (Opcional, si quieres tenerlo aparte)
-        User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-                'role' => 'user',
-            ]
-        );
     }
 }
