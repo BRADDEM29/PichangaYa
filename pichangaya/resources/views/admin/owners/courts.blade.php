@@ -17,7 +17,22 @@
             @endif
 
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <a href="{{ route('admin.owners.index') }}" class="mb-4 inline-block text-indigo-600 hover:underline font-bold">&larr; Volver a Dueños</a>
+                
+                {{-- 🟢 ENCABEZADO CON BOTONES (VOLVER + CREAR) --}}
+                <div class="flex justify-between items-center mb-6">
+                    {{-- Botón Volver --}}
+                    <a href="{{ route('admin.owners.index') }}" class="text-indigo-600 hover:underline font-bold text-lg flex items-center">
+                        &larr; Volver a Dueños
+                    </a>
+                    
+                    {{-- 🟢 NUEVO BOTÓN CREAR CANCHA --}}
+                    <a href="{{ route('admin.owners.canchas.create', $user) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded shadow-md flex items-center transition transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        + Crear Nueva Cancha
+                    </a>
+                </div>
                 
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 mt-4">
@@ -27,7 +42,7 @@
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distrito</th>
                                 <th class="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                                 <th class="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Editar</th>
-                                {{-- 🟢 NUEVA COLUMNA ELIMINAR --}}
+                                {{-- COLUMNA ELIMINAR --}}
                                 <th class="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Eliminar</th>
                                 <th class="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acción (Destacado)</th>
                             </tr>
@@ -59,7 +74,7 @@
                                         </a>
                                     </td>
 
-                                    {{-- 🟢 BOTÓN ELIMINAR CON CONFIRMACIÓN --}}
+                                    {{-- BOTÓN ELIMINAR CON CONFIRMACIÓN --}}
                                     <td class="px-6 py-4 text-center">
                                         <form action="{{ route('admin.canchas.destroy', $cancha) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta cancha? Esta acción no se puede deshacer.');">
                                             @csrf

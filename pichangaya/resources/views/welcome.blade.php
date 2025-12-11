@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    {{-- Script de estado de usuario --}}
     <script>
         window.usuarioEstaLogueado = {{ auth()->check() ? 'true' : 'false' }};
     </script>
@@ -69,7 +70,7 @@
         </div>
     </div>
 
-    {{-- 🟢 2. CARRUSEL DE LAS MEJORES CANCHAS (LÓGICA CORREGIDA) --}}
+    {{-- 🟢 2. CARRUSEL DE LAS MEJORES CANCHAS (ARREGLADO) --}}
     @if(isset($featuredCanchas) && $featuredCanchas->isNotEmpty() && !request()->has('search') && !request()->has('sport_id'))
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10 mb-16">
         
@@ -81,31 +82,35 @@
         {{-- CONTENEDOR CARRUSEL --}}
         <div x-data="{ 
                 activeSlide: 0, 
-                slidesCount: {{ $featuredCanchas->count() }}, 
-                timer: null,
+                total: {{ $featuredCanchas->count() }}, 
+                interval: null,
+                init() {
+                    this.start();
+                },
                 start() {
-                    // Limpiar timer previo para evitar duplicados
-                    if(this.timer) clearInterval(this.timer);
-                    this.timer = setInterval(() => {
-                        this.activeSlide = (this.activeSlide === this.slidesCount - 1) ? 0 : this.activeSlide + 1;
-                    }, 5000);
+                    if(this.interval) clearInterval(this.interval);
+                    this.interval = setInterval(() => this.next(), 5000); // 5 Segundos
                 },
                 stop() {
-                    clearInterval(this.timer);
-                    this.timer = null;
+                    clearInterval(this.interval);
                 },
                 next() {
-                    this.stop();
-                    this.activeSlide = (this.activeSlide === this.slidesCount - 1) ? 0 : this.activeSlide + 1;
-                    this.start();
+                    this.activeSlide = (this.activeSlide + 1) % this.total;
                 },
                 prev() {
+                    this.activeSlide = (this.activeSlide - 1 + this.total) % this.total;
+                },
+                manualNext() {
                     this.stop();
-                    this.activeSlide = (this.activeSlide === 0) ? this.slidesCount - 1 : this.activeSlide - 1;
+                    this.next();
+                    this.start();
+                },
+                manualPrev() {
+                    this.stop();
+                    this.prev();
                     this.start();
                 }
-             }"
-             x-init="start()"
+             }" 
              @mouseenter="stop()" 
              @mouseleave="start()"
              class="relative w-full h-[550px] bg-black rounded-3xl shadow-2xl overflow-hidden group border-4 border-white">
@@ -116,17 +121,16 @@
                 
                 @foreach($featuredCanchas as $fc)
                     <div class="min-w-full h-full relative">
-                        {{-- Enlace --}}
                         <a href="{{ route('canchas.show', $fc) }}" class="absolute inset-0 z-30 w-full h-full cursor-pointer"></a>
 
-                        {{-- Imagen --}}
+                        {{-- IMAGEN --}}
                         @if($fc->getFirstMediaUrl('canchas'))
                             <img src="{{ $fc->getFirstMediaUrl('canchas', 'large') }}" class="absolute inset-0 w-full h-full object-cover brightness-[0.45] transition-transform duration-[10000ms] ease-linear group-hover:scale-110">
                         @else
                             <img src="https://images.unsplash.com/photo-1529900748604-07564a03e7a6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80" class="absolute inset-0 w-full h-full object-cover brightness-[0.45]">
                         @endif
 
-                        {{-- Texto --}}
+                        {{-- TEXTO --}}
                         <div class="absolute inset-0 flex flex-col justify-center items-center text-center z-20 px-6 pointer-events-none">
                             <span class="inline-block bg-yellow-400 text-black text-xs font-black px-4 py-1.5 rounded-full mb-6 uppercase tracking-widest shadow-lg transform -skew-x-12">
                                 ★ Destacada
@@ -135,7 +139,7 @@
                                 {{ $fc->name }}
                             </h2>
                             <p class="text-gray-200 text-lg md:text-xl mb-8 font-medium max-w-3xl drop-shadow-md line-clamp-2">
-                                {{ $fc->description ?? 'Disfruta de la mejor experiencia deportiva en ' . ($fc->district->name ?? 'Cusco') . '. ¡Reserva tu horario ahora!' }}
+                                {{ $fc->description ?? 'Una de las mejores opciones deportivas en ' . ($fc->district->name ?? 'Cusco') . '. ¡Reserva tu horario ahora!' }}
                             </p>
                             <div class="bg-indigo-600 text-white text-lg font-bold py-4 px-10 rounded-full shadow-2xl border-2 border-white/20 flex items-center gap-2 group-hover:bg-indigo-500 transition-colors">
                                 <span>Reservar Ahora</span>
@@ -146,18 +150,18 @@
                 @endforeach
             </div>
 
-            {{-- BOTONES (Llaman a las funciones corregidas next() y prev()) --}}
-            <button @click.prevent="prev()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-md transition z-40 cursor-pointer opacity-0 group-hover:opacity-100 border border-white/20">
+            {{-- BOTONES FLECHAS (Z-INDEX ALTO) --}}
+            <button @click.prevent="manualPrev()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-md transition z-50 cursor-pointer opacity-0 group-hover:opacity-100 border border-white/20">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
             </button>
-            <button @click.prevent="next()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-md transition z-40 cursor-pointer opacity-0 group-hover:opacity-100 border border-white/20">
+            <button @click.prevent="manualNext()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-md transition z-50 cursor-pointer opacity-0 group-hover:opacity-100 border border-white/20">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
             </button>
 
-            {{-- PUNTOS --}}
+            {{-- PUNTOS INDICADORES --}}
             <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 z-40">
-                <template x-for="i in slidesCount">
-                    <button @click.prevent="activeSlide = i - 1; stop(); start();" 
+                <template x-for="i in total">
+                    <button @click="stop(); activeSlide = i - 1; start();" 
                             :class="{'bg-yellow-400 w-10': activeSlide === i - 1, 'bg-white/40 w-3 hover:bg-white': activeSlide !== i - 1}"
                             class="h-3 rounded-full transition-all duration-300 shadow-sm cursor-pointer"></button>
                 </template>
