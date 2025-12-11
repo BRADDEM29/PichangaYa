@@ -69,8 +69,9 @@
         </div>
     </div>
 
-    {{-- 🟢 2. CARRUSEL DE LAS MEJORES CANCHAS (LÓGICA CORREGIDA) --}}
-    @if(isset($featuredCanchas) && $featuredCanchas->isNotEmpty() && !request()->has('search') && !request()->has('sport_id'))
+    {{-- 🟢 2. CARRUSEL DE LAS MEJORES CANCHAS (CORREGIDO) --}}
+    {{-- Nota: Usamos $canchasDestacadas que viene de tu web.php --}}
+    @if(isset($canchasDestacadas) && $canchasDestacadas->isNotEmpty() && !request()->has('search') && !request()->has('sport_id'))
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10 mb-16">
         
         <div class="flex items-center gap-3 mb-6">
@@ -81,10 +82,9 @@
         {{-- CONTENEDOR CARRUSEL --}}
         <div x-data="{ 
                 activeSlide: 0, 
-                slidesCount: {{ $featuredCanchas->count() }}, 
+                slidesCount: {{ $canchasDestacadas->count() }}, 
                 timer: null,
                 start() {
-                    // Limpiar timer previo para evitar duplicados
                     if(this.timer) clearInterval(this.timer);
                     this.timer = setInterval(() => {
                         this.activeSlide = (this.activeSlide === this.slidesCount - 1) ? 0 : this.activeSlide + 1;
@@ -114,9 +114,9 @@
             <div class="flex h-full transition-transform duration-700 ease-out will-change-transform"
                  :style="'transform: translateX(-' + (activeSlide * 100) + '%)'">
                 
-                @foreach($featuredCanchas as $fc)
+                @foreach($canchasDestacadas as $fc)
                     <div class="min-w-full h-full relative">
-                        {{-- Enlace --}}
+                        {{-- Enlace (z-30) --}}
                         <a href="{{ route('canchas.show', $fc) }}" class="absolute inset-0 z-30 w-full h-full cursor-pointer"></a>
 
                         {{-- Imagen --}}
@@ -126,7 +126,7 @@
                             <img src="https://images.unsplash.com/photo-1529900748604-07564a03e7a6?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80" class="absolute inset-0 w-full h-full object-cover brightness-[0.45]">
                         @endif
 
-                        {{-- Texto --}}
+                        {{-- Texto (z-20: Debajo del enlace pero visible) --}}
                         <div class="absolute inset-0 flex flex-col justify-center items-center text-center z-20 px-6 pointer-events-none">
                             <span class="inline-block bg-yellow-400 text-black text-xs font-black px-4 py-1.5 rounded-full mb-6 uppercase tracking-widest shadow-lg transform -skew-x-12">
                                 ★ Destacada
@@ -146,15 +146,16 @@
                 @endforeach
             </div>
 
-            {{-- BOTONES (Llaman a las funciones corregidas next() y prev()) --}}
-            <button @click.prevent="prev()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-md transition z-40 cursor-pointer opacity-0 group-hover:opacity-100 border border-white/20">
+            {{-- BOTONES FLECHAS (z-40: Encima del enlace maestro) --}}
+            {{-- CORRECCIÓN: Quitamos opacity-0 en móvil para que siempre se vean --}}
+            <button @click.prevent="prev()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white p-3 rounded-full backdrop-blur-md transition z-40 cursor-pointer border border-white/30 md:opacity-0 md:group-hover:opacity-100">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
             </button>
-            <button @click.prevent="next()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-md transition z-40 cursor-pointer opacity-0 group-hover:opacity-100 border border-white/20">
+            <button @click.prevent="next()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white p-3 rounded-full backdrop-blur-md transition z-40 cursor-pointer border border-white/30 md:opacity-0 md:group-hover:opacity-100">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
             </button>
 
-            {{-- PUNTOS --}}
+            {{-- PUNTOS INDICADORES --}}
             <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 z-40">
                 <template x-for="i in slidesCount">
                     <button @click.prevent="activeSlide = i - 1; stop(); start();" 
@@ -185,7 +186,8 @@
                         <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group flex flex-col h-full transform hover:-translate-y-1">
                             <div class="h-56 w-full bg-gray-200 relative overflow-hidden">
                                 @if($cancha->getFirstMediaUrl('canchas'))
-                                    <img src="{{ $cancha->getFirstMediaUrl('canchas', 'large') }}" alt="{{ $cancha->name }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                                    {{-- Usamos versión large optimizada --}}
+                                    <img src="{{ $cancha->getFirstMediaUrl('canchas', 'large') }}" alt="{{ $cancha->name }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110" loading="lazy">
                                 @else
                                     <div class="flex items-center justify-center h-full text-4xl bg-gray-100 text-gray-400 flex-col">
                                         <span>📷</span>
@@ -193,7 +195,7 @@
                                     </div>
                                 @endif
                                 <div class="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm font-bold text-indigo-700 text-sm border border-gray-100">
-                                    S/ {{ $cancha->price_per_hour }} <span class="text-xs font-normal text-gray-500">/h</span>
+                                    S/ {{ number_format($cancha->price_per_hour, 2) }} <span class="text-xs font-normal text-gray-500">/h</span>
                                 </div>
                             </div>
                             
