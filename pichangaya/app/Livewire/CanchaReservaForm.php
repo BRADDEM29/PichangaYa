@@ -23,15 +23,14 @@ class CanchaReservaForm extends Component
     protected $rules = [
         'date' => 'required|date|after_or_equal:today',
         'time' => 'required', 
-        'duration' => 'required|integer|min:1|max:4',
+        // 🟢 CORRECCIÓN 1: Aumentamos el máximo a 24 horas (o 15, lo que sea suficiente)
+        'duration' => 'required|integer|min:1|max:24', 
     ];
 
     public function mount(Cancha $cancha)
     {
         $this->cancha = $cancha;
-        // Establecemos la fecha de hoy por defecto
         $this->date = Carbon::now()->toDateString();
-        
         $this->generateTimeSlots();
         $this->calculatePrice();
     }
@@ -39,91 +38,77 @@ class CanchaReservaForm extends Component
     public function updatedDate()
     {
         $this->generateTimeSlots();
+        $this->resetSelection();
     }
 
-    public function updated($propertyName)
+    // 🟢 LÓGICA DE SELECCIÓN Y RECORTE (TRIMMING)
+    public function selectTimeSlot($clickedTime)
     {
-        if (in_array($propertyName, ['date', 'time', 'duration'])) {
+        // 1. SI NO HAY NADA SELECCIONADO: MARCAR INICIO
+        if (!$this->time) {
+            $this->time = $clickedTime;
+            $this->duration = 1;
             $this->calculatePrice();
+            return;
         }
+
+        $start = Carbon::parse($this->date . ' ' . $this->time);
+        $clicked = Carbon::parse($this->date . ' ' . $clickedTime);
+        $endOfSelection = $start->copy()->addHours($this->duration);
+
+        // 2. LOGICA DE RECORTE (SI CLICKEO DENTRO DE LO VERDE)
+        if ($clicked->gte($start) && $clicked->lt($endOfSelection)) {
+            
+            // CASO A: Clickeó el PRIMER cuadro (Inicio) -> Mover inicio
+            if ($clicked->eq($start)) {
+                if ($this->duration == 1) {
+                    $this->resetSelection(); 
+                } else {
+                    $this->time = $start->addHour()->format('H:i'); 
+                    $this->duration--; 
+                }
+            }
+            // CASO B: Clickeó en MEDIO o FINAL -> Recortar cola
+            else {
+                $newDuration = $start->diffInHours($clicked);
+                $this->duration = $newDuration;
+            }
+
+            $this->calculatePrice();
+            return;
+        }
+
+        // 3. LOGICA DE EXTENSIÓN (SI CLICKEO FUERA)
+        
+        // Clickeó antes del inicio -> Nueva selección
+        if ($clicked->lt($start)) {
+            $this->time = $clickedTime;
+            $this->duration = 1;
+        } 
+        // Clickeó después del final -> Intentar extender
+        else {
+            $potentialDuration = $start->diffInHours($clicked) + 1;
+            $potentialEnd = $start->copy()->addHours($potentialDuration);
+
+            // 🟢 CORRECCIÓN 2: Quitamos la restricción "&& $potentialDuration <= 6"
+            // Ahora el único límite es que la cancha esté libre (isRangeAvailable).
+            if ($this->isRangeAvailable($start, $potentialEnd)) {
+                $this->duration = $potentialDuration;
+            } else {
+                // Si choca con otra reserva, reiniciamos en el click
+                $this->time = $clickedTime;
+                $this->duration = 1;
+            }
+        }
+
+        $this->calculatePrice();
     }
 
-    public function generateTimeSlots()
+    public function resetSelection()
     {
-        $this->timeSlots = [];
-
-        // 1. Obtener Hora de Apertura y Cierre para LA FECHA SELECCIONADA
-        $openTime = Carbon::parse($this->date . ' ' . $this->cancha->open_time);
-        $closeTime = Carbon::parse($this->date . ' ' . $this->cancha->close_time);
-
-        // Corrección: Si cierra pasada la medianoche (ej: abre 14:00, cierra 02:00)
-        if ($closeTime->lte($openTime)) {
-            $closeTime->addDay();
-        }
-
-        // 2. Obtener Reservas Existentes en ese rango
-        $occupied = Reserva::where('cancha_id', $this->cancha->id)
-            ->whereIn('status', ['confirmed', 'pending'])
-            ->where(function ($query) use ($openTime, $closeTime) {
-                $query->whereBetween('start_time', [$openTime, $closeTime])
-                      ->orWhereBetween('end_time', [$openTime, $closeTime]);
-            })
-            ->get();
-
-        // 3. Generar Slots cada 30 minutos
-        $currentSlot = $openTime->copy();
-
-        // Bucle: Mientras el slot actual sea menor al cierre
-        while ($currentSlot->lt($closeTime)) {
-            
-            // Calculamos el fin de este slot (si dura 30 mins el bloque mínimo)
-            // Ojo: Esto es solo para verificar si cabe en el horario de atención
-            $slotEnd = $currentSlot->copy()->addMinutes(30);
-            
-            if ($slotEnd->gt($closeTime)) {
-                break; // Ya no cabe otro turno
-            }
-
-            // --- LÓGICA DE "PASADO" CON TOLERANCIA ---
-            // Si son las 9:10, todavía permitimos reservar el turno de las 9:00
-            // Damos 15 minutos de gracia.
-            $isPast = false;
-            // "Si AHORA es mayor que (Hora del Turno + 15 min), entonces ya pasó"
-            if (Carbon::now()->gt($currentSlot->copy()->addMinutes(15))) {
-                // Solo marcamos como pasado si la fecha seleccionada es hoy
-                if (Carbon::parse($this->date)->isToday()) {
-                    $isPast = true;
-                } elseif (Carbon::parse($this->date)->isPast()) {
-                    // Si seleccionó ayer, todo está pasado
-                    $isPast = true;
-                }
-            }
-
-            // --- LÓGICA DE OCUPADO ---
-            $isOccupied = false;
-            foreach ($occupied as $reserva) {
-                $resStart = Carbon::parse($reserva->start_time);
-                $resEnd = Carbon::parse($reserva->end_time);
-
-                // Verificamos choque de horarios con precisión
-                // ¿El turno actual choca con alguna reserva?
-                // (Start < ResEnd) y (End > ResStart)
-                if ($currentSlot->lt($resEnd) && $slotEnd->gt($resStart)) {
-                    $isOccupied = true;
-                    break;
-                }
-            }
-
-            $this->timeSlots[] = [
-                'value' => $currentSlot->format('H:i'),
-                'label' => $currentSlot->format('h:i A'), // 08:00 AM, 08:30 AM
-                'disabled' => $isPast || $isOccupied,
-                'is_occupied' => $isOccupied
-            ];
-
-            // Avanzamos 30 minutos
-            $currentSlot->addMinutes(30);
-        }
+        $this->time = '';
+        $this->duration = 1;
+        $this->total_price = 0;
     }
 
     public function calculatePrice()
@@ -135,60 +120,59 @@ class CanchaReservaForm extends Component
         }
     }
 
-    public function save()
+    public function generateTimeSlots()
     {
-        $this->validate();
+        $this->timeSlots = [];
 
-        try {
-            // 1. Crear objetos Carbon con fecha + hora
-            $startDateTime = Carbon::parse($this->date . ' ' . $this->time);
+        $openTime = Carbon::parse($this->date . ' ' . $this->cancha->open_time);
+        $closeTime = Carbon::parse($this->date . ' ' . $this->cancha->close_time);
+
+        if ($closeTime->lte($openTime)) {
+            $closeTime->addDay();
+        }
+
+        $occupied = Reserva::where('cancha_id', $this->cancha->id)
+            ->whereIn('status', ['confirmed', 'pending'])
+            ->where(function ($query) use ($openTime, $closeTime) {
+                $query->whereBetween('start_time', [$openTime, $closeTime])
+                      ->orWhereBetween('end_time', [$openTime, $closeTime]);
+            })
+            ->get();
+
+        $currentSlot = $openTime->copy();
+
+        while ($currentSlot->lt($closeTime)) {
+            $slotEnd = $currentSlot->copy()->addHour(); 
             
-            // 2. Calcular hora fin (Duration es en horas enteras)
-            $endDateTime = $startDateTime->copy()->addHours((int)$this->duration);
+            if ($slotEnd->gt($closeTime)) break; 
 
-            // 3. Validar cierre
-            // Re-calculamos el cierre considerando si es el día siguiente
-            $openTime = Carbon::parse($this->date . ' ' . $this->cancha->open_time);
-            $closeTime = Carbon::parse($this->date . ' ' . $this->cancha->close_time);
-            if ($closeTime->lte($openTime)) {
-                $closeTime->addDay();
+            $isPast = false;
+            if (Carbon::now()->gt($currentSlot->copy()->addMinutes(15))) {
+                if (Carbon::parse($this->date)->isToday()) {
+                    $isPast = true;
+                } elseif (Carbon::parse($this->date)->isPast()) {
+                    $isPast = true;
+                }
             }
 
-            if ($endDateTime->gt($closeTime)) {
-                throw ValidationException::withMessages([
-                    'duration' => 'La duración excede el horario de cierre (' . $this->cancha->close_time . ').'
-                ]);
+            $isOccupied = false;
+            foreach ($occupied as $reserva) {
+                $resStart = Carbon::parse($reserva->start_time);
+                $resEnd = Carbon::parse($reserva->end_time);
+                if ($currentSlot->lt($resEnd) && $slotEnd->gt($resStart)) {
+                    $isOccupied = true;
+                    break;
+                }
             }
 
-            // 4. Validar Disponibilidad
-            if (!$this->isRangeAvailable($startDateTime, $endDateTime)) {
-                throw ValidationException::withMessages([
-                    'time' => 'El horario seleccionado choca con otra reserva existente.'
-                ]);
-            }
+            $this->timeSlots[] = [
+                'value' => $currentSlot->format('H:i'),
+                'label' => $currentSlot->format('h:i A'),
+                'disabled' => $isPast || $isOccupied,
+                'is_occupied' => $isOccupied
+            ];
 
-            // 5. Preparar Request
-            $fakeRequest = new Request();
-            $fakeRequest->setMethod('POST');
-            $fakeRequest->replace([
-                'cancha_id'   => $this->cancha->id,
-                'start_time'  => $startDateTime->toDateTimeString(),
-                'end_time'    => $endDateTime->toDateTimeString(),
-                'total_price' => $this->total_price,
-                'status'      => 'pending',
-            ]);
-
-            // 6. Guardar
-            $controller = new \App\Http\Controllers\ReservaController();
-            $controller->store($fakeRequest);
-
-            session()->flash('success', '¡Reserva realizada con éxito!');
-            return redirect()->route('reservas.user.index');
-
-        } catch (ValidationException $e) {
-            $this->addError('time', $e->getMessage()); 
-        } catch (\Exception $e) {
-            session()->flash('error', 'Error técnico: ' . $e->getMessage());
+            $currentSlot->addHour();
         }
     }
 
@@ -203,12 +187,48 @@ class CanchaReservaForm extends Component
                     $q->where('end_time', '>', $start)
                       ->where('end_time', '<=', $end);
                 })->orWhere(function ($q) use ($start, $end) {
-                    // Caso: Reserva envuelve completamente al rango nuevo
                     $q->where('start_time', '<', $start)
                       ->where('end_time', '>', $end);
                 });
             })
             ->exists();
+    }
+
+    public function save()
+    {
+        $this->validate();
+
+        try {
+            $startDateTime = Carbon::parse($this->date . ' ' . $this->time);
+            $endDateTime = $startDateTime->copy()->addHours((int)$this->duration);
+
+            if (!$this->isRangeAvailable($startDateTime, $endDateTime)) {
+                throw ValidationException::withMessages([
+                    'time' => 'El rango seleccionado choca con otra reserva.'
+                ]);
+            }
+
+            $fakeRequest = new Request();
+            $fakeRequest->setMethod('POST');
+            $fakeRequest->replace([
+                'cancha_id'   => $this->cancha->id,
+                'start_time'  => $startDateTime->toDateTimeString(),
+                'end_time'    => $endDateTime->toDateTimeString(),
+                'total_price' => $this->total_price,
+                'status'      => 'pending',
+            ]);
+
+            $controller = new \App\Http\Controllers\ReservaController();
+            $controller->store($fakeRequest);
+
+            session()->flash('success', '¡Reserva realizada con éxito!');
+            return redirect()->route('reservas.user.index');
+
+        } catch (ValidationException $e) {
+            $this->addError('time', $e->getMessage()); 
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error técnico: ' . $e->getMessage());
+        }
     }
 
     public function render()
