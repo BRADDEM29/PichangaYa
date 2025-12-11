@@ -54,10 +54,9 @@ Route::get('/', function (Request $request) {
     }
 
     // 🟢 NUEVO: Obtener canchas destacadas para el Carrusel
-    // Solo obtenemos las que tienen is_featured = true
     $featuredCanchas = Cancha::where('is_featured', true)
-                             ->with(['district', 'media']) // Usamos 'media' por Spatie
-                             ->take(5) // Máximo 5 en el carrusel
+                             ->with(['district', 'media']) 
+                             ->take(5) 
                              ->get();
 
     $districts = Cache::remember('all_districts', 3600, fn() => District::all());
@@ -65,7 +64,7 @@ Route::get('/', function (Request $request) {
 
     return view('welcome', [
         'canchas' => $canchas, 
-        'featuredCanchas' => $featuredCanchas, // 🟢 Pasamos la variable correcta al carrusel
+        'featuredCanchas' => $featuredCanchas, 
         'districts' => $districts,
         'sports' => $sports
     ]);
@@ -102,7 +101,11 @@ Route::middleware(['auth'])->group(function () {
 */
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Formulario de reserva
+    Route::get('/reservas/crear/{cancha}', [ReservaController::class, 'create'])->name('reservas.create');
     Route::post('/reservas', [ReservaController::class, 'store'])->name('reservas.store');
+    
     Route::get('/reservas/mis-reservas', [ReservaController::class, 'userReservasIndex'])->name('reservas.user.index');
     Route::put('/reservas/{reserva}/cancel', [ReservaController::class, 'cancelUser'])->name('reservas.cancel');
     Route::get('/reservas/{reserva}/edit', [ReservaController::class, 'editUser'])->name('reservas.edit');
@@ -138,12 +141,16 @@ Route::middleware(['auth', 'role:admin'])
             // Acciones en Canchas
             Route::put('/canchas/{cancha}/toggle-featured', 'toggleFeatured')->name('canchas.toggleFeatured');
             
-            // 🟢 NUEVAS RUTAS PARA EDITAR CANCHA
+            // Editar Cancha
             Route::get('/canchas/{cancha}/edit', 'editCancha')->name('canchas.edit');
             Route::put('/canchas/{cancha}', 'updateCancha')->name('canchas.update');
 
-            // 🟢 NUEVA RUTA: ELIMINAR
+            // Eliminar Cancha
             Route::delete('/canchas/{cancha}', 'destroy')->name('canchas.destroy');
+
+            // 🟢 NUEVAS RUTAS: CREAR CANCHA PARA DUEÑO (Desde Admin)
+            Route::get('/owners/{user}/canchas/create', 'createCancha')->name('owners.canchas.create');
+            Route::post('/owners/{user}/canchas', 'storeCancha')->name('owners.canchas.store');
         });
     });
     
