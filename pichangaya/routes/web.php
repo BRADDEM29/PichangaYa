@@ -12,6 +12,7 @@ use App\Http\Controllers\AdminDistrictController;
 use App\Http\Controllers\AdminSportController;
 use App\Http\Controllers\AdminServiceController;
 use App\Http\Controllers\AdminOwnerController;
+use App\Http\Controllers\AdminDashboardController; // 🟢 IMPORTACIÓN CLAVE (ESTADÍSTICAS)
 use App\Http\Controllers\CanchaController; 
 use App\Http\Controllers\DashboardController; 
 use App\Http\Controllers\ReservaController; 
@@ -25,10 +26,8 @@ use App\Models\Sport;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function (Request $request) {
-    // 1. Preparar consulta base
     $query = Cancha::with(['media', 'district', 'sports']);
 
-    // 2. Filtros de búsqueda
     if ($request->filled('search')) {
         $search = $request->input('search');
         $query->where(function($q) use ($search) {
@@ -45,30 +44,32 @@ Route::get('/', function (Request $request) {
         });
     }
 
-    // 3. Obtener resultados generales (Lista de abajo)
     if ($request->anyFilled(['search', 'district_id', 'sport_id'])) {
         $canchas = $query->get();
     } else {
         $canchas = $query->latest()->take(6)->get();
     }
 
-    // 🟢 4. LOGICA DEL CARRUSEL (Corregida)
-    // Buscamos las marcadas como destacadas (is_featured = 1)
+    // Lógica del Carrusel
     $featuredCanchas = Cancha::where('is_featured', true)
                              ->with(['district', 'media'])
                              ->latest()
                              ->take(5)
                              ->get();
 
-    
+    if ($featuredCanchas->isEmpty()) {
+        $featuredCanchas = Cancha::with(['district', 'media'])
+                                 ->latest()
+                                 ->take(5)
+                                 ->get();
+    }
 
-    // 5. Cache de selectores
     $districts = Cache::remember('all_districts', 3600, fn() => District::all());
     $sports = Cache::remember('all_sports', 3600, fn() => Sport::all());
 
     return view('welcome', [
         'canchas' => $canchas, 
-        'featuredCanchas' => $featuredCanchas, // 🟢 ESTE ES EL NOMBRE CLAVE
+        'featuredCanchas' => $featuredCanchas, 
         'districts' => $districts,
         'sports' => $sports
     ]);
@@ -121,7 +122,9 @@ Route::middleware(['auth', 'role:admin'])
     ->prefix('panel-admin')
     ->name('admin.')
     ->group(function () {
-        Route::get('/', function () { return view('admin.dashboard'); })->name('dashboard');
+        
+        // 🟢 DASHBOARD DE ESTADÍSTICAS (Nuevo Controlador)
+        Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
         Route::controller(AdminUserController::class)->group(function () {
             Route::get('/users', 'index')->name('users.index');
