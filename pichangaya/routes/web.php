@@ -123,8 +123,20 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         
-        // 🟢 DASHBOARD DE ESTADÍSTICAS (Nuevo Controlador)
+        // 🟢 DASHBOARD DE ESTADÍSTICAS (VISTA GENERAL)
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        // 🟢 NUEVAS RUTAS PARA REPORTES DETALLADOS (COMPLETO)
+        Route::prefix('reportes')->name('reports.')->group(function() {
+            Route::get('/ingresos', [AdminDashboardController::class, 'reportsIngresos'])->name('ingresos');
+            Route::get('/reservas', [AdminDashboardController::class, 'reportsReservas'])->name('reservas');
+            // Nuevas rutas:
+            Route::get('/pendientes', [AdminDashboardController::class, 'reportsPendientes'])->name('pendientes');
+            Route::get('/cancelados', [AdminDashboardController::class, 'reportsCancelados'])->name('cancelados');
+            // Resto:
+            Route::get('/usuarios', [AdminDashboardController::class, 'reportsUsuarios'])->name('usuarios');
+            Route::get('/canchas', [AdminDashboardController::class, 'reportsCanchas'])->name('canchas');
+        });
 
         Route::controller(AdminUserController::class)->group(function () {
             Route::get('/users', 'index')->name('users.index');
