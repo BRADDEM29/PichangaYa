@@ -14,15 +14,15 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             
             {{-- ========================================== --}}
-            {{-- 1. FILA FINANCIERA (ESTADOS DE DINERO) --}}
+            {{-- 1. FILA FINANCIERA (AHORA 4 COLUMNAS)    --}}
             {{-- ========================================== --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 
                 {{-- 1. INGRESOS CONFIRMADOS (Verde) --}}
                 <a href="{{ route('admin.reports.ingresos') }}" class="block group transform transition hover:-translate-y-1">
                     <div class="bg-white overflow-hidden shadow-lg hover:shadow-xl sm:rounded-lg p-6 border-l-8 border-green-500 group-hover:bg-green-50 transition-colors h-full flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-bold text-green-600 uppercase tracking-widest mb-1">Ingresos Confirmados</p>
+                            <p class="text-xs font-bold text-green-600 uppercase tracking-widest mb-1">Pagos Completos</p>
                             <p class="text-3xl font-black text-gray-800">S/ {{ number_format($ingresosTotales, 2) }}</p>
                             <p class="text-xs text-gray-400 mt-2 flex items-center gap-1 font-bold group-hover:text-green-700">Ver detalles <span class="text-lg">→</span></p>
                         </div>
@@ -32,11 +32,28 @@
                     </div>
                 </a>
 
-                {{-- 2. PENDIENTES POR COBRAR (Amarillo) --}}
+                {{-- 2. NUEVO: PAGOS ADELANTADOS (Azul) --}}
+                <a href="{{ route('admin.reports.adelantados') }}" class="block group transform transition hover:-translate-y-1">
+                    <div class="bg-white overflow-hidden shadow-lg hover:shadow-xl sm:rounded-lg p-6 border-l-8 border-blue-500 group-hover:bg-blue-50 transition-colors h-full flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">Pagos Adelantados</p>
+                            <p class="text-3xl font-black text-gray-800">S/ {{ number_format($adelantosTotal, 2) }}</p>
+                            <p class="text-xs text-blue-600 mt-2 flex items-center gap-1 font-bold group-hover:text-blue-800">
+                                {{ $adelantosCount }} Reservas <span class="text-lg">→</span>
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-full bg-blue-100 text-blue-600 group-hover:scale-110 transition-transform">
+                            {{-- Icono de Rayo/Energía o Factura --}}
+                            <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                    </div>
+                </a>
+
+                {{-- 3. PENDIENTES POR COBRAR (Amarillo) --}}
                 <a href="{{ route('admin.reports.pendientes') }}" class="block group transform transition hover:-translate-y-1">
                     <div class="bg-white overflow-hidden shadow-lg hover:shadow-xl sm:rounded-lg p-6 border-l-8 border-yellow-400 group-hover:bg-yellow-50 transition-colors h-full flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-bold text-yellow-600 uppercase tracking-widest mb-1">Por Cobrar (Pendientes)</p>
+                            <p class="text-xs font-bold text-yellow-600 uppercase tracking-widest mb-1">Por Cobrar</p>
                             <p class="text-3xl font-black text-gray-800">S/ {{ number_format($pendientesMoney, 2) }}</p>
                             <p class="text-xs text-yellow-600 font-bold mt-2">{{ $pendientesCount }} Reservas en espera</p>
                         </div>
@@ -46,7 +63,7 @@
                     </div>
                 </a>
 
-                {{-- 3. CANCELADOS / PERDIDOS (Rojo) --}}
+                {{-- 4. CANCELADOS / PERDIDOS (Rojo) --}}
                 <a href="{{ route('admin.reports.cancelados') }}" class="block group transform transition hover:-translate-y-1">
                     <div class="bg-white overflow-hidden shadow-lg hover:shadow-xl sm:rounded-lg p-6 border-l-8 border-red-500 group-hover:bg-red-50 transition-colors h-full flex items-center justify-between">
                         <div>
@@ -85,7 +102,7 @@
             <div class="bg-white shadow-xl sm:rounded-lg p-6">
                 <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
-                    Ingresos Confirmados (Últimos 30 Días)
+                    Ingresos Reales (Confirmados + Adelantados)
                 </h3>
                 <div class="h-80 w-full">
                     <canvas id="mainChart"></canvas>

@@ -20,8 +20,9 @@ class AdminDashboardController extends Controller
         $reservasTotales = Reserva::count();
 
         // 2. ESTADOS FINANCIEROS (Sumas separadas)
-        $ingresosTotales = Reserva::where('status', 'confirmed')->sum('total_price'); // Verde
-        $adelantosTotal  = Reserva::where('status', 'advance_paid')->sum('total_price'); // Azul (Nuevo)
+        // 🛠️ CORRECCIÓN: Usamos 'fully_paid' en lugar de 'confirmed'
+        $ingresosTotales = Reserva::where('status', 'fully_paid')->sum('total_price'); // Verde
+        $adelantosTotal  = Reserva::where('status', 'advance_paid')->sum('total_price'); // Azul
         $pendientesMoney = Reserva::where('status', 'pending')->sum('total_price'); // Amarillo
         $canceladosMoney = Reserva::where('status', 'cancelled')->sum('total_price'); // Rojo
 
@@ -30,7 +31,7 @@ class AdminDashboardController extends Controller
         $pendientesCount = Reserva::where('status', 'pending')->count();
         $canceladosCount = Reserva::where('status', 'cancelled')->count();
 
-        // 3. Gráfico Principal (Ingresos Reales = Confirmados + Adelantados)
+        // 3. Gráfico Principal (Ingresos Reales = Pagados + Adelantados)
         $startDate = Carbon::now()->subDays(29)->startOfDay();
         $endDate = Carbon::now()->endOfDay();
 
@@ -38,7 +39,8 @@ class AdminDashboardController extends Controller
                 DB::raw('DATE(start_time) as date'),
                 DB::raw('SUM(total_price) as income')
             )
-            ->whereIn('status', ['confirmed', 'advance_paid']) // Sumamos lo que ya es dinero real
+            // 🛠️ CORRECCIÓN AQUÍ TAMBIÉN
+            ->whereIn('status', ['fully_paid', 'advance_paid']) 
             ->whereBetween('start_time', [$startDate, $endDate])
             ->groupBy('date')
             ->orderBy('date', 'asc')
@@ -56,7 +58,7 @@ class AdminDashboardController extends Controller
             $currentDate->addDay();
         }
 
-        // 4. Datos Usuarios (Pastel)
+        // 4. Datos Usuarios
         $rawRoles = User::select('role', DB::raw('count(*) as count'))->groupBy('role')->pluck('count', 'role')->toArray();
         $usersByRole = [
             'users'  => $rawRoles['user'] ?? 0,
@@ -83,22 +85,24 @@ class AdminDashboardController extends Controller
 
     public function reportsIngresos()
     {
-        // Solo 'confirmed'
+        // 🛠️ CORRECCIÓN: Filtrar por 'fully_paid'
         $monthlyIncome = Reserva::select(DB::raw('MONTH(start_time) as month'), DB::raw('SUM(total_price) as income'))
-            ->where('status', 'confirmed')
+            ->where('status', 'fully_paid')
             ->whereYear('start_time', Carbon::now()->year)
             ->groupBy('month')->pluck('income', 'month')->toArray();
             
         $monthlyLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
         $monthlyData = array_replace(array_fill(1, 12, 0), $monthlyIncome);
 
-        $incomeByCancha = Cancha::withSum(['reservas' => function($q) { $q->where('status', 'confirmed'); }], 'total_price')
+        $incomeByCancha = Cancha::withSum(['reservas' => function($q) { 
+                // 🛠️ CORRECCIÓN AQUÍ TAMBIÉN
+                $q->where('status', 'fully_paid'); 
+            }], 'total_price')
             ->orderByDesc('reservas_sum_total_price')->get();
 
         return view('admin.reports.ingresos', compact('monthlyLabels', 'monthlyData', 'incomeByCancha'));
     }
 
-    // 🟢 NUEVO: REPORTE ADELANTADOS
     public function reportsAdelantados()
     {
         $adelantados = Reserva::with(['cancha.user', 'user', 'cancha'])
@@ -109,7 +113,6 @@ class AdminDashboardController extends Controller
         $totalAdelanto = $adelantados->sum('total_price');
         $countAdelanto = $adelantados->count();
 
-        // Gráfico por Cancha
         $advanceByCancha = Reserva::where('status', 'advance_paid')
             ->join('canchas', 'reservas.cancha_id', '=', 'canchas.id')
             ->select('canchas.name', DB::raw('SUM(reservas.total_price) as total'))
@@ -140,10 +143,11 @@ class AdminDashboardController extends Controller
         return view('admin.reports.cancelados', compact('cancelados', 'totalPerdido', 'countCancelados', 'lostByDistrict'));
     }
 
-    // Mantener los otros métodos (Reservas, Usuarios, Canchas) igual que antes...
     public function reportsReservas() {
         $reservasStatus = Reserva::select('status', DB::raw('count(*) as count'))->groupBy('status')->pluck('count', 'status')->toArray();
-        $reservasStatus = array_merge(['confirmed' => 0, 'pending' => 0, 'cancelled' => 0, 'advance_paid' => 0], $reservasStatus);
+        // Ajustamos también el array por defecto para que coincida
+        $reservasStatus = array_merge(['fully_paid' => 0, 'pending' => 0, 'cancelled' => 0, 'advance_paid' => 0], $reservasStatus);
+        
         $reservasByHour = Reserva::select(DB::raw('HOUR(start_time) as hour'), DB::raw('count(*) as count'))->groupBy('hour')->orderBy('hour')->pluck('count', 'hour')->toArray();
         $hourlyLabels = array_map(fn($h) => str_pad($h, 2, '0', STR_PAD_LEFT) . ':00', range(0, 23));
         $hourlyData = array_replace(array_fill(0, 24, 0), $reservasByHour);
@@ -162,7 +166,12 @@ class AdminDashboardController extends Controller
 
     public function reportsCanchas() {
         $canchasByDistrict = DB::table('canchas')->join('districts', 'canchas.district_id', '=', 'districts.id')->select('districts.name', DB::raw('count(canchas.id) as count'))->groupBy('districts.name')->pluck('count', 'districts.name')->toArray();
-        $detailedTopCanchas = Cancha::with('district', 'user')->withCount('reservas')->withSum(['reservas' => function($q) { $q->where('status', 'confirmed'); }], 'total_price')->orderByDesc('reservas_count')->get();
+        $detailedTopCanchas = Cancha::with('district', 'user')->withCount('reservas')
+            ->withSum(['reservas' => function($q) { 
+                // 🛠️ CORRECCIÓN: también aquí
+                $q->where('status', 'fully_paid'); 
+            }], 'total_price')
+            ->orderByDesc('reservas_count')->get();
         return view('admin.reports.canchas', compact('canchasByDistrict', 'detailedTopCanchas'));
     }
 }

@@ -12,7 +12,7 @@ use App\Http\Controllers\AdminDistrictController;
 use App\Http\Controllers\AdminSportController;
 use App\Http\Controllers\AdminServiceController;
 use App\Http\Controllers\AdminOwnerController;
-use App\Http\Controllers\AdminDashboardController; // 🟢 IMPORTACIÓN CLAVE (ESTADÍSTICAS)
+use App\Http\Controllers\AdminDashboardController; // 🟢 IMPORTACIÓN CLAVE
 use App\Http\Controllers\CanchaController; 
 use App\Http\Controllers\DashboardController; 
 use App\Http\Controllers\ReservaController; 
@@ -126,14 +126,16 @@ Route::middleware(['auth', 'role:admin'])
         // 🟢 DASHBOARD DE ESTADÍSTICAS (VISTA GENERAL)
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-        // 🟢 NUEVAS RUTAS PARA REPORTES DETALLADOS (COMPLETO)
+        // 🟢 RUTAS PARA REPORTES DETALLADOS (ACTUALIZADO CON ADELANTADOS)
         Route::prefix('reportes')->name('reports.')->group(function() {
             Route::get('/ingresos', [AdminDashboardController::class, 'reportsIngresos'])->name('ingresos');
             Route::get('/reservas', [AdminDashboardController::class, 'reportsReservas'])->name('reservas');
-            // Nuevas rutas:
+            
+            // 🟢 NUEVA RUTA: ADELANTADOS
+            Route::get('/adelantados', [AdminDashboardController::class, 'reportsAdelantados'])->name('adelantados');
+            
             Route::get('/pendientes', [AdminDashboardController::class, 'reportsPendientes'])->name('pendientes');
             Route::get('/cancelados', [AdminDashboardController::class, 'reportsCancelados'])->name('cancelados');
-            // Resto:
             Route::get('/usuarios', [AdminDashboardController::class, 'reportsUsuarios'])->name('usuarios');
             Route::get('/canchas', [AdminDashboardController::class, 'reportsCanchas'])->name('canchas');
         });
