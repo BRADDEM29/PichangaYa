@@ -12,7 +12,7 @@ use App\Http\Controllers\AdminDistrictController;
 use App\Http\Controllers\AdminSportController;
 use App\Http\Controllers\AdminServiceController;
 use App\Http\Controllers\AdminOwnerController;
-use App\Http\Controllers\AdminDashboardController; // 🟢 IMPORTACIÓN CLAVE
+use App\Http\Controllers\AdminDashboardController; 
 use App\Http\Controllers\CanchaController; 
 use App\Http\Controllers\DashboardController; 
 use App\Http\Controllers\ReservaController; 
@@ -123,17 +123,14 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         
-        // 🟢 DASHBOARD DE ESTADÍSTICAS (VISTA GENERAL)
+        // 🟢 DASHBOARD DE ESTADÍSTICAS
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-        // 🟢 RUTAS PARA REPORTES DETALLADOS (ACTUALIZADO CON ADELANTADOS)
+        // 🟢 RUTAS PARA REPORTES DETALLADOS
         Route::prefix('reportes')->name('reports.')->group(function() {
             Route::get('/ingresos', [AdminDashboardController::class, 'reportsIngresos'])->name('ingresos');
             Route::get('/reservas', [AdminDashboardController::class, 'reportsReservas'])->name('reservas');
-            
-            // 🟢 NUEVA RUTA: ADELANTADOS
             Route::get('/adelantados', [AdminDashboardController::class, 'reportsAdelantados'])->name('adelantados');
-            
             Route::get('/pendientes', [AdminDashboardController::class, 'reportsPendientes'])->name('pendientes');
             Route::get('/cancelados', [AdminDashboardController::class, 'reportsCancelados'])->name('cancelados');
             Route::get('/usuarios', [AdminDashboardController::class, 'reportsUsuarios'])->name('usuarios');
@@ -160,7 +157,13 @@ Route::middleware(['auth', 'role:admin'])
             Route::delete('/canchas/{cancha}', 'destroy')->name('canchas.destroy');
             Route::get('/owners/{user}/canchas/create', 'createCancha')->name('owners.canchas.create');
             Route::post('/owners/{user}/canchas', 'storeCancha')->name('owners.canchas.store');
+            
+            // 🟢 NUEVAS RUTAS: GESTIÓN DE RESERVAS DESDE ADMIN
+            Route::get('/canchas/{cancha}/reservas', 'canchaReservas')->name('canchas.reservas.index');
         });
+
+        // Ruta para actualizar el estado de reserva (reutilizando el controller)
+        Route::put('/reservas/{reserva}/status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
     
 /*

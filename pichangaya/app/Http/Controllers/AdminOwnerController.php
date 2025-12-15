@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Models\Cancha;
 use App\Models\District;
 use App\Models\Sport;
-use App\Models\Service; // <--- Asegúrate de importar el modelo Service
+use App\Models\Service;
 use Illuminate\Http\Request;
 
 class AdminOwnerController extends Controller
@@ -19,12 +19,9 @@ class AdminOwnerController extends Controller
 
     public function courts(User $user)
     {
-        // Validamos que sea dueño
         if ($user->role !== 'owner') {
             return back()->with('error', 'Usuario incorrecto.');
         }
-        
-        // Cambiamos 'owner_id' por 'user_id' que es el nombre real en tu BD
         $canchas = Cancha::where('user_id', $user->id)->with('district')->get();
         return view('admin.owners.courts', compact('user', 'canchas'));
     }
@@ -35,14 +32,12 @@ class AdminOwnerController extends Controller
         return back()->with('success', 'Estado destacado actualizado.');
     }
 
-    // 🟢 NUEVO: Mostrar Formulario de Creación
     public function createCancha(User $user)
     {
         $districts = District::all();
         $sports = Sport::all();
         $services = Service::all();
         
-        // Pasamos $user como $owner a la vista para saber a quién le creamos la cancha
         return view('admin.owners.create-cancha', [
             'owner' => $user, 
             'districts' => $districts, 
@@ -51,7 +46,6 @@ class AdminOwnerController extends Controller
         ]);
     }
 
-    // 🟢 NUEVO: Guardar la Cancha
     public function storeCancha(Request $request, User $user)
     {
         $request->validate([
@@ -70,9 +64,8 @@ class AdminOwnerController extends Controller
             'images.*' => 'image|max:2048'
         ]);
 
-        // Crear la cancha asignada al dueño ($user)
         $cancha = Cancha::create([
-            'user_id' => $user->id, // Asignamos al dueño que recibimos por ruta
+            'user_id' => $user->id,
             'name' => $request->name,
             'district_id' => $request->district_id,
             'price_per_hour' => $request->price_per_hour,
@@ -85,7 +78,6 @@ class AdminOwnerController extends Controller
             'description' => $request->description,
         ]);
 
-        // Guardar Relaciones
         if ($request->has('sports')) {
             $cancha->sports()->sync($request->sports);
         }
@@ -93,7 +85,6 @@ class AdminOwnerController extends Controller
             $cancha->services()->sync($request->services);
         }
 
-        // Guardar Imágenes
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $cancha->addMedia($image)->toMediaCollection('canchas');
@@ -108,12 +99,11 @@ class AdminOwnerController extends Controller
     {
         $districts = District::all();
         $sports = Sport::all();
-        $services = Service::all(); // <--- Traemos los servicios
+        $services = Service::all();
         
         return view('admin.owners.edit-cancha', compact('cancha', 'districts', 'sports', 'services'));
     }
 
-    // 🟢 MÉTODO CORREGIDO: AHORA GUARDA TODO (IMÁGENES Y SERVICIOS)
     public function updateCancha(Request $request, Cancha $cancha)
     {
         $request->validate([
@@ -128,33 +118,27 @@ class AdminOwnerController extends Controller
             'contact_phone' => 'required|string',
             'description' => 'nullable|string',
             'sports' => 'array',
-            'services' => 'array', // Validar array de servicios
-            'images.*' => 'image|max:2048', // Validar imágenes
-            'delete_images' => 'array' // Validar array de borrar
+            'services' => 'array',
+            'images.*' => 'image|max:2048',
+            'delete_images' => 'array'
         ]);
 
-        // 1. Actualizar datos básicos
         $cancha->update($request->except(['sports', 'services', 'images', 'delete_images']));
 
-        // 2. Sincronizar Deportes
         if ($request->has('sports')) {
             $cancha->sports()->sync($request->sports);
         }
 
-        // 3. Sincronizar Servicios
         if ($request->has('services')) {
             $cancha->services()->sync($request->services);
         }
 
-        // 4. Eliminar Imágenes marcadas
         if ($request->has('delete_images')) {
             foreach ($request->input('delete_images') as $mediaId) {
-                // Buscamos la imagen en la colección de esta cancha y la borramos
                 $cancha->getMedia('canchas')->where('id', $mediaId)->first()?->delete();
             }
         }
 
-        // 5. Subir Nuevas Imágenes
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $cancha->addMedia($image)->toMediaCollection('canchas');
@@ -169,5 +153,12 @@ class AdminOwnerController extends Controller
     {
         $cancha->delete();
         return back()->with('success', 'La cancha ha sido eliminada correctamente.');
+    }
+
+    // 🟢 NUEVO: GESTIÓN DE RESERVAS DE UNA CANCHA
+    public function canchaReservas(Cancha $cancha)
+    {
+        $reservas = $cancha->reservas()->with('user')->orderBy('start_time', 'desc')->paginate(10);
+        return view('admin.reservas.index', compact('cancha', 'reservas'));
     }
 }

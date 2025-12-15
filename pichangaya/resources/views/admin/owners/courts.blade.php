@@ -41,8 +41,11 @@
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cancha</th>
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distrito</th>
                                 <th class="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                
+                                {{-- 🟢 NUEVA COLUMNA RESERVAS --}}
+                                <th class="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Reservas</th>
+                                
                                 <th class="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Editar</th>
-                                {{-- COLUMNA ELIMINAR --}}
                                 <th class="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Eliminar</th>
                                 <th class="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acción (Destacado)</th>
                             </tr>
@@ -67,6 +70,15 @@
                                         @endif
                                     </td>
                                     
+                                    {{-- 🟢 BOTÓN GESTIONAR RESERVAS --}}
+                                    <td class="px-6 py-4 text-center">
+                                        {{-- ⚠️ Asegúrate de tener esta ruta creada en el siguiente paso --}}
+                                        <a href="{{ route('admin.canchas.reservas.index', $cancha) }}" class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-bold rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition">
+                                            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            Gestionar
+                                        </a>
+                                    </td>
+
                                     {{-- Botón Editar --}}
                                     <td class="px-6 py-4 text-center">
                                         <a href="{{ route('admin.canchas.edit', $cancha) }}" class="text-blue-600 hover:text-blue-900 font-bold transition duration-150 ease-in-out">
@@ -74,7 +86,7 @@
                                         </a>
                                     </td>
 
-                                    {{-- BOTÓN ELIMINAR CON CONFIRMACIÓN --}}
+                                    {{-- BOTÓN ELIMINAR --}}
                                     <td class="px-6 py-4 text-center">
                                         <form action="{{ route('admin.canchas.destroy', $cancha) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta cancha? Esta acción no se puede deshacer.');">
                                             @csrf
