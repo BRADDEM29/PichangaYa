@@ -38,9 +38,11 @@
     @include('navigation-menu')
 
     {{-- 1. HERO SECTION (Buscador Principal) --}}
-    <div class="relative bg-gray-900 text-white overflow-hidden pb-16">
+    {{-- Aumenté un poco el padding-bottom (pb-32) para que la ola no tape contenido --}}
+    <div class="relative bg-gray-900 text-white overflow-hidden pb-32">
         <div class="absolute inset-0">
-            <img src="https://images.unsplash.com/photo-1518605348416-72580200d369?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover opacity-40" alt="Jugando fútbol de noche">
+            {{-- CAMBIO 1: Imagen local y sin alt --}}
+            <img src="{{ asset('images/balon2.webp') }}" class="w-full h-full object-cover opacity-40" alt="">
             <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent"></div>
         </div>
 
@@ -109,6 +111,13 @@
                 </div>
             </div>
         @endif
+
+        {{-- CAMBIO 2: OLA INVERTIDA --}}
+        <div class="absolute bottom-[-1px] left-0 right-0 w-full overflow-hidden leading-[0] rotate-180">
+            <svg class="relative block w-[calc(100%+1.3px)] h-[70px] md:h-[120px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="fill-gray-50"></path>
+            </svg>
+        </div>
     </div>
 
     {{-- 2. LISTADO DE RESULTADOS --}}

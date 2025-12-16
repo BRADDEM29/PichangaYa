@@ -16,8 +16,17 @@
 @endpush
 
 <x-app-layout>
+    
+    {{-- 🟢 NUEVO: FONDO DE PATRÓN DE PELOTAS GRISES --}}
+    <div class="fixed inset-0 z-0 pointer-events-none bg-gray-50">
+        {{-- Patrón SVG repetitivo en base64 con los emojis solicitados, en escala de grises --}}
+        <div class="absolute inset-0 opacity-5 grayscale" 
+             style="background-image: url(&quot;data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' font-size='20'%3E⚽%3C/text%3E%3Ctext x='50' y='60' font-size='20'%3E🏀%3C/text%3E%3Ctext x='90' y='30' font-size='20'%3E🏐%3C/text%3E%3Ctext x='10' y='90' font-size='20'%3E🏈%3C/text%3E%3Ctext x='50' y='110' font-size='20'%3E⚾%3C/text%3E%3Ctext x='90' y='90' font-size='20'%3E🏉%3C/text%3E%3C/svg%3E&quot;);">
+        </div>
+    </div>
+
     {{-- 1. ENCABEZADO (Header Info) --}}
-    <div class="bg-white border-b border-gray-200 shadow-sm relative z-20">
+    <div class="bg-white border-b border-gray-200 shadow-sm relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -38,7 +47,7 @@
                 </div>
 
                 {{-- Precio Badge --}}
-                <div class="flex items-center bg-gray-50 px-4 py-3 rounded-xl border border-gray-200">
+                <div class="flex items-center bg-white px-4 py-3 rounded-xl border border-gray-200 shadow-sm">
                     <div class="text-right">
                         <p class="text-xs text-gray-500 uppercase font-bold">Precio desde</p>
                         <p class="text-2xl font-black text-indigo-600">S/ {{ number_format($cancha->price_per_hour, 2) }}</p>
@@ -48,7 +57,8 @@
         </div>
     </div>
 
-    <div class="py-8 bg-gray-50">
+    {{-- Z-INDEX RELATIVO PARA QUE EL CONTENIDO ESTÉ SOBRE EL FONDO --}}
+    <div class="py-8 relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             {{-- 🟢 2. CARRUSEL DE FOTOS --}}

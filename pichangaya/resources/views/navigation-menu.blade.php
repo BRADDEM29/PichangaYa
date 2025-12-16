@@ -37,7 +37,7 @@
                     @auth
                         <div class="relative group">
                             <a href="{{ route('reservas.user.index') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out {{ request()->routeIs('reservas.user.*') ? 'text-green-400 border-b-2 border-green-400' : 'text-white hover:text-green-300' }}">
-                                {{ __('📅 Mis Reservas') }}
+                                {{ __('Mis Reservas') }}
                             </a>
                         </div>
 

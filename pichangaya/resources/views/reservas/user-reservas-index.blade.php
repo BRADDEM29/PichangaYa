@@ -24,7 +24,9 @@
                 @if ($reservas->isEmpty())
                     <div class="text-center py-10 bg-gray-50 rounded-lg border border-dashed border-gray-300">
                         <p class="text-xl text-gray-500 mb-2">Aún no tienes reservas activas.</p>
-                        <a href="{{ route('dashboard') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition">
+                        
+                        {{-- CAMBIO: Botón ahora es verde para coincidir con el home --}}
+                        <a href="{{ route('dashboard') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">
                             ⚽ Buscar Cancha
                         </a>
                     </div>
