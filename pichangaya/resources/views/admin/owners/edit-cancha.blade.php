@@ -6,12 +6,11 @@
     </x-slot>
 
     <div class="py-12">
-        {{-- 🟢 AJUSTE DE TAMAÑO: max-w-2xl para que no se vea gigante --}}
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     
-                    {{-- 🟢 RUTA DE ADMIN --}}
+                    {{-- 🟢 CORRECCIÓN: AGREGADO enctype="multipart/form-data" --}}
                     <form action="{{ route('admin.canchas.update', $cancha) }}" method="POST" enctype="multipart/form-data">
                         @csrf 
                         @method('PUT')
@@ -34,7 +33,7 @@
                             @error('district_id') <p class="text-red-600 text-sm mt-1 font-bold">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- DEPORTES (MÁXIMO 2) --}}
+                        {{-- DEPORTES --}}
                         <div class="mb-6">
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Deportes Disponibles</label>
                             <p class="text-xs text-gray-500 mb-3">Selecciona máximo 2 deportes.</p>
@@ -47,7 +46,6 @@
                                             @if(in_array($sport->id, old('sports', $cancha->sports->pluck('id')->toArray()))) checked @endif
                                         >
                                         <div class="p-3 bg-white border rounded-lg hover:bg-gray-50 peer-checked:bg-indigo-50 peer-checked:border-indigo-500 peer-checked:text-indigo-700 transition-all flex items-center justify-center gap-2 text-sm font-medium text-gray-600 shadow-sm peer-disabled:opacity-50 peer-disabled:cursor-not-allowed">
-                                            {{-- Si tienes iconos en la BD úsalos, si no, usa un emoji genérico --}}
                                             <span class="text-xl">{{ $sport->icon ?? '⚽' }}</span> {{ $sport->name }}
                                         </div>
                                     </label>
@@ -56,7 +54,7 @@
                             @error('sports') <p class="text-red-600 text-sm mt-1 font-bold">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- SERVICIOS (Opcional, verificamos si existe la variable) --}}
+                        {{-- SERVICIOS --}}
                         @if(isset($services))
                         <div class="mb-6 border-t border-gray-100 pt-4">
                             <label class="block text-sm font-semibold text-gray-700 mb-3">Servicios Adicionales</label>
@@ -102,7 +100,7 @@
                             @error('address') <p class="text-red-600 text-sm mt-1 font-bold">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- Teléfono (Input simple para evitar errores si no hay array de teléfonos) --}}
+                        {{-- Teléfono --}}
                         <div class="mb-4">
                             <label for="contact_phone" class="block text-sm font-semibold text-gray-700">Teléfono de Contacto</label>
                             <input type="text" name="contact_phone" id="contact_phone" value="{{ old('contact_phone', $cancha->contact_phone) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
@@ -152,7 +150,6 @@
 
                         {{-- Botones --}}
                         <div class="flex justify-end gap-2 border-t pt-4">
-                            {{-- 🟢 Cancelar regresa a la lista de canchas de ese dueño --}}
                             <a href="{{ route('admin.owners.courts', $cancha->user_id) }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition">Cancelar</a>
                             <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition">Guardar Cambios</button>
                         </div>

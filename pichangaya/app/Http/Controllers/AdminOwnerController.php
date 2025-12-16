@@ -46,6 +46,7 @@ class AdminOwnerController extends Controller
         ]);
     }
 
+    // 🟢 CORRECCIÓN PRINCIPAL AQUÍ
     public function storeCancha(Request $request, User $user)
     {
         $request->validate([
@@ -55,13 +56,16 @@ class AdminOwnerController extends Controller
             'open_time' => 'required',
             'close_time' => 'required',
             'address' => 'required|string',
-            'lat' => 'required',
-            'lng' => 'required',
+            
+            // ⚠️ CAMBIO CLAVE: Hacemos nullable lat/lng por si el mapa falla en admin
+            'lat' => 'nullable', 
+            'lng' => 'nullable',
+            
             'contact_phone' => 'required|string',
             'description' => 'nullable|string',
             'sports' => 'array',
             'services' => 'array',
-            'images.*' => 'image|max:2048'
+            'images.*' => 'image|max:5120' // Aumentamos a 5MB por si acaso
         ]);
 
         $cancha = Cancha::create([
@@ -72,8 +76,11 @@ class AdminOwnerController extends Controller
             'open_time' => $request->open_time,
             'close_time' => $request->close_time,
             'address' => $request->address,
-            'lat' => $request->lat,
-            'lng' => $request->lng,
+            
+            // Usamos operador null coalescing (??) para evitar error si vienen vacíos
+            'lat' => $request->lat ?? 0, 
+            'lng' => $request->lng ?? 0,
+            
             'contact_phone' => $request->contact_phone,
             'description' => $request->description,
         ]);
@@ -85,6 +92,7 @@ class AdminOwnerController extends Controller
             $cancha->services()->sync($request->services);
         }
 
+        // Subida de Imágenes (Spatie se encarga de convertir a WebP si está en el Modelo)
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $cancha->addMedia($image)->toMediaCollection('canchas');
@@ -119,7 +127,7 @@ class AdminOwnerController extends Controller
             'description' => 'nullable|string',
             'sports' => 'array',
             'services' => 'array',
-            'images.*' => 'image|max:2048',
+            'images.*' => 'image|max:5120',
             'delete_images' => 'array'
         ]);
 
@@ -146,7 +154,7 @@ class AdminOwnerController extends Controller
         }
 
         return redirect()->route('admin.owners.courts', $cancha->user_id)
-            ->with('success', 'Cancha actualizada correctamente con todos los cambios.');
+            ->with('success', 'Cancha actualizada correctamente.');
     }
 
     public function destroy(Cancha $cancha)
@@ -155,7 +163,6 @@ class AdminOwnerController extends Controller
         return back()->with('success', 'La cancha ha sido eliminada correctamente.');
     }
 
-    // 🟢 NUEVO: GESTIÓN DE RESERVAS DE UNA CANCHA
     public function canchaReservas(Cancha $cancha)
     {
         $reservas = $cancha->reservas()->with('user')->orderBy('start_time', 'desc')->paginate(10);

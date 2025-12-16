@@ -10,7 +10,7 @@
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     
-                    {{-- FORMULARIO ADAPTADO PARA ADMIN --}}
+                    {{-- 🟢 CORRECCIÓN: AGREGADO enctype="multipart/form-data" --}}
                     <form action="{{ route('admin.owners.canchas.store', $owner) }}" method="POST" enctype="multipart/form-data">
                         @csrf 
 
