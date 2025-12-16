@@ -17,11 +17,11 @@
 
 <x-app-layout>
     
-    {{-- 🟢 NUEVO: FONDO DE PATRÓN DE PELOTAS GRISES --}}
-    <div class="fixed inset-0 z-0 pointer-events-none bg-gray-50">
-        {{-- Patrón SVG repetitivo en base64 con los emojis solicitados, en escala de grises --}}
-        <div class="absolute inset-0 opacity-5 grayscale" 
-             style="background-image: url(&quot;data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' font-size='20'%3E⚽%3C/text%3E%3Ctext x='50' y='60' font-size='20'%3E🏀%3C/text%3E%3Ctext x='90' y='30' font-size='20'%3E🏐%3C/text%3E%3Ctext x='10' y='90' font-size='20'%3E🏈%3C/text%3E%3Ctext x='50' y='110' font-size='20'%3E⚾%3C/text%3E%3Ctext x='90' y='90' font-size='20'%3E🏉%3C/text%3E%3C/svg%3E&quot;);">
+    {{-- 🟢 NUEVO: FONDO DE PATRÓN DE PELOTAS MÁS GRANDES Y FONDO MÁS OSCURO --}}
+    {{-- Cambios: bg-gray-200 (más oscuro), opacity-10 (más visible), SVG width/height 240 y font-size 60 (pelotas más grandes) --}}
+    <div class="fixed inset-0 z-0 pointer-events-none bg-gray-200">
+        <div class="absolute inset-0 opacity-10 grayscale" 
+             style="background-image: url(&quot;data:image/svg+xml,%3Csvg width='240' height='240' viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='20' y='60' font-size='60'%3E⚽%3C/text%3E%3Ctext x='100' y='120' font-size='60'%3E🏀%3C/text%3E%3Ctext x='180' y='60' font-size='60'%3E🏐%3C/text%3E%3Ctext x='20' y='180' font-size='60'%3E🏈%3C/text%3E%3Ctext x='100' y='220' font-size='60'%3E⚾%3C/text%3E%3Ctext x='180' y='180' font-size='60'%3E🏉%3C/text%3E%3C/svg%3E&quot;);">
         </div>
     </div>
 
