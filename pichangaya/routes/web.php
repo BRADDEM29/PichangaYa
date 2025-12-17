@@ -16,6 +16,9 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\CanchaController; 
 use App\Http\Controllers\DashboardController; 
 use App\Http\Controllers\ReservaController; 
+// 👇 IMPORTACIÓN NUEVA
+use App\Http\Controllers\NotificationController;
+
 use App\Models\Cancha;   
 use App\Models\District; 
 use App\Models\Sport;    
@@ -101,11 +104,19 @@ Route::middleware(['auth'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| 3. DASHBOARD GENERAL (Usuarios Clientes)
+| 3. DASHBOARD GENERAL (Usuarios Clientes y Notificaciones)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
+    
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // 🟢 NUEVAS RUTAS DE NOTIFICACIONES
+    // Estas rutas deben estar protegidas para cualquier usuario logueado
+    Route::get('/notificaciones', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notificaciones/{id}/leer', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+
+    // Rutas de Reservas (Cliente)
     Route::get('/reservas/crear/{cancha}', [ReservaController::class, 'create'])->name('reservas.create');
     Route::post('/reservas', [ReservaController::class, 'store'])->name('reservas.store');
     Route::get('/reservas/mis-reservas', [ReservaController::class, 'userReservasIndex'])->name('reservas.user.index');

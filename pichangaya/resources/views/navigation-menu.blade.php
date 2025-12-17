@@ -1,15 +1,40 @@
 <nav x-data="{ open: false, darkMode: localStorage.getItem('dark-mode') === 'true' }" class="bg-gray-900/90 backdrop-blur-md border-b border-gray-700 shadow-lg sticky top-0 z-50">
     
+    {{-- 1. LÓGICA PHP PARA DETECTAR EL ESTADO DE LA RESERVA ACTIVA (Se mantiene por si se usa en móvil) --}}
     @php
         $displayName = '';
+        $bellReserva = null;
+        
         if (Auth::check()) {
             $user = Auth::user();
             $displayName = $user->name; 
             if ($user->role !== 'admin' && $user->role !== 'owner') {
                 $displayName = strtok($user->name, ' '); 
             }
+
+            // Buscamos reserva reciente para sincronizar (útil para el menú móvil)
+            $bellReserva = \App\Models\Reserva::where('user_id', auth()->id())
+                ->where('created_at', '>', now()->subMinutes(12)) 
+                ->with('cancha')
+                ->latest()
+                ->first();
         }
     @endphp
+
+    {{-- 2. ESTILOS CSS --}}
+    <style>
+        @keyframes swing {
+            0%, 100% { transform: rotate(0deg); }
+            20% { transform: rotate(15deg); }
+            40% { transform: rotate(-10deg); }
+            60% { transform: rotate(5deg); }
+            80% { transform: rotate(-5deg); }
+        }
+        .animate-swing {
+            animation: swing 2s infinite ease-in-out;
+            transform-origin: top center;
+        }
+    </style>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -87,9 +112,78 @@
                 </div>
             </div>
 
-            {{-- SECCIÓN DERECHA: PERFIL / LOGIN --}}
+            {{-- SECCIÓN DERECHA: PERFIL / LOGIN / NOTIFICACIONES --}}
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 @auth
+                    
+                    {{-- 🟢 NUEVA CAMPANA DE NOTIFICACIONES --}}
+                    <div class="ml-3 relative" x-data="{ open: false }">
+                        <button @click="open = ! open" class="relative p-1 rounded-full text-gray-400 hover:text-white focus:outline-none transition-colors">
+                            <span class="sr-only">Notificaciones</span>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            @if(auth()->user()->unreadNotifications->count() > 0)
+                                <span class="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-gray-900 bg-red-500 animate-pulse"></span>
+                            @endif
+                        </button>
+                    
+                        {{-- Dropdown Body --}}
+                        <div x-show="open" @click.away="open = false" style="display: none;"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                            
+                            <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-200 flex justify-between items-center">
+                                <span>Notificaciones</span>
+                                <span class="text-xs text-gray-400">{{ auth()->user()->unreadNotifications->count() }} nuevas</span>
+                            </div>
+                    
+                            <div class="max-h-64 overflow-y-auto">
+                                @forelse(auth()->user()->unreadNotifications as $notification)
+                                    {{-- USAMOS LA NUEVA RUTA PARA MARCAR LEÍDO Y REDIRIGIR --}}
+                                    <a href="{{ route('notifications.read', $notification->id) }}" class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700">
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0 pt-0.5">
+                                                {{-- Lógica simple para iconos en el dropdown --}}
+                                                @if(($notification->data['icono'] ?? '') == 'currency_exchange')
+                                                    <span class="text-yellow-600 text-xl">💲</span>
+                                                @elseif(($notification->data['icono'] ?? '') == 'check_circle')
+                                                    <span class="text-green-600 text-xl">✓</span>
+                                                @elseif(($notification->data['icono'] ?? '') == 'cancel')
+                                                    <span class="text-red-600 text-xl">✕</span>
+                                                @else
+                                                    <span class="text-blue-500 text-xl">ℹ</span>
+                                                @endif
+                                            </div>
+                                            <div class="ml-3 w-0 flex-1">
+                                                <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $notification->data['titulo'] ?? 'Notificación' }}</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ Str::limit($notification->data['mensaje'] ?? '', 50) }}</p>
+                                                <p class="mt-1 text-xs text-gray-400">{{ $notification->created_at->diffForHumans() }}</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                @empty
+                                    <div class="px-4 py-4 text-center text-gray-500 dark:text-gray-400 text-sm">
+                                        No tienes notificaciones nuevas.
+                                    </div>
+                                @endforelse
+                            </div>
+                    
+                            {{-- BOTÓN VER TODAS LAS NOTIFICACIONES --}}
+                            <div class="block bg-gray-50 dark:bg-gray-700 text-center px-4 py-2 border-t border-gray-100 dark:border-gray-600 rounded-b-md">
+                                <a href="{{ route('notifications.index') }}" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 w-full block">
+                                    Ver historial completo →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- PERFIL --}}
                     <div class="ms-3 relative">
                         <x-dropdown align="right" width="48">
                             <x-slot name="trigger">
@@ -103,17 +197,13 @@
                             </x-slot>
 
                             <x-slot name="content">
-                                {{-- Encabezado del Menú --}}
                                 <div class="block px-4 py-2 text-xs text-gray-400 dark:text-gray-300 uppercase font-bold">
                                     {{ __('Administrar Cuenta') }}
                                 </div>
-
-                                {{-- Enlace al Perfil mejorado --}}
                                 <x-dropdown-link href="{{ route('profile.show') }}" class="dark:text-white dark:hover:bg-gray-700 font-bold">
                                     {{ __('Perfil') }}
                                 </x-dropdown-link>
                                 
-                                {{-- BOTÓN MODO OSCURO (ESCRITORIO) --}}
                                 <div class="border-t border-gray-200 dark:border-gray-700"></div>
                                 <button @click="darkMode = !darkMode; localStorage.setItem('dark-mode', darkMode); document.documentElement.classList.toggle('dark')" 
                                         type="button" 
@@ -122,18 +212,10 @@
                                     <span x-show="darkMode" class="flex items-center">☀️ {{ __('Modo Claro') }}</span>
                                 </button>
 
-                                @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
-                                    <x-dropdown-link href="{{ route('api-tokens.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Tokens API') }}</x-dropdown-link>
-                                @endif
-
                                 <div class="border-t border-gray-200 dark:border-gray-700"></div>
-
-                                {{-- Cerrar Sesión MEJORADO --}}
                                 <form method="POST" action="{{ route('logout') }}" x-data>
                                     @csrf
-                                    <x-dropdown-link href="{{ route('logout') }}" 
-                                                     @click.prevent="$root.submit();" 
-                                                     class="dark:text-white dark:hover:bg-gray-700 font-bold text-red-500">
+                                    <x-dropdown-link href="{{ route('logout') }}" @click.prevent="$root.submit();" class="dark:text-white dark:hover:bg-gray-700 font-bold text-red-500">
                                         {{ __('Cerrar Sesión') }}
                                     </x-dropdown-link>
                                 </form>
@@ -164,7 +246,6 @@
                 {{ __('Inicio') }}
             </x-responsive-nav-link>
             
-            {{-- BOTÓN MODO OSCURO (MÓVIL) --}}
             <x-responsive-nav-link @click="darkMode = !darkMode; localStorage.setItem('dark-mode', darkMode); document.documentElement.classList.toggle('dark')" class="cursor-pointer text-gray-300 hover:text-white font-bold">
                 <span x-text="darkMode ? '☀️ Modo Claro' : '🌙 Modo Oscuro'"></span>
             </x-responsive-nav-link>
@@ -173,6 +254,17 @@
                 <x-responsive-nav-link href="{{ route('reservas.user.index') }}" :active="request()->routeIs('reservas.user.*')" class="text-white hover:text-green-400 hover:bg-gray-800">
                     {{ __('📅 Mis Reservas') }}
                 </x-responsive-nav-link>
+                
+                {{-- Notificaciones Móvil --}}
+                @if($bellReserva && $bellReserva->status === 'pending')
+                    <div class="block px-4 py-2 text-sm font-bold text-yellow-400 bg-yellow-900/20 animate-pulse">
+                        ⏳ Reserva Pendiente de Pago
+                    </div>
+                @elseif(auth()->user()->unreadNotifications->count() > 0)
+                     <a href="{{ route('notifications.index') }}" class="block px-4 py-2 text-sm font-bold text-gray-400 bg-gray-800 hover:bg-gray-700 hover:text-white">
+                       🔔 Tienes notificaciones nuevas
+                     </a>
+                @endif
 
                 @if (Auth::user()->role === 'admin')
                     <div class="border-t border-gray-700 mt-2 pt-2 bg-red-900/20">
@@ -189,7 +281,6 @@
                     </div>
                 @endif
 
-                {{-- Opciones de Perfil Móvil --}}
                 <div class="pt-4 pb-1 border-t border-gray-700">
                     <div class="flex items-center px-4">
                         @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
@@ -220,3 +311,32 @@
         </div>
     </div>
 </nav>
+
+{{-- SCRIPT PARA EL TEMPORIZADOR (Si se usa en otras vistas se deja, sino es opcional) --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const updateTimers = () => {
+            const now = Math.floor(Date.now() / 1000);
+            
+            document.querySelectorAll('.notification-timer').forEach(el => {
+                const expiresAt = parseInt(el.getAttribute('data-expires'));
+                const diff = expiresAt - now;
+
+                if (diff > 0) {
+                    const minutes = Math.floor(diff / 60);
+                    const seconds = diff % 60;
+                    el.querySelector('span').textContent = 
+                        `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                } else {
+                    el.textContent = '❌ Expirado';
+                    el.classList.remove('text-red-600', 'animate-pulse');
+                    el.classList.add('text-gray-400');
+                }
+            });
+        };
+
+        // Actualizar cada segundo
+        setInterval(updateTimers, 1000);
+        updateTimers(); 
+    });
+</script>

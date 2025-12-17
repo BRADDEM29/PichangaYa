@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Mail; // Para el correo (Opcional si usas Notificaciones)
+use Illuminate\Support\Facades\Mail; 
+// 👇 IMPORTANTE: Importar la clase de Notificación
+use App\Notifications\ReservaEstadoActualizado;
 
 class ReservaController extends Controller
 {
@@ -57,7 +59,6 @@ class ReservaController extends Controller
         // ---------------------------------------------------------
         // 2. REGLA: 3 STRIKES (ADVERTENCIA)
         // ---------------------------------------------------------
-        // Contamos cuántas reservas se le han cancelado automáticamente (o manualmente por falta de pago)
         $cancelledCount = Reserva::where('user_id', $user->id)
                                  ->where('status', 'cancelled')
                                  ->count();
@@ -68,7 +69,7 @@ class ReservaController extends Controller
         }
 
         // ---------------------------------------------------------
-        // 3. VALIDACIÓN DE HORA FLEXIBLE (Hasta 30 min iniciada la hora)
+        // 3. VALIDACIÓN DE HORA Y DISPONIBILIDAD
         // ---------------------------------------------------------
         $request->validate([
             'cancha_id' => 'required|exists:canchas,id',
@@ -76,11 +77,10 @@ class ReservaController extends Controller
             'end_time'   => 'required|date|after:start_time',
         ]);
 
+        // 👇 CORRECCIÓN AQUÍ: Se usa -> en lugar de .
         $start = Carbon::parse($request->start_time);
-        $now = Carbon::now();
 
-        // Si la hora de inicio + 30 minutos ya pasó, entonces ya no se puede reservar.
-        // Ejemplo: Son las 9:40. Intento reservar a las 9:00. 9:00 + 30min = 9:30. 9:30 es pasado -> Error.
+        // Validación de tolerancia (30 min)
         if ($start->copy()->addMinutes(30)->isPast()) {
             return back()->withErrors(['start_time' => 'El horario de inicio debe ser una fecha posterior a ahora (o máximo 30 min de tolerancia).']);
         }
@@ -95,9 +95,7 @@ class ReservaController extends Controller
         // ---------------------------------------------------------
         $cancha = Cancha::findOrFail($request->cancha_id);
         
-        // Calcular precio (Ejemplo simple, ajusta según tu lógica de precio)
-        $hours = $start->diffInHours(Carbon::parse($request->end_time));
-        // Si es media hora o fracción, ajustamos (Carbon float diff)
+        // Calcular precio
         $hoursFloat = $start->diffInMinutes(Carbon::parse($request->end_time)) / 60;
         $totalPrice = $cancha->price_per_hour * $hoursFloat;
 
@@ -107,32 +105,35 @@ class ReservaController extends Controller
             'start_time'  => $request->start_time,
             'end_time'    => $request->end_time,
             'total_price' => $totalPrice,
-            'status'      => 'pending', // Nace pendiente
+            'status'      => 'pending', 
         ]);
 
         // ---------------------------------------------------------
-        // 5. ENVÍO DE CORREO (Notificación)
+        // 5. RESPUESTA CON DETALLES PARA LA NOTIFICACIÓN FLOTANTE
         // ---------------------------------------------------------
-        // Aquí podrías disparar un Mailable de Laravel. 
-        // Por simplicidad en este paso, asumiremos que la configuración .env está lista.
-        // Mail::to($user->email)->send(new \App\Mail\ReservaPendiente($reserva));
-
-        // Mensaje de éxito + Advertencia de strikes si aplica
-        $successMsg = '¡Reserva registrada! Tienes 10 MINUTOS para realizar el pago o confirmar, de lo contrario se cancelará automáticamente.';
+        
+        // Construimos el mensaje de éxito
+        $successMsg = '¡Reserva registrada! Tienes 10 MINUTOS para realizar el pago.';
         if ($warningMessage) {
             $successMsg .= " " . $warningMessage;
         }
 
-        return redirect()->route('reservas.user.index')->with('success', $successMsg);
+        // 🟢 MEJORA: Pasamos un ARRAY con datos detallados
+        $datosNotificacion = [
+            'expiry' => $reserva->created_at->addMinutes(10)->timestamp,
+            'cancha' => $cancha->name,
+            'id'     => $reserva->id
+        ];
+
+        return redirect()->route('reservas.user.index')
+            ->with('reservation_pending_details', $datosNotificacion)
+            ->with('success', $successMsg);
     }
 
     // -------------------------------------------------------------------------
     // LISTADOS (Index)
     // -------------------------------------------------------------------------
     
-    /**
-     * Mis Reservas (Cliente)
-     */
     public function userReservasIndex()
     {
         $reservas = Reserva::where('user_id', Auth::id())
@@ -142,55 +143,52 @@ class ReservaController extends Controller
         return view('reservas.user-reservas-index', compact('reservas'));
     }
 
-    /**
-     * Reservas en mis Canchas (Dueño)
-     */
     public function ownerReservasIndex()
     {
-        // 1. Obtener ID del usuario autenticado (dueño)
         $userId = Auth::id();
-
-        // 2. Obtener IDs de sus canchas
         $canchaIds = Cancha::where('user_id', $userId)->pluck('id');
 
-        // 3. Obtener reservas de ESAS canchas
         $reservas = Reserva::whereIn('cancha_id', $canchaIds)
-            ->with('user', 'cancha') // Cargar relaciones
+            ->with('user', 'cancha') 
             ->latest()
             ->paginate(10); 
 
-        // Retornar vista correcta en la carpeta owner
         return view('owner.reservas.index', compact('reservas'));
     }
 
     // -------------------------------------------------------------------------
-    // ACCIONES DUEÑO (ACTUALIZADO)
+    // ACCIONES DUEÑO
     // -------------------------------------------------------------------------
 
-    /**
-     * Permite al dueño actualizar el estado (Adelantos, Pagos, Cancelaciones).
-     */
     public function updateStatus(Reserva $reserva, Request $request)
     {
-        // 🔒 SEGURIDAD: Policy 'updateStatus' debe permitir esto
         $this->authorize('updateStatus', $reserva);
 
-        // 🟢 VALIDACIÓN ACTUALIZADA: Acepta los nuevos estados de pago
         $request->validate([
             'status' => 'required|in:pending,advance_paid,fully_paid,cancelled',
         ]);
 
+        // 1. Actualizar el estado en la BD
         $reserva->update([
             'status' => $request->status,
         ]);
-        
-        // Mensaje personalizado según el estado para mejor feedback
+
+        // =========================================================
+        // 🟢 NUEVO: Enviar Notificación al Usuario Cliente
+        // =========================================================
+        try {
+            $reserva->user->notify(new ReservaEstadoActualizado($reserva));
+        } catch (\Exception $e) {
+            // Log::error('Error enviando notificacion: ' . $e->getMessage());
+        }
+
+        // 3. Mensaje de Feedback para el Dueño
         $msg = match($request->status) {
-            'advance_paid' => 'Adelanto registrado correctamente. 🟡',
-            'fully_paid'   => 'Pago completo registrado. ¡Cancha pagada! 🟢',
-            'cancelled'    => 'La reserva ha sido cancelada. 🔴',
+            'advance_paid' => 'Adelanto registrado y cliente notificado. 🟡',
+            'fully_paid'   => 'Pago completo registrado y cliente notificado. 🟢',
+            'cancelled'    => 'Reserva cancelada y cliente notificado. 🔴',
             'pending'      => 'Estado cambiado a pendiente.',
-            default        => 'Estado de la reserva actualizado.',
+            default        => 'Estado actualizado correctamente.',
         };
 
         return back()->with('success', $msg);
@@ -200,15 +198,10 @@ class ReservaController extends Controller
     // ACCIONES USUARIO (Cancelar / Editar)
     // -------------------------------------------------------------------------
 
-    /**
-     * Permite al USUARIO cancelar su propia reserva.
-     */
     public function cancelUser(Reserva $reserva)
     {
-        // 🔒 SEGURIDAD: Policy
         $this->authorize('cancel', $reserva);
 
-        // Validación de Negocio: No cancelar fechas pasadas
         if ($reserva->start_time < now()) {
              return back()->with('error', 'No puedes cancelar una reserva que ya pasó.');
         }
@@ -218,15 +211,10 @@ class ReservaController extends Controller
         return back()->with('success', 'Reserva cancelada exitosamente.');
     }
 
-    /**
-     * Muestra el formulario de edición para el USUARIO.
-     */
     public function editUser(Reserva $reserva)
     {
-        // 🔒 SEGURIDAD: Policy 'view' verifica propiedad
         $this->authorize('view', $reserva); 
 
-        // Validaciones extra de negocio
         if ($reserva->status === 'cancelled') {
             return back()->with('error', 'No puedes editar una reserva cancelada.');
         }
