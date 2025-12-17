@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail; // Para el correo (Opcional si usas Notificaciones)
 
 class ReservaController extends Controller
 {
@@ -40,36 +41,89 @@ class ReservaController extends Controller
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+
+        // ---------------------------------------------------------
+        // 1. REGLA: SOLO UNA RESERVA PENDIENTE A LA VEZ
+        // ---------------------------------------------------------
+        $pendingReservation = Reserva::where('user_id', $user->id)
+                                     ->where('status', 'pending')
+                                     ->exists();
+
+        if ($pendingReservation) {
+            return back()->with('error', '⚠️ Tienes una reserva pendiente de pago. Debes completarla o cancelarla antes de hacer otra.');
+        }
+
+        // ---------------------------------------------------------
+        // 2. REGLA: 3 STRIKES (ADVERTENCIA)
+        // ---------------------------------------------------------
+        // Contamos cuántas reservas se le han cancelado automáticamente (o manualmente por falta de pago)
+        $cancelledCount = Reserva::where('user_id', $user->id)
+                                 ->where('status', 'cancelled')
+                                 ->count();
+
+        $warningMessage = null;
+        if ($cancelledCount >= 3) {
+            $warningMessage = "⚠️ Advertencia: Tienes $cancelledCount reservas canceladas anteriormente. Si continúas reservando sin pagar, tu cuenta podría ser suspendida.";
+        }
+
+        // ---------------------------------------------------------
+        // 3. VALIDACIÓN DE HORA FLEXIBLE (Hasta 30 min iniciada la hora)
+        // ---------------------------------------------------------
         $request->validate([
             'cancha_id' => 'required|exists:canchas,id',
-            'start_time' => 'required|date|after:now',
+            'start_time' => 'required|date', 
             'end_time'   => 'required|date|after:start_time',
         ]);
 
-        $cancha = Cancha::findOrFail($request->cancha_id);
         $start = Carbon::parse($request->start_time);
-        $end = Carbon::parse($request->end_time);
+        $now = Carbon::now();
 
-        if (!$this->isAvailable($cancha->id, $start, $end)) {
-            return back()
-                ->withInput()
-                ->withErrors(['availability' => 'El horario solicitado ya está ocupado. Por favor elige otro.']);
+        // Si la hora de inicio + 30 minutos ya pasó, entonces ya no se puede reservar.
+        // Ejemplo: Son las 9:40. Intento reservar a las 9:00. 9:00 + 30min = 9:30. 9:30 es pasado -> Error.
+        if ($start->copy()->addMinutes(30)->isPast()) {
+            return back()->withErrors(['start_time' => 'El horario de inicio debe ser una fecha posterior a ahora (o máximo 30 min de tolerancia).']);
         }
 
-        $hours = $start->diffInMinutes($end) / 60;
-        $totalPrice = round($hours * $cancha->price_per_hour, 2);
+        // Verificar disponibilidad
+        if (!$this->isAvailable($request->cancha_id, $request->start_time, $request->end_time)) {
+            return back()->with('error', 'Lo sentimos, este horario ya ha sido reservado por otra persona.');
+        }
 
-        Reserva::create([
+        // ---------------------------------------------------------
+        // 4. CREAR LA RESERVA
+        // ---------------------------------------------------------
+        $cancha = Cancha::findOrFail($request->cancha_id);
+        
+        // Calcular precio (Ejemplo simple, ajusta según tu lógica de precio)
+        $hours = $start->diffInHours(Carbon::parse($request->end_time));
+        // Si es media hora o fracción, ajustamos (Carbon float diff)
+        $hoursFloat = $start->diffInMinutes(Carbon::parse($request->end_time)) / 60;
+        $totalPrice = $cancha->price_per_hour * $hoursFloat;
+
+        $reserva = Reserva::create([
             'cancha_id'   => $cancha->id,
-            'user_id'     => Auth::id(),
-            'start_time'  => $start,
-            'end_time'    => $end,
+            'user_id'     => $user->id,
+            'start_time'  => $request->start_time,
+            'end_time'    => $request->end_time,
             'total_price' => $totalPrice,
-            'status'      => 'pending', // Nace como pendiente
+            'status'      => 'pending', // Nace pendiente
         ]);
 
-        return redirect()->route('reservas.user.index')
-            ->with('success', '¡Solicitud de reserva enviada! Espera la confirmación del dueño.');
+        // ---------------------------------------------------------
+        // 5. ENVÍO DE CORREO (Notificación)
+        // ---------------------------------------------------------
+        // Aquí podrías disparar un Mailable de Laravel. 
+        // Por simplicidad en este paso, asumiremos que la configuración .env está lista.
+        // Mail::to($user->email)->send(new \App\Mail\ReservaPendiente($reserva));
+
+        // Mensaje de éxito + Advertencia de strikes si aplica
+        $successMsg = '¡Reserva registrada! Tienes 10 MINUTOS para realizar el pago o confirmar, de lo contrario se cancelará automáticamente.';
+        if ($warningMessage) {
+            $successMsg .= " " . $warningMessage;
+        }
+
+        return redirect()->route('reservas.user.index')->with('success', $successMsg);
     }
 
     // -------------------------------------------------------------------------
@@ -81,11 +135,10 @@ class ReservaController extends Controller
      */
     public function userReservasIndex()
     {
-        $reservas = Auth::user()->reservas()
-                        ->with('cancha')
-                        ->latest()
-                        ->paginate(10); 
-        
+        $reservas = Reserva::where('user_id', Auth::id())
+                    ->with('cancha')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(10);
         return view('reservas.user-reservas-index', compact('reservas'));
     }
 
