@@ -17,52 +17,51 @@
 
 <x-app-layout>
     
-    {{-- 🟢 NUEVO: FONDO DE PATRÓN DE PELOTAS MÁS GRANDES Y FONDO MÁS OSCURO --}}
-    {{-- Cambios: bg-gray-200 (más oscuro), opacity-10 (más visible), SVG width/height 240 y font-size 60 (pelotas más grandes) --}}
-    <div class="fixed inset-0 z-0 pointer-events-none bg-gray-200">
-        <div class="absolute inset-0 opacity-10 grayscale" 
-             style="background-image: url(&quot;data:image/svg+xml,%3Csvg width='240' height='240' viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='20' y='60' font-size='60'%3E⚽%3C/text%3E%3Ctext x='100' y='120' font-size='60'%3E🏀%3C/text%3E%3Ctext x='180' y='60' font-size='60'%3E🏐%3C/text%3E%3Ctext x='20' y='180' font-size='60'%3E🏈%3C/text%3E%3Ctext x='100' y='220' font-size='60'%3E⚾%3C/text%3E%3Ctext x='180' y='180' font-size='60'%3E🏉%3C/text%3E%3C/svg%3E&quot;);">
+    {{-- 🟢 FONDO ADAPTABLE CON PATRÓN DE PELOTAS --}}
+    <div class="fixed inset-0 z-0 pointer-events-none bg-gray-200 dark:bg-gray-950 transition-colors duration-300">
+        <div class="absolute inset-0 opacity-10 grayscale dark:invert" 
+             style="background-image: url('data:image/svg+xml,%3Csvg width=\'240\' height=\'240\' viewBox=\'0 0 240 240\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Ctext x=\'20\' y=\'60\' font-size=\'60\'%3E⚽%3C/text%3E%3Ctext x=\'100\' y=\'120\' font-size=\'60\'%3E🏀%3C/text%3E%3Ctext x=\'180\' y=\'60\' font-size=\'60\'%3E🏐%3C/text%3E%3Ctext x=\'20\' y=\'180\' font-size=\'60\'%3E🏈%3C/text%3E%3Ctext x=\'100\' y=\'220\' font-size=\'60\'%3E⚾%3C/text%3E%3Ctext x=\'180\' y=\'180\' font-size=\'60\'%3E🏉%3C/text%3E%3C/svg%3E');">
         </div>
     </div>
 
-    {{-- 1. ENCABEZADO (Header Info) --}}
-    <div class="bg-white border-b border-gray-200 shadow-sm relative z-10">
+    {{-- 1. ENCABEZADO (Header Info) - MEJORADO CON DARK MODE --}}
+    <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm relative z-20 transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     {{-- Breadcrumbs --}}
-                    <div class="text-xs text-gray-500 mb-2 flex items-center gap-2">
-                        <a href="{{ route('home') }}" class="hover:text-indigo-600">Clubes en Cusco</a>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
+                        <a href="{{ route('home') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400">Clubes en Cusco</a>
                         <span>/</span>
-                        <span class="text-gray-900">{{ $cancha->district->name }}</span>
+                        <span class="text-gray-900 dark:text-gray-200">{{ $cancha->district->name }}</span>
                     </div>
                     
                     {{-- Título y Dirección --}}
-                    <h1 class="text-3xl md:text-4xl font-black text-gray-900 mb-2">{{ $cancha->name }}</h1>
-                    <p class="text-gray-500 flex items-center text-sm md:text-base">
+                    <h1 class="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-2 transition-colors duration-300">{{ $cancha->name }}</h1>
+                    <p class="text-gray-600 dark:text-gray-300 flex items-center text-sm md:text-base transition-colors duration-300">
                         <svg class="w-4 h-4 mr-1 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
                         {{ $cancha->address }} - {{ $cancha->district->name }}
-                        <a href="#donde-estamos" class="ml-2 text-indigo-600 hover:underline text-xs font-bold">(ver en mapa)</a>
+                        <a href="#donde-estamos" class="ml-2 text-indigo-600 dark:text-indigo-400 hover:underline text-xs font-bold">(ver en mapa)</a>
                     </p>
                 </div>
 
                 {{-- Precio Badge --}}
-                <div class="flex items-center bg-white px-4 py-3 rounded-xl border border-gray-200 shadow-sm">
+                <div class="flex items-center bg-white dark:bg-gray-700 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm transition-colors duration-300">
                     <div class="text-right">
-                        <p class="text-xs text-gray-500 uppercase font-bold">Precio desde</p>
-                        <p class="text-2xl font-black text-indigo-600">S/ {{ number_format($cancha->price_per_hour, 2) }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Precio desde</p>
+                        <p class="text-2xl font-black text-indigo-600 dark:text-indigo-400">S/ {{ number_format($cancha->price_per_hour, 2) }}</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Z-INDEX RELATIVO PARA QUE EL CONTENIDO ESTÉ SOBRE EL FONDO --}}
+    {{-- CONTENIDO --}}
     <div class="py-8 relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            {{-- 🟢 2. CARRUSEL DE FOTOS --}}
-            <div class="mb-8 rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-gray-900 h-[300px] md:h-[450px] relative group">
+            {{-- 2. CARRUSEL DE FOTOS --}}
+            <div class="mb-8 rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700 bg-gray-900 h-[300px] md:h-[450px] relative group">
                 @php
                     $photos = $cancha->getMedia('canchas');
                     $photoUrls = $photos->map(fn($media) => $media->getUrl('large'))->toArray();
@@ -90,7 +89,6 @@
                          class="relative w-full h-full cursor-pointer"
                          @click="openLightbox()">
                         
-                        {{-- Slides --}}
                         <template x-for="(photo, index) in photos" :key="index">
                             <div x-show="active === index"
                                  x-transition:enter="transition ease-out duration-700"
@@ -105,7 +103,6 @@
                             </div>
                         </template>
 
-                        {{-- Botones Navegación --}}
                         @if($totalPhotos > 1)
                             <button @click.stop="prev()" class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 text-white p-2 rounded-full transition backdrop-blur-sm opacity-0 group-hover:opacity-100">
                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
@@ -118,7 +115,6 @@
                             </div>
                         @endif
 
-                        {{-- LIGHTBOX --}}
                         <template x-teleport="body">
                             <div x-show="lightboxOpen" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md" style="display: none;">
                                 <button @click.stop="closeLightbox()" class="absolute top-4 right-4 text-white/70 hover:text-white z-50"><svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
@@ -143,16 +139,16 @@
             {{-- 3. GRID PRINCIPAL --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                {{-- COLUMNA PRINCIPAL (70%) --}}
+                {{-- COLUMNA PRINCIPAL --}}
                 <div class="lg:col-span-8 space-y-8">
                     
-                    {{-- SECCIÓN DE RESERVA (Livewire) --}}
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div class="p-5 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-                            <div class="bg-indigo-100 p-2 rounded-full">
-                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    {{-- TARJETA DE RESERVA - MEJORADO CON DARK MODE --}}
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-300">
+                        <div class="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 flex items-center gap-2 transition-colors duration-300">
+                            <div class="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-full">
+                                <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
-                            <h3 class="text-lg font-bold text-gray-900">Elige tu turno</h3>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Elige tu turno</h3>
                         </div>
                         
                         <div class="p-6">
@@ -160,96 +156,92 @@
                         </div>
                     </div>
 
-                    {{-- Descripción Extendida --}}
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h3 class="text-lg font-bold text-gray-900 mb-3">Información del Lugar</h3>
-                        <p class="text-gray-600 leading-relaxed">
+                    {{-- Descripción --}}
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-300">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">Información del Lugar</h3>
+                        <p class="text-gray-600 dark:text-gray-300 leading-relaxed transition-colors duration-300">
                             {{ $cancha->description ?? 'El dueño no ha proporcionado una descripción detallada.' }}
                         </p>
                     </div>
 
                 </div>
 
-                {{-- COLUMNA LATERAL (30%): INFO Y CONTACTO --}}
+                {{-- COLUMNA LATERAL --}}
                 <div class="lg:col-span-4 space-y-6">
 
-                    {{-- 🟢 1. TARJETA DE INFORMACIÓN CONSOLIDADA --}}
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    {{-- DETALLES DE LA CANCHA --}}
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-300">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             Detalles de la Cancha
                         </h3>
 
-                        {{-- Deportes (Primero) --}}
                         <div class="mb-5">
-                            <p class="text-xs font-bold text-gray-400 uppercase mb-2">Deportes Disponibles</p>
+                            <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">Deportes Disponibles</p>
                             <div class="flex flex-wrap gap-2">
                                 @foreach($cancha->sports as $sport)
-                                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
                                         {{ $sport->icon }} {{ $sport->name }}
                                     </span>
                                 @endforeach
                             </div>
                         </div>
 
-                        <hr class="border-gray-100 my-4">
+                        <hr class="border-gray-100 dark:border-gray-700 my-4">
 
-                        {{-- Horarios (Segundo) --}}
                         <div class="mb-5">
-                            <p class="text-xs font-bold text-gray-400 uppercase mb-2">Horarios de Atención</p>
+                            <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">Horarios de Atención</p>
                             <div class="flex justify-between items-center text-sm">
-                                <span class="text-gray-600">Lunes a Domingo</span>
-                                <span class="font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded">
+                                <span class="text-gray-600 dark:text-gray-400">Lunes a Domingo</span>
+                                <span class="font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                                     {{ \Carbon\Carbon::parse($cancha->open_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($cancha->close_time)->format('h:i A') }}
                                 </span>
                             </div>
                         </div>
 
-                        <hr class="border-gray-100 my-4">
+                        <hr class="border-gray-100 dark:border-gray-700 my-4">
 
-                        {{-- Servicios (Tercero) --}}
                         <div>
-                            <p class="text-xs font-bold text-gray-400 uppercase mb-2">Servicios de la Cancha</p>
+                            <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">Servicios de la Cancha</p>
                             @if($cancha->services->count() > 0)
                                 <div class="grid grid-cols-2 gap-y-2 gap-x-1">
                                     @foreach($cancha->services as $service)
-                                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                                        <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                                             <span class="text-lg">{{ $service->icon }}</span>
                                             <span class="truncate">{{ $service->name }}</span>
                                         </div>
                                     @endforeach
                                 </div>
                             @else
-                                <p class="text-sm text-gray-400 italic">No hay servicios especificados.</p>
+                                <p class="text-sm text-gray-400 dark:text-gray-500 italic">No hay servicios especificados.</p>
                             @endif
                         </div>
                     </div>
 
-                    {{-- 🟢 2. TARJETA DE UBICACIÓN Y CONTACTO --}}
-                    <div id="donde-estamos" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    {{-- UBICACIÓN --}}
+                    <div id="donde-estamos" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-300">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             Ubicación
                         </h3>
-                        <p class="text-sm text-gray-600 mb-3">{{ $cancha->address }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">{{ $cancha->address }}</p>
                         
                         @if($cancha->lat && $cancha->lng)
-                            <div id="map-show" class="w-full h-48 rounded-lg bg-gray-100 border border-gray-200 mb-4"></div>
+                            <div id="map-show" class="w-full h-48 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 mb-4 transition-colors duration-300"></div>
                             
-                            {{-- Botones Waze/Maps --}}
                             <div class="grid grid-cols-2 gap-3 mb-4">
-                                <a href="http://maps.google.com/maps?q={{ $cancha->lat }},{{ $cancha->lng }}" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 py-2.5 rounded-lg text-xs font-bold text-gray-700 transition border border-gray-200">
+                                <a href="http://maps.google.com/maps?q={{ $cancha->lat }},{{ $cancha->lng }}" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 py-2.5 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-200 transition border border-gray-200 dark:border-gray-600">
                                     🗺️ Google Maps
                                 </a>
-                                <a href="https://waze.com/ul?ll={{ $cancha->lat }},{{ $cancha->lng }}&navigate=yes" target="_blank" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 py-2.5 rounded-lg text-xs font-bold text-blue-700 transition border border-blue-100">
+                                <a href="https://waze.com/ul?ll={{ $cancha->lat }},{{ $cancha->lng }}&navigate=yes" target="_blank" class="flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 py-2.5 rounded-lg text-xs font-bold text-blue-700 dark:text-blue-300 transition border border-blue-100 dark:border-blue-800">
                                     🚙 Waze
                                 </a>
                             </div>
                         @else
-                            <div class="w-full h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs mb-4">Mapa no disponible</div>
+                            <div class="w-full h-48 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center text-gray-400 text-xs mb-4">Mapa no disponible</div>
                         @endif
 
-                        {{-- Botón WhatsApp (GRANDE Y AL FINAL) --}}
+                        {{-- Botón WhatsApp --}}
                         @php
                             $telefono = $cancha->contact_phone ?? $cancha->user->phone;
                             $linkWa = "https://wa.me/" . preg_replace('/[^0-9]/', '', $telefono) . "?text=" . urlencode("Hola, vi su cancha " . $cancha->name . " en PichangaYa y me gustaría hacer una consulta.");
@@ -276,7 +268,14 @@
             center: location,
             zoom: 15,
             disableDefaultUI: true,
-            zoomControl: true
+            zoomControl: true,
+            styles: [
+                {
+                    "featureType": "all",
+                    "elementType": "labels.text.fill",
+                    "stylers": [{"color": "#ffffff"}]
+                }
+            ]
         });
         new google.maps.Marker({ position: location, map: map });
     }
