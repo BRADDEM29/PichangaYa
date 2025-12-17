@@ -158,11 +158,10 @@ Route::middleware(['auth', 'role:admin'])
             Route::get('/owners/{user}/canchas/create', 'createCancha')->name('owners.canchas.create');
             Route::post('/owners/{user}/canchas', 'storeCancha')->name('owners.canchas.store');
             
-            // 🟢 NUEVAS RUTAS: GESTIÓN DE RESERVAS DESDE ADMIN
+            // 🟢 GESTIÓN DE RESERVAS DESDE ADMIN
             Route::get('/canchas/{cancha}/reservas', 'canchaReservas')->name('canchas.reservas.index');
         });
 
-        // Ruta para actualizar el estado de reserva (reutilizando el controller)
         Route::put('/reservas/{reserva}/status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
     
@@ -183,7 +182,35 @@ Route::middleware(['auth', 'role:owner'])
         Route::put('/reservas/{reserva}/update-status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
 
-// Pruebas Técnicas
+/*
+|--------------------------------------------------------------------------
+| 6. PÁGINAS INFORMATIVAS, SOPORTE Y LEGAL
+|--------------------------------------------------------------------------
+*/
+// --- SECCIÓN DE PÁGINAS INFORMATIVAS ---
+Route::get('/nosotros', function () { return view('pages.about'); })->name('about');
+Route::get('/faq', function () { return view('pages.faq'); })->name('faq');
+Route::get('/registrar-mi-cancha', function () { return view('pages.register-pitch'); })->name('register-pitch');
+
+// --- SECCIÓN DE SOPORTE Y CONTACTO ---
+Route::get('/contacto', function () { return view('pages.contact'); })->name('contact.index');
+Route::get('/sugerencias', function () { return view('pages.suggestions'); })->name('suggestions.index');
+
+// --- SECCIÓN LEGAL (NUEVO) ---
+Route::get('/terminos-y-condiciones', function () {
+    return view('terms', ['terms' => 'Contenido de los términos y condiciones...']);
+})->name('terms.show');
+
+Route::get('/politica-de-privacidad', function () {
+    return view('policy', ['policy' => 'Contenido de la política de privacidad...']);
+})->name('policy.show');
+
+
+/*
+|--------------------------------------------------------------------------
+| 7. PRUEBAS TÉCNICAS
+|--------------------------------------------------------------------------
+*/
 Route::get('/test-gd', function () {
     return extension_loaded('gd') ? "✅ GD ACTIVADO" : "❌ GD APAGADO";
 });

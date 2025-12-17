@@ -211,12 +211,61 @@
         @endif
     </section>
 
-    {{-- FOOTER --}}
-    <footer class="bg-gray-900 text-white py-12 border-t border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <h4 class="text-2xl font-bold mb-2">⚽ Pichanga<span class="text-green-500">Ya</span></h4>
-            <p class="text-gray-400 text-sm mb-4">La plataforma #1 para reservar canchas en Cusco.</p>
-            <p class="text-gray-600 text-xs">&copy; {{ date('Y') }} Todos los derechos reservados.</p>
+    {{-- SÚPER FOOTER --}}
+    <footer class="bg-white dark:bg-gray-950 text-gray-800 dark:text-gray-300 pt-16 pb-8 border-t border-gray-200 dark:border-gray-800 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                
+                {{-- Columna 1: Branding --}}
+                <div class="space-y-4">
+                    <h4 class="text-2xl font-black italic text-gray-900 dark:text-white">
+                        ⚽ Pichanga<span class="text-green-500">Ya</span>
+                    </h4>
+                    <p class="text-sm leading-relaxed opacity-80">
+                        La plataforma #1 en Cusco para peloteros. Encuentra, reserva y juega en las mejores canchas de la ciudad imperial.
+                    </p>
+                    <div class="flex space-x-4 pt-2">
+                        <a href="#" class="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:text-green-500 transition">FB</a>
+                        <a href="#" class="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:text-green-500 transition">IG</a>
+                        <a href="#" class="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:text-green-500 transition">WA</a>
+                    </div>
+                </div>
+
+                {{-- Columna 2: Enlaces Rápidos --}}
+                <div>
+                    <h5 class="text-sm font-bold uppercase tracking-widest text-gray-900 dark:text-white mb-6">Explorar</h5>
+                    <ul class="space-y-4 text-sm font-medium">
+                        <li><a href="{{ route('dashboard') }}" class="hover:text-green-500 transition">🔍 Buscar Canchas</a></li>
+                        <li><a href="{{ route('register-pitch') }}" class="text-green-600 dark:text-green-400 font-bold hover:underline">🏟️ Registra tu Cancha</a></li>
+                        <li><a href="{{ route('about') }}" class="hover:text-green-500 transition">¿Quiénes somos?</a></li>
+                    </ul>
+                </div>
+
+                {{-- Columna 3: Soporte --}}
+                <div>
+                    <h5 class="text-sm font-bold uppercase tracking-widest text-gray-900 dark:text-white mb-6">Ayuda</h5>
+                    <ul class="space-y-4 text-sm font-medium">
+                        <li><a href="{{ route('faq') }}" class="hover:text-green-500 transition">Preguntas Frecuentes</a></li>
+                        <li><a href="{{ route('contact.index') }}" class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Atención Inmediata</a></li>
+                        <li><a href="{{ route('suggestions.index') }}" class="hover:text-green-500 transition">Enviar Sugerencia</a></li>
+                    </ul>
+                </div>
+
+                {{-- Columna 4: Legal --}}
+                <div>
+                    <h5 class="text-sm font-bold uppercase tracking-widest text-gray-900 dark:text-white mb-6">Legal</h5>
+                    <ul class="space-y-4 text-sm font-medium">
+                        <li><a href="{{ route('terms.show') }}" class="hover:text-green-500 transition">Términos y Condiciones</a></li>
+                        <li><a href="{{ route('policy.show') }}" class="hover:text-green-500 transition">Privacidad</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 dark:border-gray-800 pt-8 text-center">
+                <p class="text-xs opacity-60">
+                    &copy; {{ date('Y') }} PichangaYa Cusco. Todos los derechos reservados.
+                </p>
+            </div>
         </div>
     </footer>
 
