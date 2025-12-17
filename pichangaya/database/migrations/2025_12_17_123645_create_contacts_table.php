@@ -10,15 +10,24 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::create('contacts', function (Table $table) {
-        $table->id();
-        $table->string('name');
-        $table->string('email');
-        $table->string('subject'); // Ejemplo: "Problema con reserva", "Duda sobre pago"
-        $table->text('message');
-        $table->boolean('is_resolved')->default(false); // Para que marques cuando ya atendiste al cliente
-        $table->timestamps();
-    });
-}
+    {
+        // El error estaba aquí: cambiamos (Table $table) por (Blueprint $table)
+        Schema::create('contacts', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email');
+            $table->string('subject'); // Ejemplo: "Problema con reserva", "Duda sobre pago"
+            $table->text('message');
+            $table->boolean('is_resolved')->default(false);
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('contacts');
+    }
 };
