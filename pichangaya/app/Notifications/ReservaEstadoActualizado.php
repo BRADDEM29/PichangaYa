@@ -12,32 +12,41 @@ class ReservaEstadoActualizado extends Notification
 
     public $reserva;
 
+    /**
+     * Create a new notification instance.
+     */
     public function __construct(Reserva $reserva)
     {
         $this->reserva = $reserva;
     }
 
+    /**
+     * Get the notification's delivery channels.
+     */
     public function via($notifiable)
     {
         return ['database'];
     }
 
+    /**
+     * Get the array representation of the notification.
+     */
     public function toArray($notifiable)
     {
         $estado = $this->reserva->status;
         
-        // Valores por defecto
+        // 1. Valores por defecto
         $titulo = 'Actualización de Reserva';
         $mensaje = 'El estado de tu reserva ha cambiado.';
         $icono = 'info'; 
         $color = 'text-blue-500';
 
+        // 2. Lógica personalizada según el estado
         switch ($estado) {
             case 'advance_paid':
                 $titulo = '🟡 Pago Adelantado Confirmado';
-                // MENSAJE ESPECÍFICO QUE PEDISTE:
-                $mensaje = "Se ha registrado tu pago adelantado. Recuerda pagar el saldo restante en la cancha.";
-                $icono = 'currency_exchange'; // Icono de dinero/cambio
+                $mensaje = "Se ha registrado tu pago adelantado de S/ " . $this->reserva->payment_amount . ". Recuerda pagar el saldo restante en la cancha.";
+                $icono = 'currency_exchange';
                 $color = 'text-yellow-600';
                 break;
 
@@ -50,20 +59,23 @@ class ReservaEstadoActualizado extends Notification
 
             case 'cancelled':
                 $titulo = '🔴 Reserva Cancelada';
-                $mensaje = "Tu reserva ha sido cancelada.";
+                $mensaje = "Tu reserva ha sido cancelada. Si crees que es un error, contáctanos.";
                 $icono = 'cancel';
                 $color = 'text-red-600';
                 break;
         }
 
+        // 3. Array final compatible con el sistema de notificaciones
         return [
+            'titulo'     => $titulo,
+            'mensaje'    => $mensaje,
+            'icono'      => $icono,
+            'color'      => $color, // Opcional, pero útil para estilos
             'reserva_id' => $this->reserva->id,
-            'titulo' => $titulo,
-            'mensaje' => $mensaje,
-            'icono' => $icono,
-            'color' => $color,
-            // Esta URL lleva a mis reservas y baja automáticamente a la tarjeta de esa reserva
-            'url' => route('reservas.user.index') . '#reserva-' . $this->reserva->id, 
+            
+            // IMPORTANTE: La URL de redirección.
+            // Apuntamos a "Mis Reservas" ya que 'reservas.show' no existe para clientes.
+            'url'        => route('reservas.user.index'), 
         ];
     }
 }

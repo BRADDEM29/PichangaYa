@@ -3,26 +3,36 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Notifications\DatabaseNotification;
 
 class NotificationController extends Controller
 {
+    /**
+     * Muestra la vista con todas las notificaciones (historial).
+     */
     public function index()
     {
-        // Obtenemos todas las notificaciones (leídas y no leídas) paginadas
-        $notifications = Auth::user()->notifications()->paginate(15);
-
+        // Obtiene todas, leídas y no leídas, paginadas
+        $notifications = auth()->user()->notifications()->paginate(20);
+        
         return view('notifications.index', compact('notifications'));
     }
 
+    /**
+     * Marca una notificación como leída y redirige a su destino.
+     * ⚠️ CAMBIO IMPORTANTE: El nombre ahora es markAsRead para coincidir con tu ruta.
+     */
     public function markAsRead($id)
     {
-        $notification = Auth::user()->notifications()->findOrFail($id);
+        $notification = auth()->user()->notifications()->findOrFail($id);
         
-        // Marcar como leída
+        // 1. Marcar como leída
         $notification->markAsRead();
 
-        // Redirigir a la URL que guardamos en la notificación (la reserva)
-        return redirect($notification->data['url'] ?? route('reservas.user.index'));
+        // 2. Extraer la URL de destino de la data (si existe)
+        $destinationUrl = $notification->data['url'] ?? route('home');
+
+        // 3. Redirigir
+        return redirect($destinationUrl);
     }
 }
