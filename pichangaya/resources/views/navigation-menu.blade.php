@@ -1,6 +1,6 @@
 <nav x-data="{ open: false, darkMode: localStorage.getItem('dark-mode') === 'true' }" class="bg-gray-900/90 backdrop-blur-md border-b border-gray-700 shadow-lg sticky top-0 z-50">
     
-    {{-- 1. LÓGICA PHP PARA DETECTAR EL ESTADO DE LA RESERVA ACTIVA (Se mantiene por si se usa en móvil) --}}
+    {{-- 1. LÓGICA PHP PARA DETECTAR EL ESTADO DE LA RESERVA ACTIVA --}}
     @php
         $displayName = '';
         $bellReserva = null;
@@ -84,6 +84,11 @@
                                         <x-dropdown-link href="{{ route('admin.districts.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Distritos') }}</x-dropdown-link>
                                         <x-dropdown-link href="{{ route('admin.sports.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Deportes') }}</x-dropdown-link>
                                         <x-dropdown-link href="{{ route('admin.services.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Servicios') }}</x-dropdown-link>
+                                        
+                                        {{-- MEJORA: Botón de Sugerencias --}}
+                                        <x-dropdown-link href="{{ route('admin.suggestions.received') }}" class="flex items-center gap-2 dark:text-white dark:hover:bg-gray-700">
+                                            <span class="text-lg">💬</span> {{ __('Sugerencias') }}
+                                        </x-dropdown-link>
                                     </x-slot>
                                 </x-dropdown>
 
@@ -116,7 +121,7 @@
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 @auth
                     
-                    {{-- 🟢 NUEVA CAMPANA DE NOTIFICACIONES --}}
+                    {{-- 🟢 CAMPANA DE NOTIFICACIONES --}}
                     <div class="ml-3 relative" x-data="{ open: false }">
                         <button @click="open = ! open" class="relative p-1 rounded-full text-gray-400 hover:text-white focus:outline-none transition-colors">
                             <span class="sr-only">Notificaciones</span>
@@ -145,11 +150,9 @@
                     
                             <div class="max-h-64 overflow-y-auto">
                                 @forelse(auth()->user()->unreadNotifications as $notification)
-                                    {{-- USAMOS LA NUEVA RUTA PARA MARCAR LEÍDO Y REDIRIGIR --}}
                                     <a href="{{ route('notifications.read', $notification->id) }}" class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700">
                                         <div class="flex items-start">
                                             <div class="flex-shrink-0 pt-0.5">
-                                                {{-- Lógica simple para iconos en el dropdown --}}
                                                 @if(($notification->data['icono'] ?? '') == 'currency_exchange')
                                                     <span class="text-yellow-600 text-xl">💲</span>
                                                 @elseif(($notification->data['icono'] ?? '') == 'check_circle')
@@ -174,7 +177,6 @@
                                 @endforelse
                             </div>
                     
-                            {{-- BOTÓN VER TODAS LAS NOTIFICACIONES --}}
                             <div class="block bg-gray-50 dark:bg-gray-700 text-center px-4 py-2 border-t border-gray-100 dark:border-gray-600 rounded-b-md">
                                 <a href="{{ route('notifications.index') }}" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 w-full block">
                                     Ver historial completo →
@@ -255,7 +257,6 @@
                     {{ __('📅 Mis Reservas') }}
                 </x-responsive-nav-link>
                 
-                {{-- Notificaciones Móvil --}}
                 @if($bellReserva && $bellReserva->status === 'pending')
                     <div class="block px-4 py-2 text-sm font-bold text-yellow-400 bg-yellow-900/20 animate-pulse">
                         ⏳ Reserva Pendiente de Pago
@@ -270,6 +271,12 @@
                     <div class="border-t border-gray-700 mt-2 pt-2 bg-red-900/20">
                         <div class="block px-4 py-2 text-xs text-red-400 font-bold uppercase">{{ __('🛡️ Panel Admin') }}</div>
                         <x-responsive-nav-link href="{{ route('admin.dashboard') }}" class="text-gray-300 hover:text-white">{{ __('Ver Resumen') }}</x-responsive-nav-link>
+                        
+                        {{-- MEJORA: Sugerencias en Móvil --}}
+                        <x-responsive-nav-link href="{{ route('admin.suggestions.received') }}" class="text-gray-300 hover:text-white">
+                            💬 Sugerencias
+                        </x-responsive-nav-link>
+                        
                         <x-responsive-nav-link href="{{ route('admin.owners.index') }}" class="text-purple-400 font-bold">{{ __('👥 Gestión Dueños') }}</x-responsive-nav-link>
                     </div>
                 @endif
@@ -312,7 +319,7 @@
     </div>
 </nav>
 
-{{-- SCRIPT PARA EL TEMPORIZADOR (Si se usa en otras vistas se deja, sino es opcional) --}}
+{{-- SCRIPT PARA EL TEMPORIZADOR --}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const updateTimers = () => {
@@ -335,7 +342,6 @@
             });
         };
 
-        // Actualizar cada segundo
         setInterval(updateTimers, 1000);
         updateTimers(); 
     });

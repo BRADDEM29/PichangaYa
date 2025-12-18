@@ -16,7 +16,6 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\CanchaController; 
 use App\Http\Controllers\DashboardController; 
 use App\Http\Controllers\ReservaController; 
-// 👇 IMPORTACIÓN NUEVA
 use App\Http\Controllers\NotificationController;
 
 use App\Models\Cancha;   
@@ -25,7 +24,7 @@ use App\Models\Sport;
 
 /*
 |--------------------------------------------------------------------------
-| 1. PÁGINA DE INICIO (Pública / Landing Page)
+| 1. PÁGINA DE INICIO (Pública con Búsqueda y Filtros)
 |--------------------------------------------------------------------------
 */
 Route::get('/', function (Request $request) {
@@ -38,176 +37,121 @@ Route::get('/', function (Request $request) {
               ->orWhere('address', 'like', "%{$search}%");
         });
     }
+    
     if ($request->filled('district_id')) {
         $query->where('district_id', $request->input('district_id'));
     }
+    
     if ($request->filled('sport_id')) {
         $query->whereHas('sports', function($q) use ($request) {
             $q->where('sports.id', $request->input('sport_id'));
         });
     }
 
-    if ($request->anyFilled(['search', 'district_id', 'sport_id'])) {
-        $canchas = $query->get();
-    } else {
-        $canchas = $query->latest()->take(6)->get();
-    }
+    $canchas = $query->latest()->get();
+    $districts = District::all();
+    $sports = Sport::all();
 
-    // Lógica del Carrusel
-    $featuredCanchas = Cancha::where('is_featured', true)
-                             ->with(['district', 'media'])
-                             ->latest()
-                             ->take(5)
-                             ->get();
-
-    if ($featuredCanchas->isEmpty()) {
-        $featuredCanchas = Cancha::with(['district', 'media'])
-                                 ->latest()
-                                 ->take(5)
-                                 ->get();
-    }
-
-    $districts = Cache::remember('all_districts', 3600, fn() => District::all());
-    $sports = Cache::remember('all_sports', 3600, fn() => Sport::all());
-
-    return view('welcome', [
-        'canchas' => $canchas, 
-        'featuredCanchas' => $featuredCanchas, 
-        'districts' => $districts,
-        'sports' => $sports
-    ]);
+    return view('welcome', compact('canchas', 'districts', 'sports'));
 })->name('home');
 
-// Detalle de Cancha Pública
-Route::get('/canchas/{cancha}', [DashboardController::class, 'show'])->name('canchas.show');
-
 /*
 |--------------------------------------------------------------------------
-| 2. RUTAS DE PERFIL Y AJUSTES (Jetstream / Volt)
+| 2. RUTAS DE USUARIO AUTENTICADO (Dashboard, Reservas y Notificaciones)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->group(function () {
-    Route::redirect('settings', 'settings/profile');
-
-    Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
-    Volt::route('settings/password', 'settings.password')->name('user-password.edit');
-    Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
-
-    Volt::route('settings/two-factor', 'settings.two-factor')
-        ->middleware(
-            (Features::canManageTwoFactorAuthentication() && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'))
-                ? ['password.confirm'] 
-                : []
-        )
-        ->name('two-factor.show');
-});
-
-/*
-|--------------------------------------------------------------------------
-| 3. DASHBOARD GENERAL (Usuarios Clientes y Notificaciones)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+])->group(function () {
     
+    // Dashboard Principal
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // 🟢 NUEVAS RUTAS DE NOTIFICACIONES
-    // Estas rutas deben estar protegidas para cualquier usuario logueado
-    Route::get('/notificaciones', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('/notificaciones/{id}/leer', [NotificationController::class, 'markAsRead'])->name('notifications.read');
-
-    // Rutas de Reservas (Cliente)
-    Route::get('/reservas/crear/{cancha}', [ReservaController::class, 'create'])->name('reservas.create');
-    Route::post('/reservas', [ReservaController::class, 'store'])->name('reservas.store');
-    Route::get('/reservas/mis-reservas', [ReservaController::class, 'userReservasIndex'])->name('reservas.user.index');
-    Route::put('/reservas/{reserva}/cancel', [ReservaController::class, 'cancelUser'])->name('reservas.cancel');
-    Route::get('/reservas/{reserva}/edit', [ReservaController::class, 'editUser'])->name('reservas.edit');
+    
+    // Ver Canchas
+    Route::resource('canchas', CanchaController::class)->only(['index', 'show']);
+    
+    // Gestión de Reservas del Usuario (Nombres corregidos para el Navigation Menu)
+    Route::post('/canchas/{cancha}/reservar', [ReservaController::class, 'store'])->name('reservas.user.store');
+    Route::get('/mis-reservas', [ReservaController::class, 'index'])->name('reservas.user.index');
+    
+    // Notificaciones
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 });
 
 /*
 |--------------------------------------------------------------------------
-| 4. ZONA ADMINISTRADOR
+| 3. ZONA ADMINISTRADOR (Role: admin)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:admin']) 
-    ->prefix('panel-admin')
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
     ->name('admin.')
     ->group(function () {
         
-        // 🟢 DASHBOARD DE ESTADÍSTICAS
-        Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        
+        // Mantenimientos Base
+        Route::resource('users', AdminUserController::class);
+        Route::resource('districts', AdminDistrictController::class);
+        Route::resource('sports', AdminSportController::class);
+        Route::resource('services', AdminServiceController::class);
+        Route::resource('owners', AdminOwnerController::class);
 
-        // 🟢 RUTAS PARA REPORTES DETALLADOS
-        Route::prefix('reportes')->name('reports.')->group(function() {
-            Route::get('/ingresos', [AdminDashboardController::class, 'reportsIngresos'])->name('ingresos');
-            Route::get('/reservas', [AdminDashboardController::class, 'reportsReservas'])->name('reservas');
-            Route::get('/adelantados', [AdminDashboardController::class, 'reportsAdelantados'])->name('adelantados');
-            Route::get('/pendientes', [AdminDashboardController::class, 'reportsPendientes'])->name('pendientes');
-            Route::get('/cancelados', [AdminDashboardController::class, 'reportsCancelados'])->name('cancelados');
-            Route::get('/usuarios', [AdminDashboardController::class, 'reportsUsuarios'])->name('usuarios');
-            Route::get('/canchas', [AdminDashboardController::class, 'reportsCanchas'])->name('canchas');
-        });
+        // --- MEJORA: Nueva ruta para ver el buzón de sugerencias ---
+        Route::get('/sugerencias-recibidas', [App\Http\Controllers\Admin\SuggestionController::class, 'index'])->name('suggestions.received');
 
-        Route::controller(AdminUserController::class)->group(function () {
-            Route::get('/users', 'index')->name('users.index');
-            Route::put('/users/{id}', 'update')->name('users.update');
-            Route::delete('/users/{id}', 'destroy')->name('users.destroy');
-        });
-
-        Route::resource('districts', AdminDistrictController::class)->except(['create', 'edit', 'show']);
-        Route::resource('sports', AdminSportController::class)->except(['create', 'edit', 'show']);
-        Route::resource('services', AdminServiceController::class)->except(['create', 'edit', 'show']);
-
-        // Gestión de Dueños y Canchas
+        // Gestión Avanzada de Canchas y Reservas desde Admin
         Route::controller(AdminOwnerController::class)->group(function () {
-            Route::get('/owners', 'index')->name('owners.index');
-            Route::get('/owners/{user}/courts', 'courts')->name('owners.courts');
-            Route::put('/canchas/{cancha}/toggle-featured', 'toggleFeatured')->name('canchas.toggleFeatured');
-            Route::get('/canchas/{cancha}/edit', 'editCancha')->name('canchas.edit');
-            Route::put('/canchas/{cancha}', 'updateCancha')->name('canchas.update');
-            Route::delete('/canchas/{cancha}', 'destroy')->name('canchas.destroy');
-            Route::get('/owners/{user}/canchas/create', 'createCancha')->name('owners.canchas.create');
-            Route::post('/owners/{user}/canchas', 'storeCancha')->name('owners.canchas.store');
-            
-            // 🟢 GESTIÓN DE RESERVAS DESDE ADMIN
+            Route::get('/owners/{owner}/canchas/create', 'createCancha')->name('owners.canchas.create');
+            Route::post('/owners/{owner}/canchas', 'storeCancha')->name('owners.canchas.store');
             Route::get('/canchas/{cancha}/reservas', 'canchaReservas')->name('canchas.reservas.index');
         });
 
         Route::put('/reservas/{reserva}/status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
-    
+
 /*
 |--------------------------------------------------------------------------
-| 5. ZONA DUEÑO
+| 4. ZONA DUEÑO (Role: owner)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:owner'])
     ->prefix('panel-dueno')
     ->name('owner.')
     ->group(function () {
+        
         Route::redirect('/', '/panel-dueno/canchas')->name('dashboard');
         
+        // Gestión de canchas propias
         Route::get('/canchas/{cancha}/historial', [CanchaController::class, 'history'])->name('canchas.history');
         Route::resource('canchas', CanchaController::class);
+        
+        // Gestión de Reservas recibidas por el dueño
         Route::get('/reservas', [ReservaController::class, 'ownerReservasIndex'])->name('reservas.index');
         Route::put('/reservas/{reserva}/update-status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
 
 /*
 |--------------------------------------------------------------------------
-| 6. PÁGINAS INFORMATIVAS, SOPORTE Y LEGAL
+| 5. PÁGINAS INFORMATIVAS Y SOPORTE
 |--------------------------------------------------------------------------
 */
-// --- SECCIÓN DE PÁGINAS INFORMATIVAS ---
-Route::get('/nosotros', function () { return view('pages.about'); })->name('about');
-Route::get('/faq', function () { return view('pages.faq'); })->name('faq');
-Route::get('/registrar-mi-cancha', function () { return view('pages.register-pitch'); })->name('register-pitch');
+Route::view('/nosotros', 'pages.about')->name('about');
+Route::view('/faq', 'pages.faq')->name('faq');
+Route::view('/registrar-mi-cancha', 'pages.register-pitch')->name('register-pitch');
 
-// --- SECCIÓN DE SOPORTE Y CONTACTO ---
-Route::get('/contacto', function () { return view('pages.contact'); })->name('contact.index');
-Route::get('/sugerencias', function () { return view('pages.suggestions'); })->name('suggestions.index');
+// Contacto y Sugerencias (Vistas que cargan componentes Livewire)
+Route::view('/contacto', 'pages.contact')->name('contact.index');
+Route::view('/sugerencias', 'pages.suggestions')->name('suggestions.index');
 
-// --- SECCIÓN LEGAL (NUEVO) ---
+/*
+|--------------------------------------------------------------------------
+| 6. SECCIÓN LEGAL
+|--------------------------------------------------------------------------
+*/
 Route::get('/terminos-y-condiciones', function () {
     return view('terms', ['terms' => 'Contenido de los términos y condiciones...']);
 })->name('terms.show');
@@ -216,16 +160,11 @@ Route::get('/politica-de-privacidad', function () {
     return view('policy', ['policy' => 'Contenido de la política de privacidad...']);
 })->name('policy.show');
 
-
 /*
 |--------------------------------------------------------------------------
 | 7. PRUEBAS TÉCNICAS
 |--------------------------------------------------------------------------
 */
 Route::get('/test-gd', function () {
-    return extension_loaded('gd') ? "✅ GD ACTIVADO" : "❌ GD APAGADO";
-});
-
-Route::get('/test-webp', function () {
-    return gd_info()['WebP Support'] ? "✅ WebP OK" : "❌ WebP OFF";
+    return extension_loaded('gd') ? "✅ Librería GD ACTIVADA" : "❌ Librería GD APAGADA";
 });

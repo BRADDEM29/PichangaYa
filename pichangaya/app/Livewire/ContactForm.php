@@ -1,13 +1,20 @@
+<?php
+
 namespace App\Livewire;
 
 use Livewire\Component;
-use App\Models\Contact; // Asegúrate de crear el modelo o usar DB::table
+use Illuminate\Support\Facades\DB;
 
 class ContactForm extends Component
 {
-    public $name, $email, $subject, $message;
-    public $successMessage;
+    // Declaramos todas las variables como públicas para que Livewire las reconozca
+    public $name;
+    public $email;
+    public $subject;
+    public $message;
+    public $successMessage = ''; // Inicializada vacía para evitar errores de undefined
 
+    // Reglas de validación
     protected $rules = [
         'name' => 'required|min:3',
         'email' => 'required|email',
@@ -17,20 +24,30 @@ class ContactForm extends Component
 
     public function submit()
     {
+        // 1. Validar los datos según las reglas arriba definidas
         $this->validate();
 
-        // Guardar en la base de datos
-        \DB::table('contacts')->insert([
-            'name' => $this->name,
-            'email' => $this->email,
-            'subject' => $this->subject,
-            'message' => $this->message,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // 2. Intentar guardar en la base de datos
+        try {
+            DB::table('contacts')->insert([
+                'name' => $this->name,
+                'email' => $this->email,
+                'subject' => $this->subject,
+                'message' => $this->message,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
-        $this->reset(['name', 'email', 'subject', 'message']);
-        $this->successMessage = '¡Mensaje enviado! Te responderemos en breve.';
+            // 3. Resetear los campos después del éxito
+            $this->reset(['name', 'email', 'subject', 'message']);
+
+            // 4. Activar el mensaje de éxito
+            $this->successMessage = '¡Mensaje enviado con éxito! Nos pondremos en contacto contigo pronto.';
+
+        } catch (\Exception $e) {
+            // Opcional: manejar errores de base de datos aquí
+            session()->flash('error', 'Hubo un problema al enviar el mensaje.');
+        }
     }
 
     public function render()
