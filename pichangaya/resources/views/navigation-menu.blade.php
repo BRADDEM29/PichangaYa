@@ -1,6 +1,5 @@
 <nav x-data="{ open: false, darkMode: localStorage.getItem('dark-mode') === 'true' }" class="bg-gray-900/90 backdrop-blur-md border-b border-gray-700 shadow-lg sticky top-0 z-50">
-    
-    {{-- 1. LÓGICA PHP PARA DETECTAR EL ESTADO DE LA RESERVA ACTIVA --}}
+     {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\navigation-menu.blade.php --}}
     @php
         $displayName = '';
         $bellReserva = null;
@@ -21,7 +20,6 @@
         }
     @endphp
 
-    {{-- 2. ESTILOS CSS --}}
     <style>
         @keyframes swing {
             0%, 100% { transform: rotate(0deg); }
@@ -51,7 +49,6 @@
                 {{-- Links Escritorio --}}
                 <div class="hidden space-x-4 sm:-my-px sm:ms-10 sm:flex items-center">
                     
-                    {{-- INICIO --}}
                     <div class="relative group">
                         <a href="{{ route('home') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out {{ request()->routeIs('home') ? 'text-green-400 border-b-2 border-green-400' : 'text-white hover:text-green-300' }}">
                             {{ __('Inicio') }}
@@ -65,9 +62,8 @@
                             </a>
                         </div>
 
-                        {{-- PANEL DE GESTIÓN (ADMIN / DUEÑO / PROVEEDOR) --}}
+                        {{-- PANEL DE GESTIÓN --}}
                         <div class="hidden lg:flex items-center gap-2 ms-4">
-                            
                             @if (Auth::user()->role === 'admin')
                                 <x-dropdown align="right" width="48">
                                     <x-slot name="trigger">
@@ -85,7 +81,6 @@
                                         <x-dropdown-link href="{{ route('admin.sports.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Deportes') }}</x-dropdown-link>
                                         <x-dropdown-link href="{{ route('admin.services.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Servicios') }}</x-dropdown-link>
                                         
-                                        {{-- MEJORA: Botón de Sugerencias --}}
                                         <x-dropdown-link href="{{ route('admin.suggestions.received') }}" class="flex items-center gap-2 dark:text-white dark:hover:bg-gray-700">
                                             <span class="text-lg">💬</span> {{ __('Sugerencias') }}
                                         </x-dropdown-link>
@@ -136,11 +131,6 @@
                         {{-- Dropdown Body --}}
                         <div x-show="open" @click.away="open = false" style="display: none;"
                              x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="transform opacity-0 scale-95"
-                             x-transition:enter-end="transform opacity-100 scale-100"
-                             x-transition:leave="transition ease-in duration-75"
-                             x-transition:leave-start="transform opacity-100 scale-100"
-                             x-transition:leave-end="transform opacity-0 scale-95"
                              class="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                             
                             <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-200 flex justify-between items-center">
@@ -159,13 +149,24 @@
                                                     <span class="text-green-600 text-xl">✓</span>
                                                 @elseif(($notification->data['icono'] ?? '') == 'cancel')
                                                     <span class="text-red-600 text-xl">✕</span>
+                                                @elseif(($notification->data['icono'] ?? '') == 'hourglass_empty')
+                                                    <span class="text-orange-500 text-xl">⏳</span>
                                                 @else
                                                     <span class="text-blue-500 text-xl">ℹ</span>
                                                 @endif
                                             </div>
                                             <div class="ml-3 w-0 flex-1">
                                                 <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $notification->data['titulo'] ?? 'Notificación' }}</p>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ Str::limit($notification->data['mensaje'] ?? '', 50) }}</p>
+                                                
+                                                {{-- 🟢 AQUÍ LA LÓGICA DEL TEMPORIZADOR --}}
+                                                @if(isset($notification->data['expiry_ts']))
+                                                    <p class="text-xs font-bold text-orange-600 notif-timer" data-expiry="{{ $notification->data['expiry_ts'] }}">
+                                                       Calculando...
+                                                    </p>
+                                                @else
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ Str::limit($notification->data['mensaje'] ?? '', 50) }}</p>
+                                                @endif
+
                                                 <p class="mt-1 text-xs text-gray-400">{{ $notification->created_at->diffForHumans() }}</p>
                                             </div>
                                         </div>
@@ -271,12 +272,6 @@
                     <div class="border-t border-gray-700 mt-2 pt-2 bg-red-900/20">
                         <div class="block px-4 py-2 text-xs text-red-400 font-bold uppercase">{{ __('🛡️ Panel Admin') }}</div>
                         <x-responsive-nav-link href="{{ route('admin.dashboard') }}" class="text-gray-300 hover:text-white">{{ __('Ver Resumen') }}</x-responsive-nav-link>
-                        
-                        {{-- MEJORA: Sugerencias en Móvil --}}
-                        <x-responsive-nav-link href="{{ route('admin.suggestions.received') }}" class="text-gray-300 hover:text-white">
-                            💬 Sugerencias
-                        </x-responsive-nav-link>
-                        
                         <x-responsive-nav-link href="{{ route('admin.owners.index') }}" class="text-purple-400 font-bold">{{ __('👥 Gestión Dueños') }}</x-responsive-nav-link>
                     </div>
                 @endif

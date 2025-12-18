@@ -1,11 +1,12 @@
 <?php
-
+// C:\laragon\www\PichangaYa\pichangaya\app\Http\Controllers\CanchaController.php
 namespace App\Http\Controllers;
 
 use App\Models\Cancha;
 use App\Models\Sport;
 use App\Models\District;
 use App\Models\Service;
+use App\Models\Reserva; // ✅ IMPORTANTE: Necesario para consultar el bloqueo de fechas
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -27,6 +28,33 @@ class CanchaController extends Controller
                     ->get();
         
         return view('owner.canchas.index', compact('canchas'));
+    }
+
+    /**
+     * 🟢 NUEVO/MODIFICADO: Muestra la cancha públicamente y calcula los bloqueos.
+     * Esta es la vista donde el cliente elige el horario.
+     */
+    public function show(Cancha $cancha)
+    {
+        // 1. Buscamos reservas que deban BLOQUEAR el calendario.
+        // Incluimos 'pending' para que apenas se crea la reserva, la cancha aparezca ocupada.
+        $reservas = Reserva::where('cancha_id', $cancha->id)
+            ->whereIn('status', ['pending', 'advance_paid', 'fully_paid']) 
+            ->get(['start_time', 'end_time']); // Solo traemos las horas para optimizar
+
+        // 2. Formateamos los eventos para FullCalendar (o tu sistema JS)
+        $eventos = $reservas->map(function ($reserva) {
+            return [
+                'title'   => 'Ocupado',
+                'start'   => $reserva->start_time,
+                'end'     => $reserva->end_time,
+                'color'   => '#ef4444', // Rojo para indicar ocupado
+                'display' => 'background', // Opción visual de FullCalendar (bloque de fondo)
+                // 'overlap' => false // Si usas FullCalendar, esto impide solapar eventos
+            ];
+        });
+
+        return view('canchas.show', compact('cancha', 'eventos'));
     }
 
     /**
@@ -191,7 +219,7 @@ class CanchaController extends Controller
     }
 
     /**
-     * 🟢 NUEVO: Muestra el historial financiero agrupado por meses.
+     * Muestra el historial financiero agrupado por meses.
      */
     public function history(Cancha $cancha)
     {
@@ -205,7 +233,6 @@ class CanchaController extends Controller
                            ->get();
 
         // 3. Agrupar por "Mes Año" (Ej: "Diciembre 2025")
-        // Usamos Carbon para formatear la fecha
         $reservasPorMes = $reservas->groupBy(function($reserva) {
             return \Carbon\Carbon::parse($reserva->start_time)
                     ->locale('es')

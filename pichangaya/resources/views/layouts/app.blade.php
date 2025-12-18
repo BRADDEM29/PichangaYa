@@ -24,7 +24,6 @@
         .dark .text-gray-900 { color: #d1d5db !important; }
         .dark input, .dark textarea, .dark select { background-color: #030712 !important; color: #fff !important; border-color: #374151 !important; }
 
-        /* --- MEJORA: Animación Swing --- */
         @keyframes swing {
             0%, 100% { transform: rotate(0deg); }
             20% { transform: rotate(15deg); }
@@ -35,7 +34,7 @@
         .animate-swing {
             animation: swing 2s infinite ease-in-out;
             transform-origin: top center;
-            display: inline-block; /* Necesario para que rote correctamente */
+            display: inline-block;
         }
     </style>
 
@@ -47,11 +46,9 @@
       x-data="{ isLoading: true }"
       x-init="window.addEventListener('load', () => { setTimeout(() => isLoading = false, 1000) })">
 
-    {{-- 1. LÓGICA MEJORADA: Buscar CUALQUIER reserva reciente (no solo pendientes) --}}
     @php
         $recentReserva = null;
         if(auth()->check()) {
-            // Buscamos la última reserva creada en los últimos 12 minutos (damos 2 min extra de gracia visual)
             $recentReserva = \App\Models\Reserva::where('user_id', auth()->id())
                 ->where('created_at', '>', now()->subMinutes(12)) 
                 ->with('cancha')
@@ -82,12 +79,9 @@
     @stack('modals')
     @livewireScripts
 
-    {{-- ============================================================== --}}
-    {{-- 🟢 SISTEMA INTELIGENTE DE NOTIFICACIONES (Área Fija) --}}
-    {{-- ============================================================== --}}
+    {{-- NOTIFICACIONES FLOTANTES (Fija) --}}
     <div class="fixed bottom-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none">
 
-        {{-- A. Notificaciones Flash (Standard) --}}
         @if (session('success'))
             <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" 
                  class="pointer-events-auto bg-white dark:bg-gray-800 border-l-4 border-green-500 shadow-lg rounded-lg p-4 flex items-start animate-bounce-in-right">
@@ -100,10 +94,8 @@
             </div>
         @endif
 
-        {{-- B. TARJETA DE ESTADO DE RESERVA RECIENTE --}}
+        {{-- TARJETA FLOTANTE DE RESERVA --}}
         @if ($recentReserva)
-            
-            {{-- CASO 1: PENDIENTE (Muestra Temporizador) --}}
             @if ($recentReserva->status === 'pending')
                 <div x-data="{ 
                         expiry: {{ $recentReserva->created_at->addMinutes(10)->timestamp }},
@@ -120,7 +112,6 @@
                                     this.timeLeft = 'EXPIRADO';
                                     this.isExpired = true;
                                     this.progress = 0;
-                                    // Opcional: location.reload(); para actualizar estado visualmente
                                 } else {
                                     const m = Math.floor(diff / 60);
                                     const s = diff % 60;
@@ -141,7 +132,6 @@
                             <div class="flex-shrink-0 pt-1">
                                 <span class="flex h-10 w-10 relative justify-center items-center">
                                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                                    {{-- AQUI SE APLICA LA ANIMACIÓN SWING --}}
                                     <span class="relative text-2xl animate-swing">⏳</span>
                                 </span>
                             </div>
@@ -149,8 +139,7 @@
                                 <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100">Reserva Pendiente</h3>
                                 <div class="mt-2 text-xs text-gray-600 dark:text-gray-300 leading-snug">
                                     <p>Para confirmar <span class="font-bold text-gray-800 dark:text-white" x-text="canchaName"></span>:</p>
-                                    <p class="mt-1">Realiza el <span class="font-bold text-yellow-600 dark:text-yellow-400">Pago de Adelanto</span> o <span class="font-bold text-green-600 dark:text-green-400">Completo</span>.</p>
-                                    <p class="mt-1 text-red-500 dark:text-red-400 font-medium">Si llega a 00:00, se cancelará automáticamente.</p>
+                                    <p class="mt-1">Realiza el pago antes de que expire el tiempo.</p>
                                 </div>
                                 <div class="mt-3 flex items-center justify-between bg-gray-50 dark:bg-gray-700 rounded px-2 py-1">
                                     <span class="text-xs font-semibold text-gray-500 uppercase">Tiempo:</span>
@@ -169,7 +158,6 @@
                     </div>
                 </div>
 
-            {{-- CASO 2: PAGADO / CONFIRMADO (Muestra Confirmación Verde) --}}
             @elseif ($recentReserva->status === 'advance_paid' || $recentReserva->status === 'fully_paid')
                 <div x-data="{ show: true }" x-show="show" 
                      class="pointer-events-auto bg-white dark:bg-gray-800 shadow-2xl rounded-lg overflow-hidden border-t-4 border-green-500 ring-1 ring-black ring-opacity-5">
@@ -180,20 +168,13 @@
                         <div class="ml-3 w-0 flex-1">
                             <h3 class="text-sm font-bold text-green-700 dark:text-green-400">¡Pago Confirmado!</h3>
                             <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">
-                                Tu reserva para <span class="font-bold">{{ $recentReserva->cancha->name }}</span> ha sido asegurada correctamente.
-                            </p>
-                            <p class="mt-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                El temporizador se ha detenido.
+                                Tu reserva para <span class="font-bold">{{ $recentReserva->cancha->name }}</span> ha sido asegurada.
                             </p>
                         </div>
                         <button @click="show = false" class="ml-4 text-gray-400 hover:text-gray-500">✕</button>
                     </div>
-                    <div class="bg-green-50 dark:bg-green-900/20 px-4 py-2">
-                        <a href="{{ route('reservas.user.index') }}" class="text-xs font-bold text-green-700 dark:text-green-400 hover:underline">Ver mis reservas &rarr;</a>
-                    </div>
                 </div>
 
-            {{-- CASO 3: CANCELADO (Muestra Error Rojo) --}}
             @elseif ($recentReserva->status === 'cancelled')
                 <div x-data="{ show: true }" x-show="show" 
                      class="pointer-events-auto bg-white dark:bg-gray-800 shadow-xl rounded-lg overflow-hidden border-l-4 border-red-500 ring-1 ring-black ring-opacity-5">
@@ -211,20 +192,39 @@
                     </div>
                 </div>
             @endif
-
         @endif
     </div>
 
+    {{-- 🟢 SCRIPT GLOBAL PARA TEMPORIZADORES EN NOTIFICACIONES DE LA CAMPANA --}}
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    const href = link.getAttribute('href');
-                    if (href && href.startsWith('/') && !href.startsWith('#') && !link.target) {
-                        try { document.querySelector('body').__x.$data.isLoading = true; } catch(e){}
+        document.addEventListener('DOMContentLoaded', function() {
+            function updateNotificationTimers() {
+                const timerElements = document.querySelectorAll('.notif-timer');
+
+                timerElements.forEach(el => {
+                    const expiryTime = parseInt(el.getAttribute('data-expiry'));
+                    if (!expiryTime) return;
+
+                    const now = new Date().getTime();
+                    const distance = expiryTime - now;
+
+                    if (distance < 0) {
+                        el.innerHTML = "🚫 Expirado";
+                        el.classList.add('text-red-600');
+                        el.classList.remove('text-orange-600', 'text-orange-500');
+                    } else {
+                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        // Formato mm:ss
+                        el.innerHTML = `⏳ ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
                     }
                 });
-            });
+            }
+
+            // Actualizar cada segundo
+            setInterval(updateNotificationTimers, 1000);
+            // Ejecutar inmediatamente al cargar
+            updateNotificationTimers();
         });
     </script>
 </body>

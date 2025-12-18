@@ -1,5 +1,5 @@
 <?php
-
+// C:\laragon\www\PichangaYa\pichangaya\app\Notifications\ReservaEstadoActualizado.php
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -12,70 +12,60 @@ class ReservaEstadoActualizado extends Notification
 
     public $reserva;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(Reserva $reserva)
     {
         $this->reserva = $reserva;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     */
     public function via($notifiable)
     {
         return ['database'];
     }
 
-    /**
-     * Get the array representation of the notification.
-     */
     public function toArray($notifiable)
     {
         $estado = $this->reserva->status;
+        $canchaNombre = $this->reserva->cancha->name;
         
-        // 1. Valores por defecto
+        // Valores por defecto
         $titulo = 'Actualización de Reserva';
         $mensaje = 'El estado de tu reserva ha cambiado.';
         $icono = 'info'; 
         $color = 'text-blue-500';
 
-        // 2. Lógica personalizada según el estado
         switch ($estado) {
             case 'advance_paid':
-                $titulo = '🟡 Pago Adelantado Confirmado';
-                $mensaje = "Se ha registrado tu pago adelantado de S/ " . $this->reserva->payment_amount . ". Recuerda pagar el saldo restante en la cancha.";
+                $titulo = '🟡 Adelanto Recibido';
+                $mensaje = "Se confirmó el adelanto para tu reserva en $canchaNombre. Queda un saldo pendiente.";
                 $icono = 'currency_exchange';
                 $color = 'text-yellow-600';
                 break;
 
             case 'fully_paid':
-                $titulo = '🟢 Pago Completo Exitoso';
-                $mensaje = "¡Todo listo! Tu reserva en {$this->reserva->cancha->name} está pagada al 100%.";
+                $titulo = '🟢 Reserva Confirmada';
+                $mensaje = "¡Listo! Tu reserva en $canchaNombre está pagada al 100%.";
                 $icono = 'check_circle';
                 $color = 'text-green-600';
                 break;
 
+            // 🔴 LÓGICA DE CANCELACIÓN (ROJO)
             case 'cancelled':
                 $titulo = '🔴 Reserva Cancelada';
-                $mensaje = "Tu reserva ha sido cancelada. Si crees que es un error, contáctanos.";
-                $icono = 'cancel';
-                $color = 'text-red-600';
+                $mensaje = "Lo sentimos, tu reserva en $canchaNombre ha sido cancelada.";
+                $icono = 'cancel'; // Icono de X (Material Icons)
+                $color = 'text-red-600'; // Color Rojo intenso
                 break;
         }
 
-        // 3. Array final compatible con el sistema de notificaciones
         return [
             'titulo'     => $titulo,
             'mensaje'    => $mensaje,
             'icono'      => $icono,
-            'color'      => $color, // Opcional, pero útil para estilos
+            'color'      => $color,
             'reserva_id' => $this->reserva->id,
-            
-            // IMPORTANTE: La URL de redirección.
-            // Apuntamos a "Mis Reservas" ya que 'reservas.show' no existe para clientes.
+            // Al hacer clic, llevamos al historial de reservas del usuario
             'url'        => route('reservas.user.index'), 
+            'expiry_ts'  => null, // No necesita temporizador
         ];
     }
 }

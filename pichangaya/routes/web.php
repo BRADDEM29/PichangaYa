@@ -1,12 +1,10 @@
 <?php
+// C:\laragon\www\PichangaYa\pichangaya\routes\web.php
 
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
-use Livewire\Volt\Volt;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request; 
 
-// 1. IMPORTACIONES DE CONTROLADORES Y MODELOS
+// 1. IMPORTACIONES DE CONTROLADORES
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminDistrictController;
 use App\Http\Controllers\AdminSportController;
@@ -24,7 +22,7 @@ use App\Models\Sport;
 
 /*
 |--------------------------------------------------------------------------
-| 1. PÁGINA DE INICIO (Pública con Búsqueda y Filtros)
+| 1. PÁGINA DE INICIO
 |--------------------------------------------------------------------------
 */
 Route::get('/', function (Request $request) {
@@ -57,7 +55,7 @@ Route::get('/', function (Request $request) {
 
 /*
 |--------------------------------------------------------------------------
-| 2. RUTAS DE USUARIO AUTENTICADO (Dashboard, Reservas y Notificaciones)
+| 2. RUTAS DE USUARIO AUTENTICADO
 |--------------------------------------------------------------------------
 */
 Route::middleware([
@@ -66,24 +64,28 @@ Route::middleware([
     'verified',
 ])->group(function () {
     
-    // Dashboard Principal
+    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Ver Canchas
     Route::resource('canchas', CanchaController::class)->only(['index', 'show']);
     
-    // Gestión de Reservas del Usuario (Nombres corregidos para el Navigation Menu)
+    // 🟢 GESTIÓN DE RESERVAS DEL USUARIO
     Route::post('/canchas/{cancha}/reservar', [ReservaController::class, 'store'])->name('reservas.user.store');
-    Route::get('/mis-reservas', [ReservaController::class, 'index'])->name('reservas.user.index');
+    Route::get('/mis-reservas', [ReservaController::class, 'userReservasIndex'])->name('reservas.user.index');
+    
+    // 👇 ESTAS SON LAS RUTAS QUE FALTABAN Y CAUSABAN EL ERROR 500
+    Route::get('/reservas/{reserva}/editar', [ReservaController::class, 'editUser'])->name('reservas.edit');
+    Route::put('/reservas/{reserva}/cancelar', [ReservaController::class, 'cancelUser'])->name('reservas.cancel');
     
     // Notificaciones
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::get('/notificaciones', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notificaciones/{id}/leer', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 });
 
 /*
 |--------------------------------------------------------------------------
-| 3. ZONA ADMINISTRADOR (Role: admin)
+| 3. ZONA ADMINISTRADOR
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin'])
@@ -93,17 +95,14 @@ Route::middleware(['auth', 'role:admin'])
         
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
-        // Mantenimientos Base
         Route::resource('users', AdminUserController::class);
         Route::resource('districts', AdminDistrictController::class);
         Route::resource('sports', AdminSportController::class);
         Route::resource('services', AdminServiceController::class);
         Route::resource('owners', AdminOwnerController::class);
 
-        // --- MEJORA: Nueva ruta para ver el buzón de sugerencias ---
         Route::get('/sugerencias-recibidas', [App\Http\Controllers\Admin\SuggestionController::class, 'index'])->name('suggestions.received');
 
-        // Gestión Avanzada de Canchas y Reservas desde Admin
         Route::controller(AdminOwnerController::class)->group(function () {
             Route::get('/owners/{owner}/canchas/create', 'createCancha')->name('owners.canchas.create');
             Route::post('/owners/{owner}/canchas', 'storeCancha')->name('owners.canchas.store');
@@ -115,7 +114,7 @@ Route::middleware(['auth', 'role:admin'])
 
 /*
 |--------------------------------------------------------------------------
-| 4. ZONA DUEÑO (Role: owner)
+| 4. ZONA DUEÑO
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:owner'])
@@ -125,46 +124,32 @@ Route::middleware(['auth', 'role:owner'])
         
         Route::redirect('/', '/panel-dueno/canchas')->name('dashboard');
         
-        // Gestión de canchas propias
         Route::get('/canchas/{cancha}/historial', [CanchaController::class, 'history'])->name('canchas.history');
         Route::resource('canchas', CanchaController::class);
         
-        // Gestión de Reservas recibidas por el dueño
         Route::get('/reservas', [ReservaController::class, 'ownerReservasIndex'])->name('reservas.index');
         Route::put('/reservas/{reserva}/update-status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
 
 /*
 |--------------------------------------------------------------------------
-| 5. PÁGINAS INFORMATIVAS Y SOPORTE
+| 5. OTROS
 |--------------------------------------------------------------------------
 */
 Route::view('/nosotros', 'pages.about')->name('about');
 Route::view('/faq', 'pages.faq')->name('faq');
 Route::view('/registrar-mi-cancha', 'pages.register-pitch')->name('register-pitch');
-
-// Contacto y Sugerencias (Vistas que cargan componentes Livewire)
 Route::view('/contacto', 'pages.contact')->name('contact.index');
 Route::view('/sugerencias', 'pages.suggestions')->name('suggestions.index');
 
-/*
-|--------------------------------------------------------------------------
-| 6. SECCIÓN LEGAL
-|--------------------------------------------------------------------------
-*/
 Route::get('/terminos-y-condiciones', function () {
-    return view('terms', ['terms' => 'Contenido de los términos y condiciones...']);
+    return view('terms', ['terms' => 'Contenido...']);
 })->name('terms.show');
 
 Route::get('/politica-de-privacidad', function () {
-    return view('policy', ['policy' => 'Contenido de la política de privacidad...']);
+    return view('policy', ['policy' => 'Contenido...']);
 })->name('policy.show');
 
-/*
-|--------------------------------------------------------------------------
-| 7. PRUEBAS TÉCNICAS
-|--------------------------------------------------------------------------
-*/
 Route::get('/test-gd', function () {
     return extension_loaded('gd') ? "✅ Librería GD ACTIVADA" : "❌ Librería GD APAGADA";
 });

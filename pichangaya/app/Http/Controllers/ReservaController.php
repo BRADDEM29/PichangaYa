@@ -1,16 +1,20 @@
 <?php
 
 namespace App\Http\Controllers;
+// C:\laragon\www\PichangaYa\pichangaya\app\Http\Controllers\ReservaController.php
 
 use App\Models\Reserva;
 use App\Models\Cancha;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Mail; 
-// 👇 IMPORTANTE: Importar la clase de Notificación
-use App\Notifications\ReservaEstadoActualizado;
+use Illuminate\Support\Facades\Notification; // Facade para enviar a múltiples usuarios
+
+// 👇 IMPORTANTE: Las clases de Notificación
+use App\Notifications\ReservaEstadoActualizado; // Para cambios de estado
+use App\Notifications\NuevaReservaNotification; // ✅ ÚNICA CLASE para Cliente, Admin y Dueño
 
 class ReservaController extends Controller
 {
@@ -72,12 +76,11 @@ class ReservaController extends Controller
         // 3. VALIDACIÓN DE HORA Y DISPONIBILIDAD
         // ---------------------------------------------------------
         $request->validate([
-            'cancha_id' => 'required|exists:canchas,id',
+            'cancha_id'  => 'required|exists:canchas,id',
             'start_time' => 'required|date', 
             'end_time'   => 'required|date|after:start_time',
         ]);
 
-        // 👇 CORRECCIÓN AQUÍ: Se usa -> en lugar de .
         $start = Carbon::parse($request->start_time);
 
         // Validación de tolerancia (30 min)
@@ -108,6 +111,30 @@ class ReservaController extends Controller
             'status'      => 'pending', 
         ]);
 
+        // =========================================================================
+        // 🟢 NUEVO: SISTEMA DE NOTIFICACIONES UNIFICADO
+        // =========================================================================
+        
+        // 1. Notificar al CLIENTE (Correcto, ya estaba bien)
+        $user->notify(new NuevaReservaNotification($reserva));
+
+        // 2. Notificar al DUEÑO de la cancha
+        if ($cancha->user && $cancha->user->id !== $user->id) {
+            // ✅ CORREGIDO: Usamos NuevaReservaNotification
+            $cancha->user->notify(new NuevaReservaNotification($reserva));
+        }
+
+        // 3. Notificar a todos los ADMINS (Excluyendo al usuario actual si es admin)
+$admins = User::where('role', 'admin')
+              ->where('id', '!=', $user->id) // 👈 ESTA LÍNEA ES LA CLAVE
+              ->get();
+
+if ($admins->count() > 0) {
+    Notification::send($admins, new NuevaReservaNotification($reserva));
+}
+        
+        // =========================================================================
+
         // ---------------------------------------------------------
         // 5. RESPUESTA CON DETALLES PARA LA NOTIFICACIÓN FLOTANTE
         // ---------------------------------------------------------
@@ -118,7 +145,7 @@ class ReservaController extends Controller
             $successMsg .= " " . $warningMessage;
         }
 
-        // 🟢 MEJORA: Pasamos un ARRAY con datos detallados
+        // Array con datos detallados para la alerta
         $datosNotificacion = [
             'expiry' => $reserva->created_at->addMinutes(10)->timestamp,
             'cancha' => $cancha->name,
@@ -174,7 +201,7 @@ class ReservaController extends Controller
         ]);
 
         // =========================================================
-        // 🟢 NUEVO: Enviar Notificación al Usuario Cliente
+        // Notificar al Cliente sobre el cambio de estado
         // =========================================================
         try {
             $reserva->user->notify(new ReservaEstadoActualizado($reserva));
