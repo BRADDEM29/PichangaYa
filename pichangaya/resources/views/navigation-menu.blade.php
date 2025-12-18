@@ -76,14 +76,21 @@
                                         <div class="block px-4 py-2 text-xs text-gray-500 font-bold uppercase">{{ __('Gestión del Sistema') }}</div>
                                         <x-dropdown-link href="{{ route('admin.dashboard') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Ver Resumen') }}</x-dropdown-link>
                                         <div class="border-t border-gray-100 dark:border-gray-700"></div>
+                                        
+                                        {{-- MEJORA: CONSULTAS ARRIBA DE SUGERENCIAS --}}
+                                        <x-dropdown-link href="{{ route('admin.contacts.index') }}" class="flex items-center gap-2 dark:text-white dark:hover:bg-gray-700">
+                                            <span class="text-lg">📧</span> {{ __('Consultas') }}
+                                        </x-dropdown-link>
+
+                                        <x-dropdown-link href="{{ route('admin.suggestions.received') }}" class="flex items-center gap-2 dark:text-white dark:hover:bg-gray-700">
+                                            <span class="text-lg">💬</span> {{ __('Sugerencias') }}
+                                        </x-dropdown-link>
+
+                                        <div class="border-t border-gray-100 dark:border-gray-700"></div>
                                         <x-dropdown-link href="{{ route('admin.users.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Usuarios') }}</x-dropdown-link>
                                         <x-dropdown-link href="{{ route('admin.districts.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Distritos') }}</x-dropdown-link>
                                         <x-dropdown-link href="{{ route('admin.sports.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Deportes') }}</x-dropdown-link>
                                         <x-dropdown-link href="{{ route('admin.services.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Servicios') }}</x-dropdown-link>
-                                        
-                                        <x-dropdown-link href="{{ route('admin.suggestions.received') }}" class="flex items-center gap-2 dark:text-white dark:hover:bg-gray-700">
-                                            <span class="text-lg">💬</span> {{ __('Sugerencias') }}
-                                        </x-dropdown-link>
                                     </x-slot>
                                 </x-dropdown>
 
@@ -158,7 +165,6 @@
                                             <div class="ml-3 w-0 flex-1">
                                                 <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $notification->data['titulo'] ?? 'Notificación' }}</p>
                                                 
-                                                {{-- 🟢 AQUÍ LA LÓGICA DEL TEMPORIZADOR --}}
                                                 @if(isset($notification->data['expiry_ts']))
                                                     <p class="text-xs font-bold text-orange-600 notif-timer" data-expiry="{{ $notification->data['expiry_ts'] }}">
                                                        Calculando...
@@ -264,7 +270,7 @@
                     </div>
                 @elseif(auth()->user()->unreadNotifications->count() > 0)
                      <a href="{{ route('notifications.index') }}" class="block px-4 py-2 text-sm font-bold text-gray-400 bg-gray-800 hover:bg-gray-700 hover:text-white">
-                       🔔 Tienes notificaciones nuevas
+                        🔔 Tienes notificaciones nuevas
                      </a>
                 @endif
 
@@ -272,6 +278,11 @@
                     <div class="border-t border-gray-700 mt-2 pt-2 bg-red-900/20">
                         <div class="block px-4 py-2 text-xs text-red-400 font-bold uppercase">{{ __('🛡️ Panel Admin') }}</div>
                         <x-responsive-nav-link href="{{ route('admin.dashboard') }}" class="text-gray-300 hover:text-white">{{ __('Ver Resumen') }}</x-responsive-nav-link>
+                        
+                        {{-- MEJORA MÓVIL: CONSULTAS Y SUGERENCIAS --}}
+                        <x-responsive-nav-link href="{{ route('admin.contacts.index') }}" class="text-gray-300 hover:text-white">📧 {{ __('Consultas') }}</x-responsive-nav-link>
+                        <x-responsive-nav-link href="{{ route('admin.suggestions.received') }}" class="text-gray-300 hover:text-white">💬 {{ __('Sugerencias') }}</x-responsive-nav-link>
+
                         <x-responsive-nav-link href="{{ route('admin.owners.index') }}" class="text-purple-400 font-bold">{{ __('👥 Gestión Dueños') }}</x-responsive-nav-link>
                     </div>
                 @endif

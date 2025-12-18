@@ -3,50 +3,82 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use Illuminate\Support\Facades\DB;
+use App\Models\Contact;
+use App\Mail\ContactReceived;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
 
 class ContactForm extends Component
 {
-    // Declaramos todas las variables como públicas para que Livewire las reconozca
-    public $name;
-    public $email;
-    public $subject;
-    public $message;
-    public $successMessage = ''; // Inicializada vacía para evitar errores de undefined
+    public $name, $email, $subject, $message, $successMessage;
+    public $canSend = true; 
 
-    // Reglas de validación
-    protected $rules = [
-        'name' => 'required|min:3',
-        'email' => 'required|email',
-        'subject' => 'required',
-        'message' => 'required|min:10',
-    ];
+    public function mount()
+    {
+        // 1. Forzar redirección si no hay sesión
+        if (!Auth::check()) {
+            return redirect()->route('register');
+        }
+
+        // 2. Cargar datos del usuario actual
+        $this->name = Auth::user()->name;
+        $this->email = Auth::user()->email;
+        
+        // 3. Verificar límite inmediatamente
+        $this->checkCooldown();
+    }
+
+    public function checkCooldown()
+    {
+        // Buscamos SOLO registros que coincidan exactamente con el email del usuario logueado
+        // y que hayan sido creados en las últimas 24 horas.
+        $lastContact = Contact::where('email', Auth::user()->email)
+            ->where('created_at', '>=', now()->subHours(24))
+            ->first();
+
+        if ($lastContact) {
+            $this->canSend = false;
+        } else {
+            $this->canSend = true;
+        }
+    }
 
     public function submit()
     {
-        // 1. Validar los datos según las reglas arriba definidas
-        $this->validate();
+        // Re-verificar antes de procesar
+        $this->checkCooldown();
 
-        // 2. Intentar guardar en la base de datos
+        if (!$this->canSend) {
+            return;
+        }
+
+        $this->validate([
+            'subject' => 'required',
+            'message' => 'required|min:10',
+        ]);
+
         try {
-            DB::table('contacts')->insert([
-                'name' => $this->name,
-                'email' => $this->email,
+            // Guardar la consulta
+            $contact = Contact::create([
+                'name'    => $this->name,
+                'email'   => $this->email,
                 'subject' => $this->subject,
                 'message' => $this->message,
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
 
-            // 3. Resetear los campos después del éxito
-            $this->reset(['name', 'email', 'subject', 'message']);
+            // Enviar el correo a la empresa
+            Mail::to('pichangayacusco@gmail.com')->send(new ContactReceived($contact));
 
-            // 4. Activar el mensaje de éxito
-            $this->successMessage = '¡Mensaje enviado con éxito! Nos pondremos en contacto contigo pronto.';
+            $this->successMessage = '¡Tu consulta ha sido enviada con éxito!';
+            
+            // Limpiar campos y bloquear envío
+            $this->reset(['subject', 'message']);
+            $this->canSend = false;
 
         } catch (\Exception $e) {
-            // Opcional: manejar errores de base de datos aquí
-            session()->flash('error', 'Hubo un problema al enviar el mensaje.');
+            // Si hay un error de conexión de correo, al menos el mensaje se guardó en BD
+            $this->successMessage = 'Consulta guardada, pero hubo un detalle al enviar el correo.';
+            $this->canSend = false;
         }
     }
 

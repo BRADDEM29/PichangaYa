@@ -3,6 +3,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request; 
+use Illuminate\Support\Facades\Auth;
 
 // 1. IMPORTACIONES DE CONTROLADORES
 use App\Http\Controllers\AdminUserController;
@@ -11,6 +12,9 @@ use App\Http\Controllers\AdminSportController;
 use App\Http\Controllers\AdminServiceController;
 use App\Http\Controllers\AdminOwnerController;
 use App\Http\Controllers\AdminDashboardController; 
+// Importamos el controlador de consultas desde su subcarpeta Admin
+use App\Http\Controllers\Admin\AdminContactController; 
+
 use App\Http\Controllers\CanchaController; 
 use App\Http\Controllers\DashboardController; 
 use App\Http\Controllers\ReservaController; 
@@ -74,7 +78,6 @@ Route::middleware([
     Route::post('/canchas/{cancha}/reservar', [ReservaController::class, 'store'])->name('reservas.user.store');
     Route::get('/mis-reservas', [ReservaController::class, 'userReservasIndex'])->name('reservas.user.index');
     
-    // 👇 ESTAS SON LAS RUTAS QUE FALTABAN Y CAUSABAN EL ERROR 500
     Route::get('/reservas/{reserva}/editar', [ReservaController::class, 'editUser'])->name('reservas.edit');
     Route::put('/reservas/{reserva}/cancelar', [ReservaController::class, 'cancelUser'])->name('reservas.cancel');
     
@@ -101,8 +104,12 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('services', AdminServiceController::class);
         Route::resource('owners', AdminOwnerController::class);
 
+        // Rutas de Consultas y Sugerencias (Corregidas)
+        Route::get('/consultas', [AdminContactController::class, 'index'])->name('contacts.index');
+        Route::delete('/consultas/{id}', [AdminContactController::class, 'destroy'])->name('contacts.destroy');
+        
         Route::get('/sugerencias-recibidas', [App\Http\Controllers\Admin\SuggestionController::class, 'index'])->name('suggestions.received');
-
+        
         Route::controller(AdminOwnerController::class)->group(function () {
             Route::get('/owners/{owner}/canchas/create', 'createCancha')->name('owners.canchas.create');
             Route::post('/owners/{owner}/canchas', 'storeCancha')->name('owners.canchas.store');
@@ -133,13 +140,21 @@ Route::middleware(['auth', 'role:owner'])
 
 /*
 |--------------------------------------------------------------------------
-| 5. OTROS
+| 5. OTROS (PÁGINAS INFORMATIVAS Y CONTACTO)
 |--------------------------------------------------------------------------
 */
 Route::view('/nosotros', 'pages.about')->name('about');
 Route::view('/faq', 'pages.faq')->name('faq');
 Route::view('/registrar-mi-cancha', 'pages.register-pitch')->name('register-pitch');
-Route::view('/contacto', 'pages.contact')->name('contact.index');
+
+// MEJORA: Solo usuarios registrados pueden ver la página de contacto
+Route::get('/contacto', function () {
+    if (!Auth::check()) {
+        return redirect()->route('register');
+    }
+    return view('pages.contact');
+})->name('contact.index');
+
 Route::view('/sugerencias', 'pages.suggestions')->name('suggestions.index');
 
 Route::get('/terminos-y-condiciones', function () {
