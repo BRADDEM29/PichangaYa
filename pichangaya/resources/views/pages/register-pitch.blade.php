@@ -1,73 +1,93 @@
-<x-app-layout>
-    <div class="py-16 bg-white dark:bg-gray-950 transition-colors duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<x-guest-layout>
+    <div class="bg-white dark:bg-gray-950 transition-colors duration-300">
+        
+        {{-- HERO SECTION SIMPLIFICADO --}}
+        <section class="relative py-20 overflow-hidden">
+            <div class="absolute inset-0 opacity-10 dark:opacity-5">
+                <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=2048&auto=format&fit=crop" class="w-full h-full object-cover" alt="Background">
+            </div>
             
-            {{-- Hero Section --}}
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
-                <div class="order-2 lg:order-1">
-                    <span class="text-green-500 font-bold uppercase tracking-widest text-sm">Para dueños de complejos</span>
-                    <h1 class="text-4xl md:text-6xl font-black text-gray-900 dark:text-white mt-4 mb-6 leading-tight">
-                        Lleva tu cancha al <span class="text-green-500 italic">siguiente nivel</span>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center">
+                    <span class="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-widest text-green-600 uppercase bg-green-100 dark:bg-green-900/30 rounded-full">
+                        Para dueños de complejos
+                    </span>
+                    <h1 class="text-4xl md:text-6xl font-black text-gray-900 dark:text-white mb-6 leading-tight">
+                        Lleva tu cancha al <span class="text-green-500">siguiente nivel</span>
                     </h1>
-                    <p class="text-xl text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                        Únete a la red más grande de Cusco y permite que miles de deportistas reserven tu complejo con un solo clic, las 24 horas del día.
+                    <p class="max-w-2xl mx-auto text-lg md:text-xl text-gray-600 dark:text-gray-400 mb-10 leading-relaxed">
+                        Únete a la red más grande de Cusco. Permite que miles de deportistas encuentren y reserven tu complejo con un solo clic, las 24 horas del día.
                     </p>
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <a href="{{ route('register') }}" class="inline-block bg-green-600 text-white px-8 py-4 rounded-xl font-black text-center hover:bg-green-500 transition shadow-xl shadow-green-500/20">
-                            Empezar ahora gratis
-                        </a>
-                        <a href="{{ route('contact.index') }}" class="inline-block bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-8 py-4 rounded-xl font-bold text-center hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-                            Solicitar demo
+
+                    {{-- BOTÓN ÚNICO SOLICITADO --}}
+                    <div class="flex justify-center">
+                        <a href="{{ route('contact.index') }}" 
+                           class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-green-600 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 hover:bg-green-700 shadow-xl hover:shadow-green-500/20">
+                            Registrar mi complejo hoy
+                            <svg class="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
                         </a>
                     </div>
                 </div>
-                <div class="order-1 lg:order-2 relative">
-                    <div class="absolute -inset-4 bg-green-500/20 rounded-full blur-3xl"></div>
-                    <div class="relative bg-gray-900 rounded-3xl p-4 shadow-2xl border border-gray-800">
-                        <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Estadio" class="rounded-2xl opacity-80">
-                        <div class="absolute bottom-8 left-8 right-8 bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20">
-                            <p class="text-white font-bold italic">"Desde que uso PichangaYa, mis canchas están llenas incluso los lunes por la mañana."</p>
-                            <p class="text-green-400 text-sm mt-2">— Administrador Local</p>
-                        </div>
+            </div>
+        </section>
+
+        {{-- BENEFICIOS CLAVE --}}
+        <section class="py-16 bg-gray-50 dark:bg-gray-900/50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {{-- Beneficio 1 --}}
+                    <div class="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center text-2xl mb-6">📈</div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Aumenta tus ingresos</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                            Reduce las horas muertas. Tu cancha estará disponible para reservar mientras tú descansas o atiendes a otros clientes.
+                        </p>
+                    </div>
+
+                    {{-- Beneficio 2 --}}
+                    <div class="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-2xl mb-6">📱</div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Adiós al cuaderno</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                            Gestiona tus horarios desde el celular. Olvida los tachones, las confusiones y las llamadas perdidas.
+                        </p>
+                    </div>
+
+                    {{-- Beneficio 3 --}}
+                    <div class="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center text-2xl mb-6">🛡️</div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Pagos Seguros</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                            Configura adelantos por Yape o Plin y asegura que los equipos realmente asistan a sus partidos programados.
+                        </p>
                     </div>
                 </div>
             </div>
+        </section>
 
-            {{-- Beneficios --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-                <div class="p-8 border border-gray-100 dark:border-gray-800 rounded-3xl bg-gray-50/50 dark:bg-gray-900/50">
-                    <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center text-2xl mb-6">📈</div>
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Aumenta tus ingresos</h3>
-                    <p class="text-gray-600 dark:text-gray-400">Reduce las horas muertas. Tu cancha estará disponible para reservar mientras tú descansas.</p>
-                </div>
-                <div class="p-8 border border-gray-100 dark:border-gray-800 rounded-3xl bg-gray-50/50 dark:bg-gray-900/50">
-                    <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center text-2xl mb-6">📱</div>
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Adiós al cuaderno</h3>
-                    <p class="text-gray-600 dark:text-gray-400">Gestiona tus horarios desde el celular. Olvida los tachones y las confusiones en el papel.</p>
-                </div>
-                <div class="p-8 border border-gray-100 dark:border-gray-800 rounded-3xl bg-gray-50/50 dark:bg-gray-900/50">
-                    <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl mb-6">🛡️</div>
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Pagos Seguros</h3>
-                    <p class="text-gray-600 dark:text-gray-400">Recibe adelantos por Yape/Plin y asegura que los equipos realmente asistan al partido.</p>
+        {{-- CALL TO ACTION FINAL --}}
+        <section class="py-20">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="bg-green-600 rounded-3xl p-10 md:p-16 shadow-2xl relative overflow-hidden">
+                    <div class="relative z-10">
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
+                            ¿Listo para unirte a la revolución deportiva?
+                        </h2>
+                        <p class="text-green-100 text-lg mb-10 max-w-2xl mx-auto">
+                            El registro toma menos de 5 minutos. Haz clic abajo y nuestro equipo te ayudará con la configuración de tus precios y fotos por WhatsApp.
+                        </p>
+                        <a href="{{ route('contact.index') }}" 
+                           class="inline-block bg-white text-green-600 px-10 py-4 rounded-xl font-black uppercase tracking-wider hover:bg-gray-100 transition-colors shadow-lg">
+                            Registrar mi complejo hoy
+                        </a>
+                    </div>
+                    {{-- Elementos decorativos --}}
+                    <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-green-500 rounded-full opacity-50"></div>
+                    <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-green-700 rounded-full opacity-50"></div>
                 </div>
             </div>
-
-            {{-- Sección de Llamada a la acción --}}
-            <div class="bg-gray-900 dark:bg-green-600 rounded-3xl p-12 text-center text-white relative overflow-hidden">
-                <div class="relative z-10">
-                    <h2 class="text-3xl md:text-4xl font-black mb-6">¿Listo para unirte a la revolución deportiva?</h2>
-                    <p class="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-                        El registro toma menos de 5 minutos y nuestro equipo te ayudará a configurar tus precios y fotos.
-                    </p>
-                    <a href="{{ route('register') }}" class="bg-white text-gray-900 px-10 py-4 rounded-xl font-black text-lg hover:bg-gray-100 transition inline-block">
-                        Registrar mi complejo hoy
-                    </a>
-                </div>
-                {{-- Decoración de fondo --}}
-                <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-green-500/20 rounded-full blur-3xl"></div>
-            </div>
-
-        </div>
+        </section>
     </div>
-</x-app-layout>
+</x-guest-layout>
