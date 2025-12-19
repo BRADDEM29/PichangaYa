@@ -1,6 +1,6 @@
 <?php
-
-namespace App\Http\Controllers\Admin; // Importante: debe incluir \Admin
+//C:\laragon\www\PichangaYa\pichangaya\app\Http\Controllers\Admin\AdminContactController.php
+namespace App\Http\Controllers; 
 
 use App\Http\Controllers\Controller; // Necesario para extender de Controller
 use App\Models\Contact;

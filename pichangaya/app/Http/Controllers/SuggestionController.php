@@ -1,6 +1,6 @@
 <?php
-
-namespace App\Http\Controllers\Admin;
+//C:\laragon\www\PichangaYa\pichangaya\app\Http\Controllers\Admin\SuggestionController.php
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

@@ -12,8 +12,10 @@ use App\Http\Controllers\AdminSportController;
 use App\Http\Controllers\AdminServiceController;
 use App\Http\Controllers\AdminOwnerController;
 use App\Http\Controllers\AdminDashboardController; 
-// Importamos el controlador de consultas desde su subcarpeta Admin
-use App\Http\Controllers\Admin\AdminContactController; 
+
+// 🟢 CORREGIDO: Importamos desde la raíz de Controllers (ya no desde Admin\...)
+use App\Http\Controllers\AdminContactController; 
+use App\Http\Controllers\SuggestionController;   
 
 use App\Http\Controllers\CanchaController; 
 use App\Http\Controllers\DashboardController; 
@@ -104,12 +106,15 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('services', AdminServiceController::class);
         Route::resource('owners', AdminOwnerController::class);
 
-        // Rutas de Consultas y Sugerencias (Corregidas)
+        // 🟢 RUTAS DE CONTACTO (Consultas)
         Route::get('/consultas', [AdminContactController::class, 'index'])->name('contacts.index');
         Route::delete('/consultas/{id}', [AdminContactController::class, 'destroy'])->name('contacts.destroy');
         
-        Route::get('/sugerencias-recibidas', [App\Http\Controllers\Admin\SuggestionController::class, 'index'])->name('suggestions.received');
+        // 🟢 RUTAS DE SUGERENCIAS
+        Route::get('/sugerencias-recibidas', [SuggestionController::class, 'index'])->name('suggestions.received');
+        Route::delete('/sugerencias-recibidas/{id}', [SuggestionController::class, 'destroy'])->name('suggestions.destroy');
         
+        // Gestión Avanzada
         Route::controller(AdminOwnerController::class)->group(function () {
             Route::get('/owners/{owner}/canchas/create', 'createCancha')->name('owners.canchas.create');
             Route::post('/owners/{owner}/canchas', 'storeCancha')->name('owners.canchas.store');
@@ -147,7 +152,7 @@ Route::view('/nosotros', 'pages.about')->name('about');
 Route::view('/faq', 'pages.faq')->name('faq');
 Route::view('/registrar-mi-cancha', 'pages.register-pitch')->name('register-pitch');
 
-// MEJORA: Solo usuarios registrados pueden ver la página de contacto
+// Solo usuarios registrados pueden ver la página de contacto
 Route::get('/contacto', function () {
     if (!Auth::check()) {
         return redirect()->route('register');
