@@ -1,13 +1,13 @@
 <?php
+// C:\laragon\www\PichangaYa\pichangaya\app\Observers\ReservaObserver.php
 
 namespace App\Observers;
 
 use App\Models\Reserva;
 use App\Models\User;
 use App\Mail\ReservaStatusChanged;
-use App\Notifications\NuevaReservaNotification;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Notification;
+// use Illuminate\Support\Facades\Notification; // 🟢 Ya no es necesario aquí para 'created'
 
 class ReservaObserver
 {
@@ -16,16 +16,9 @@ class ReservaObserver
      */
     public function created(Reserva $reserva): void
     {
-        // 1. Obtener destinatarios: Dueño y Admins
-        $owner = $reserva->cancha->user;
-        $admins = User::where('role', 'admin')->get();
-        
-        // 2. Notificar a ADMIN y DUEÑO (Para que sepan que hay venta)
-        Notification::send($admins->merge([$owner]), new NuevaReservaNotification($reserva));
-
-        // 3. 🟢 CORRECCIÓN: Notificar también al CLIENTE (Para que le salga en su campanita)
-        // Usamos la misma notificación, el front-end ya sabe cómo mostrarla
-        $reserva->user->notify(new NuevaReservaNotification($reserva));
+        // 🔴 ANTES: Aquí se enviaban notificaciones, causando duplicidad con el Controlador.
+        // ✅ AHORA: Lo dejamos vacío. El ReservaController ya se encarga de notificar 
+        // al Cliente, Dueño y Admins correctamente.
     }
 
     /**
@@ -33,6 +26,8 @@ class ReservaObserver
      */
     public function updated(Reserva $reserva): void
     {
+        // MANTENEMOS ESTA LÓGICA (Envío de correos al cambiar estado)
+        // Esto no genera notificaciones en la campanita, solo emails, así que está bien.
         if ($reserva->isDirty('status')) {
             
             // Si sigue pendiente, no enviamos correo (ya tiene la notificación en la web)
@@ -42,11 +37,8 @@ class ReservaObserver
 
             // Enviar CORREO al cliente cuando cambia de estado (Confirmado/Cancelado)
             try {
+                // Verificamos que exista la clase de Mail antes de enviar
                 Mail::to($reserva->user->email)->send(new ReservaStatusChanged($reserva));
-                
-                // 🟢 Opcional: También enviar notificación a la campanita avisando del cambio
-                // Crearías una nueva clase Notification 'EstadoReservaCambiado' si quisieras
-                // $reserva->user->notify(new EstadoReservaNotification($reserva));
                 
             } catch (\Exception $e) {
                 \Log::error('Error enviando correo reserva: ' . $e->getMessage());
