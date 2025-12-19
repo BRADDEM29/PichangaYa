@@ -1,84 +1,85 @@
 <?php
+// UBICACIÓN: C:\laragon\www\PichangaYa\pichangaya\app\Livewire\ContactForm.php
 
 namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Contact;
-use App\Mail\ContactReceived;
-use Illuminate\Support\Facades\Mail;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\NuevaConsultaNotification; 
 
 class ContactForm extends Component
 {
-    public $name, $email, $subject, $message, $successMessage;
+    public $name, $email, $phone, $subject, $message, $successMessage;
     public $canSend = true; 
 
     public function mount()
     {
-        // 1. Forzar redirección si no hay sesión
         if (!Auth::check()) {
             return redirect()->route('register');
         }
 
-        // 2. Cargar datos del usuario actual
-        $this->name = Auth::user()->name;
-        $this->email = Auth::user()->email;
+        $user = Auth::user();
+        $this->name = $user->name;
+        $this->email = $user->email;
+        // 🟢 Capturamos el teléfono del perfil del usuario (si lo tiene)
+        $this->phone = $user->phone ?? ''; 
         
-        // 3. Verificar límite inmediatamente
         $this->checkCooldown();
     }
 
     public function checkCooldown()
     {
-        // Buscamos SOLO registros que coincidan exactamente con el email del usuario logueado
-        // y que hayan sido creados en las últimas 24 horas.
         $lastContact = Contact::where('email', Auth::user()->email)
             ->where('created_at', '>=', now()->subHours(24))
             ->first();
 
-        if ($lastContact) {
-            $this->canSend = false;
-        } else {
-            $this->canSend = true;
-        }
+        $this->canSend = !$lastContact;
     }
 
     public function submit()
     {
-        // Re-verificar antes de procesar
         $this->checkCooldown();
 
-        if (!$this->canSend) {
-            return;
-        }
+        if (!$this->canSend) { return; }
 
+        // 🟢 VALIDACIÓN DE SEGURIDAD (BACKEND)
+        // Aquí aplicamos el límite estricto de 1500 caracteres (aprox 200-250 palabras)
+        // para asegurar que coincida con el límite visual del frontend.
         $this->validate([
-            'subject' => 'required',
-            'message' => 'required|min:10',
+            'subject' => 'required|string|max:100',
+            'phone'   => 'required|string|max:20', 
+            'message' => 'required|min:10|max:1500', // 🔒 Límite de ~200 palabras
+        ], [
+            'message.max'    => 'Has excedido el límite de 200 palabras (1500 caracteres). Por favor resume tu mensaje.',
+            'phone.required' => 'El número de celular es necesario para contactarte.',
         ]);
 
         try {
-            // Guardar la consulta
+            // Guardar en Base de Datos
             $contact = Contact::create([
                 'name'    => $this->name,
                 'email'   => $this->email,
+                'phone'   => $this->phone,
                 'subject' => $this->subject,
                 'message' => $this->message,
+                'status'  => 'pendiente',
             ]);
 
-            // Enviar el correo a la empresa
-            Mail::to('pichangayacusco@gmail.com')->send(new ContactReceived($contact));
+            // 🟢 Notificar a Admins
+            $admins = User::where('role', 'admin')->get();
+            if ($admins->count() > 0) {
+                Notification::send($admins, new NuevaConsultaNotification($contact));
+            }
 
-            $this->successMessage = '¡Tu consulta ha sido enviada con éxito!';
-            
-            // Limpiar campos y bloquear envío
+            $this->successMessage = '¡Consulta enviada! Nos pondremos en contacto contigo.';
             $this->reset(['subject', 'message']);
             $this->canSend = false;
 
         } catch (\Exception $e) {
-            // Si hay un error de conexión de correo, al menos el mensaje se guardó en BD
-            $this->successMessage = 'Consulta guardada, pero hubo un detalle al enviar el correo.';
-            $this->canSend = false;
+            $this->successMessage = 'Error al enviar. Intenta nuevamente.';
         }
     }
 

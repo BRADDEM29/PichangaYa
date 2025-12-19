@@ -106,13 +106,15 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('services', AdminServiceController::class);
         Route::resource('owners', AdminOwnerController::class);
 
-        // 🟢 RUTAS DE CONTACTO (Consultas)
-        Route::get('/consultas', [AdminContactController::class, 'index'])->name('contacts.index');
-        Route::delete('/consultas/{id}', [AdminContactController::class, 'destroy'])->name('contacts.destroy');
+        // Rutas de Consultas
+    Route::get('/consultas', [AdminContactController::class, 'index'])->name('contacts.index');
+    Route::put('/consultas/{id}/status', [AdminContactController::class, 'updateStatus'])->name('contacts.updateStatus'); // 🟢 Nueva
+    Route::delete('/consultas/{id}', [AdminContactController::class, 'destroy'])->name('contacts.destroy');
         
-        // 🟢 RUTAS DE SUGERENCIAS
-        Route::get('/sugerencias-recibidas', [SuggestionController::class, 'index'])->name('suggestions.received');
-        Route::delete('/sugerencias-recibidas/{id}', [SuggestionController::class, 'destroy'])->name('suggestions.destroy');
+         // Rutas de Sugerencias
+    Route::get('/sugerencias-recibidas', [SuggestionController::class, 'index'])->name('suggestions.received');
+    Route::put('/sugerencias-recibidas/{id}/status', [SuggestionController::class, 'updateStatus'])->name('suggestions.updateStatus'); // 🟢 Nueva
+    Route::delete('/sugerencias-recibidas/{id}', [SuggestionController::class, 'destroy'])->name('suggestions.destroy');
         
         // Gestión Avanzada
         Route::controller(AdminOwnerController::class)->group(function () {
@@ -124,6 +126,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::put('/reservas/{reserva}/status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
 
+    
+
+   
 /*
 |--------------------------------------------------------------------------
 | 4. ZONA DUEÑO
@@ -173,3 +178,4 @@ Route::get('/politica-de-privacidad', function () {
 Route::get('/test-gd', function () {
     return extension_loaded('gd') ? "✅ Librería GD ACTIVADA" : "❌ Librería GD APAGADA";
 });
+

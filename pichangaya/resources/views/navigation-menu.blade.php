@@ -150,6 +150,7 @@
                                     <a href="{{ route('notifications.read', $notification->id) }}" class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700">
                                         <div class="flex items-start">
                                             <div class="flex-shrink-0 pt-0.5">
+                                                {{-- 🟢 ICONOS DINÁMICOS (Incluye Sugerencias y Consultas) --}}
                                                 @if(($notification->data['icono'] ?? '') == 'currency_exchange')
                                                     <span class="text-yellow-600 text-xl">💲</span>
                                                 @elseif(($notification->data['icono'] ?? '') == 'check_circle')
@@ -158,6 +159,10 @@
                                                     <span class="text-red-600 text-xl">✕</span>
                                                 @elseif(($notification->data['icono'] ?? '') == 'hourglass_empty')
                                                     <span class="text-orange-500 text-xl">⏳</span>
+                                                @elseif(($notification->data['icono'] ?? '') == 'mail')
+                                                    <span class="text-blue-500 text-xl">📩</span>
+                                                @elseif(($notification->data['icono'] ?? '') == 'lightbulb')
+                                                    <span class="text-yellow-500 text-xl">💡</span>
                                                 @else
                                                     <span class="text-blue-500 text-xl">ℹ</span>
                                                 @endif
