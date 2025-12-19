@@ -1,5 +1,5 @@
 <?php
-
+//C:\laragon\www\PichangaYa\pichangaya\app\Notifications\NuevaSugerenciaNotification.php
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
