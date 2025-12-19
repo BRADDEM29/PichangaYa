@@ -14,45 +14,39 @@
                         <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-2xl">
                             <span class="text-3xl">📜</span>
                         </div>
-                        <h1 class="text-4xl font-black text-gray-900 dark:text-white tracking-tight">
-                            Términos y Condiciones
-                        </h1>
+                        <h1 class="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Términos y Condiciones</h1>
                     </div>
 
                     <div class="prose prose-green dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 space-y-8 text-lg leading-relaxed">
                         
                         <section>
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">1. Aceptación de los Términos</h2>
-                            <p>Al acceder y utilizar <strong>PichangaYa</strong>, usted acepta cumplir con estos términos. Nuestra plataforma facilita la conexión entre dueños de complejos deportivos y deportistas en la ciudad de Cusco.</p>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">1. Uso de la Cuenta y Seguridad</h2>
+                            <p>Para usar PichangaYa, debes registrarte y mantener una contraseña segura. Eres el único responsable de la actividad en tu cuenta. En caso de detectar un uso no autorizado, debes notificarnos inmediatamente.</p>
                         </section>
 
                         <section>
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">2. Proceso de Reserva</h2>
-                            <ul class="list-disc pl-5 space-y-2">
-                                <li>Las reservas están sujetas a la disponibilidad confirmada por el establecimiento.</li>
-                                <li>El usuario se compromete a asistir en el horario reservado.</li>
-                                <li>PichangaYa es un intermediario; la calidad del campo y el servicio en el sitio son responsabilidad del dueño del local.</li>
-                            </ul>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">2. Pagos, Estados y Cancelaciones</h2>
+                            <p>El usuario debe cumplir con el pago establecido por el establecimiento. <strong>Si el usuario no realiza su pago (cambio de estado)</strong>, la reserva pasará automáticamente a <strong>cancelación</strong>.</p>
+                            <div class="bg-amber-50 dark:bg-amber-900/10 p-6 rounded-2xl border-l-4 border-amber-500 my-4">
+                                <h3 class="font-bold text-amber-800 dark:text-amber-500 mb-2 italic">⏰ Política de Llegadas Tarde</h3>
+                                <p>Recomendamos llegar <strong>5 minutos antes</strong>. Si superás los <strong>10 minutos de retraso</strong>, el establecimiento puede cancelar tu reserva sin derecho a devolución de adelantos.</p>
+                            </div>
                         </section>
 
                         <section>
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">3. Cancelaciones y Reembolsos</h2>
-                            <p>Cada establecimiento tiene su propia política. Por regla general en PichangaYa:</p>
-                            <ul class="list-disc pl-5 space-y-2">
-                                <li>Cancelaciones con más de 24 horas: Sujeto a reprogramación según disponibilidad.</li>
-                                <li>Cancelaciones el mismo día: No se garantiza el reembolso del adelanto si lo hubiera.</li>
-                            </ul>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">3. Clima y Fuerza Mayor</h2>
+                            <p>En caso de condiciones climáticas extremas (lluvias torrenciales, tormentas eléctricas) o eventos de fuerza mayor que impidan el uso de la cancha, la reprogramación dependerá exclusivamente de las políticas del establecimiento deportivo. PichangaYa facilitará la comunicación pero no se hace responsable por decisiones unilaterales del club.</p>
                         </section>
 
                         <section>
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">4. Responsabilidad del Usuario</h2>
-                            <p>Usted es responsable de cuidar las instalaciones del complejo deportivo. Cualquier daño causado por conducta inapropiada será responsabilidad directa del usuario que realizó la reserva.</p>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">4. Conducta en las Instalaciones</h2>
+                            <p>El Cliente se compromete a mantener un comportamiento respetuoso, no consumir sustancias prohibidas y usar el calzado adecuado (ej. zapatillas de grass sintético). El incumplimiento puede causar la expulsión inmediata sin reembolso.</p>
                         </section>
 
-                    </div>
-
-                    <div class="mt-12 pt-8 border-t border-gray-100 dark:border-gray-800 text-center">
-                        <p class="text-sm text-gray-500">Última actualización: 19 de Diciembre, 2025</p>
+                        <section>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">5. Propiedad Intelectual</h2>
+                            <p>Todo el contenido de PichangaYa (logos, software, diseño) es propiedad exclusiva de la empresa. Queda prohibida su reproducción o uso para fines comerciales externos sin autorización escrita.</p>
+                        </section>
                     </div>
                 </div>
             </div>
