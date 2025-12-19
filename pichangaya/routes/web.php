@@ -163,11 +163,11 @@ Route::get('/contacto', function () {
 Route::view('/sugerencias', 'pages.suggestions')->name('suggestions.index');
 
 Route::get('/terminos-y-condiciones', function () {
-    return view('terms', ['terms' => 'Contenido...']);
+    return view('terms');
 })->name('terms.show');
 
 Route::get('/politica-de-privacidad', function () {
-    return view('policy', ['policy' => 'Contenido...']);
+    return view('policy');
 })->name('policy.show');
 
 Route::get('/test-gd', function () {
