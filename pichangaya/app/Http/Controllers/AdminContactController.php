@@ -1,5 +1,5 @@
 <?php
-
+//C:\laragon\www\PichangaYa\pichangaya\app\Http\Controllers\AdminContactController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;

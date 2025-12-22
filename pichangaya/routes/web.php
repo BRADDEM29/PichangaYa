@@ -26,12 +26,13 @@ use App\Models\Sport;
 
 /*
 |--------------------------------------------------------------------------
-| 1. PÁGINA DE INICIO
+| 1. PÁGINA DE INICIO (PÚBLICA)
 |--------------------------------------------------------------------------
 */
 Route::get('/', function (Request $request) {
     $query = Cancha::with(['media', 'district', 'sports']);
 
+    // ... (Tu lógica de filtros de búsqueda sigue igual aquí) ...
     if ($request->filled('search')) {
         $search = $request->input('search');
         $query->where(function($q) use ($search) {
@@ -39,11 +40,9 @@ Route::get('/', function (Request $request) {
               ->orWhere('address', 'like', "%{$search}%");
         });
     }
-    
     if ($request->filled('district_id')) {
         $query->where('district_id', $request->input('district_id'));
     }
-    
     if ($request->filled('sport_id')) {
         $query->whereHas('sports', function($q) use ($request) {
             $q->where('sports.id', $request->input('sport_id'));
@@ -56,6 +55,20 @@ Route::get('/', function (Request $request) {
 
     return view('welcome', compact('canchas', 'districts', 'sports'));
 })->name('home');
+
+// 🟢 NUEVO: RUTA DE CONTACTO PÚBLICA (Fuera del middleware auth)
+Route::get('/contacto', function () {
+    return view('pages.contact'); 
+})->name('contact.index');
+
+// Páginas informativas públicas
+Route::view('/nosotros', 'pages.about')->name('about');
+Route::view('/faq', 'pages.faq')->name('faq');
+Route::view('/registrar-mi-cancha', 'pages.register-pitch')->name('register-pitch');
+Route::view('/sugerencias', 'pages.suggestions')->name('suggestions.index');
+Route::get('/terminos-y-condiciones', function () { return view('terms'); })->name('terms.show');
+Route::get('/politica-de-privacidad', function () { return view('policy'); })->name('policy.show');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -97,12 +110,10 @@ Route::middleware(['auth', 'role:admin'])
         
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
-        // 🟢 AQUÍ ESTÁN LAS RUTAS DE TUS REPORTES (Solución al error 500)
+        // Reportes
         Route::controller(AdminDashboardController::class)
-            ->prefix('reportes') 
-            ->name('reports.')   
+            ->prefix('reportes')->name('reports.')   
             ->group(function () {
-                // Fíjate que el nombre coincide con lo que tienes en el blade: admin.reports.ingresos
                 Route::get('/ingresos', 'reportsIngresos')->name('ingresos');
                 Route::get('/adelantados', 'reportsAdelantados')->name('adelantados');
                 Route::get('/pendientes', 'reportsPendientes')->name('pendientes');
@@ -112,27 +123,26 @@ Route::middleware(['auth', 'role:admin'])
                 Route::get('/canchas', 'reportsCanchas')->name('canchas');
             });
 
-        // Gestión de Usuarios y Bloqueos
+        // Gestión de Usuarios
         Route::resource('users', AdminUserController::class);
         Route::patch('/users/{id}/toggle-block', [AdminUserController::class, 'toggleBlock'])->name('users.toggleBlock');
 
-        // Otros Recursos
+        // Recursos Admin
         Route::resource('districts', AdminDistrictController::class);
         Route::resource('sports', AdminSportController::class);
         Route::resource('services', AdminServiceController::class);
         Route::resource('owners', AdminOwnerController::class);
 
-        // Consultas
+        // Consultas y Sugerencias
         Route::get('/consultas', [AdminContactController::class, 'index'])->name('contacts.index');
         Route::put('/consultas/{id}/status', [AdminContactController::class, 'updateStatus'])->name('contacts.updateStatus'); 
         Route::delete('/consultas/{id}', [AdminContactController::class, 'destroy'])->name('contacts.destroy');
         
-        // Sugerencias
         Route::get('/sugerencias-recibidas', [SuggestionController::class, 'index'])->name('suggestions.received');
         Route::put('/sugerencias-recibidas/{id}/status', [SuggestionController::class, 'updateStatus'])->name('suggestions.updateStatus'); 
         Route::delete('/sugerencias-recibidas/{id}', [SuggestionController::class, 'destroy'])->name('suggestions.destroy');
         
-        // Gestión Dueño
+        // Gestión Avanzada Owner
         Route::controller(AdminOwnerController::class)->group(function () {
             Route::get('/owners/{owner}/canchas/create', 'createCancha')->name('owners.canchas.create');
             Route::post('/owners/{owner}/canchas', 'storeCancha')->name('owners.canchas.store');
@@ -158,23 +168,6 @@ Route::middleware(['auth', 'role:owner'])
         Route::put('/reservas/{reserva}/update-status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
 
-/*
-|--------------------------------------------------------------------------
-| 5. OTROS
-|--------------------------------------------------------------------------
-*/
-Route::view('/nosotros', 'pages.about')->name('about');
-Route::view('/faq', 'pages.faq')->name('faq');
-Route::view('/registrar-mi-cancha', 'pages.register-pitch')->name('register-pitch');
-
-Route::get('/contacto', function () {
-    if (!Auth::check()) { return redirect()->route('register'); }
-    return view('pages.contact');
-})->name('contact.index');
-
-Route::view('/sugerencias', 'pages.suggestions')->name('suggestions.index');
-Route::get('/terminos-y-condiciones', function () { return view('terms'); })->name('terms.show');
-Route::get('/politica-de-privacidad', function () { return view('policy'); })->name('policy.show');
 Route::get('/test-gd', function () {
     return extension_loaded('gd') ? "✅ Librería GD ACTIVADA" : "❌ Librería GD APAGADA";
 });

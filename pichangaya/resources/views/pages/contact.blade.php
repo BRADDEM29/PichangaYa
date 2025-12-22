@@ -1,4 +1,5 @@
 <x-app-layout>
+    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\pages\contact.blade.php --}}
     <div class="py-16 bg-gray-50 dark:bg-gray-950 min-h-screen transition-colors duration-300">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             

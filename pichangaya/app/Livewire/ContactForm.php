@@ -12,74 +12,111 @@ use App\Notifications\NuevaConsultaNotification;
 
 class ContactForm extends Component
 {
-    public $name, $email, $phone, $subject, $message, $successMessage;
-    public $canSend = true; 
+    // Usamos 'motivo' y 'mensaje' para la vista, pero mapeamos internamente a DB
+    public $motivo = ''; 
+    public $mensaje = '';
+    public $phone = ''; // Necesario para la BD
+    
+    // Variables internas
+    public $enviado = false;
+    public $canSend = true;
+
+    // Reglas de validación
+    protected $rules = [
+        'motivo'  => 'required|min:5|max:100',
+        'mensaje' => 'required|min:10|max:1500',
+        'phone'   => 'required|string|max:20', // Se valida solo al enviar
+    ];
 
     public function mount()
     {
-        if (!Auth::check()) {
-            return redirect()->route('register');
+        // 1. RECUPERAR DATOS SI EL USUARIO ACABA DE LOGUEARSE
+        if (session()->has('contact_form_backup')) {
+            $backup = session('contact_form_backup');
+            
+            $this->motivo  = $backup['motivo'];
+            $this->mensaje = $backup['mensaje'];
+
+            // Limpiamos la sesión
+            session()->forget('contact_form_backup');
         }
 
-        $user = Auth::user();
-        $this->name = $user->name;
-        $this->email = $user->email;
-        // 🟢 Capturamos el teléfono del perfil del usuario (si lo tiene)
-        $this->phone = $user->phone ?? ''; 
-        
-        $this->checkCooldown();
+        // 2. SI YA ESTÁ LOGUEADO, PRE-LLENAR DATOS
+        if (Auth::check()) {
+            $user = Auth::user();
+            // Si el usuario tiene teléfono en su perfil, lo usamos. Si no, lo dejamos vacío para que lo llene.
+            $this->phone = $user->phone ?? ''; 
+            
+            $this->checkCooldown();
+        }
     }
 
     public function checkCooldown()
     {
-        $lastContact = Contact::where('email', Auth::user()->email)
-            ->where('created_at', '>=', now()->subHours(24))
-            ->first();
+        if (Auth::check()) {
+            $lastContact = Contact::where('email', Auth::user()->email)
+                ->where('created_at', '>=', now()->subHours(24))
+                ->first();
 
-        $this->canSend = !$lastContact;
+            $this->canSend = !$lastContact;
+        }
     }
 
     public function submit()
     {
+        // 🟢 A) LÓGICA PARA INVITADOS (GUEST)
+        if (!Auth::check()) {
+            // Guardamos lo que escribió en la sesión
+            session()->put('contact_form_backup', [
+                'motivo'  => $this->motivo,
+                'mensaje' => $this->mensaje
+            ]);
+
+            // Guardamos la intención de volver aquí
+            session()->put('url.intended', route('contact.index'));
+
+            // Redirigimos al Login
+            return redirect()->route('login');
+        }
+
+        // 🟢 B) LÓGICA PARA USUARIOS LOGUEADOS
         $this->checkCooldown();
 
-        if (!$this->canSend) { return; }
+        if (!$this->canSend) { 
+            // Mensaje de error visual si intenta saltarse el bloqueo
+            $this->addError('general', 'Debes esperar 24 horas entre consultas.');
+            return; 
+        }
 
-        // 🟢 VALIDACIÓN DE SEGURIDAD (BACKEND)
-        // Aquí aplicamos el límite estricto de 1500 caracteres (aprox 200-250 palabras)
-        // para asegurar que coincida con el límite visual del frontend.
-        $this->validate([
-            'subject' => 'required|string|max:100',
-            'phone'   => 'required|string|max:20', 
-            'message' => 'required|min:10|max:1500', // 🔒 Límite de ~200 palabras
-        ], [
-            'message.max'    => 'Has excedido el límite de 200 palabras (1500 caracteres). Por favor resume tu mensaje.',
-            'phone.required' => 'El número de celular es necesario para contactarte.',
-        ]);
+        // Validamos. Nota: 'phone' es obligatorio en tu BD, así que debe estar lleno.
+        $this->validate();
 
         try {
-            // Guardar en Base de Datos
+            $user = Auth::user();
+
+            // Guardar en Base de Datos (Mapeamos 'motivo' a 'subject')
             $contact = Contact::create([
-                'name'    => $this->name,
-                'email'   => $this->email,
+                'name'    => $user->name,
+                'email'   => $user->email,
                 'phone'   => $this->phone,
-                'subject' => $this->subject,
-                'message' => $this->message,
+                'subject' => $this->motivo, // Mapeo
+                'message' => $this->mensaje, // Mapeo
                 'status'  => 'pendiente',
             ]);
 
-            // 🟢 Notificar a Admins
+            // Notificar a Admins
             $admins = User::where('role', 'admin')->get();
             if ($admins->count() > 0) {
                 Notification::send($admins, new NuevaConsultaNotification($contact));
             }
 
-            $this->successMessage = '¡Consulta enviada! Nos pondremos en contacto contigo.';
-            $this->reset(['subject', 'message']);
+            // Éxito
+            $this->reset(['motivo', 'mensaje']);
+            $this->enviado = true;
             $this->canSend = false;
 
         } catch (\Exception $e) {
-            $this->successMessage = 'Error al enviar. Intenta nuevamente.';
+            $this->addError('general', 'Error al enviar. Intenta nuevamente.');
         }
     }
 
