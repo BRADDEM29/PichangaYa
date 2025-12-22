@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Notification; // Facade para enviar a múltiples usuarios
+use Illuminate\Support\Facades\Notification;
 
 // 👇 IMPORTANTE: Las clases de Notificación
 use App\Notifications\ReservaEstadoActualizado; // Para cambios de estado
@@ -50,6 +50,13 @@ class ReservaController extends Controller
         $user = Auth::user();
 
         // ---------------------------------------------------------
+        // 🔒 0. SEGURIDAD: VERIFICAR BLOQUEO DE CUENTA
+        // ---------------------------------------------------------
+        if ($user->is_blocked) {
+            return redirect()->back()->with('error', '⛔ Tu cuenta ha sido bloqueada indefinidamente por incumplimiento reiterado de reservas. Contacta a soporte.');
+        }
+
+        // ---------------------------------------------------------
         // 1. REGLA: SOLO UNA RESERVA PENDIENTE A LA VEZ
         // ---------------------------------------------------------
         $pendingReservation = Reserva::where('user_id', $user->id)
@@ -61,15 +68,12 @@ class ReservaController extends Controller
         }
 
         // ---------------------------------------------------------
-        // 2. REGLA: 3 STRIKES (ADVERTENCIA)
+        // 2. REGLA: 3 STRIKES (ADVERTENCIA VISUAL)
         // ---------------------------------------------------------
-        $cancelledCount = Reserva::where('user_id', $user->id)
-                                 ->where('status', 'cancelled')
-                                 ->count();
-
+        // Nota: La lógica fuerte de bloqueo está en el Observer, aquí solo avisamos
         $warningMessage = null;
-        if ($cancelledCount >= 3) {
-            $warningMessage = "⚠️ Advertencia: Tienes $cancelledCount reservas canceladas anteriormente. Si continúas reservando sin pagar, tu cuenta podría ser suspendida.";
+        if ($user->consecutive_cancellations >= 3) {
+            $warningMessage = "⚠️ ADVERTENCIA CRÍTICA: Tienes " . $user->consecutive_cancellations . " cancelaciones consecutivas. Una más y tu cuenta será bloqueada.";
         }
 
         // ---------------------------------------------------------
@@ -112,26 +116,25 @@ class ReservaController extends Controller
         ]);
 
         // =========================================================================
-        // 🟢 NUEVO: SISTEMA DE NOTIFICACIONES UNIFICADO
+        // 🟢 SISTEMA DE NOTIFICACIONES UNIFICADO (Sin Observer 'created')
         // =========================================================================
         
-        // 1. Notificar al CLIENTE (Correcto, ya estaba bien)
+        // 1. Notificar al CLIENTE
         $user->notify(new NuevaReservaNotification($reserva));
 
         // 2. Notificar al DUEÑO de la cancha
         if ($cancha->user && $cancha->user->id !== $user->id) {
-            // ✅ CORREGIDO: Usamos NuevaReservaNotification
             $cancha->user->notify(new NuevaReservaNotification($reserva));
         }
 
         // 3. Notificar a todos los ADMINS (Excluyendo al usuario actual si es admin)
-$admins = User::where('role', 'admin')
-              ->where('id', '!=', $user->id) // 👈 ESTA LÍNEA ES LA CLAVE
-              ->get();
+        $admins = User::where('role', 'admin')
+                      ->where('id', '!=', $user->id)
+                      ->get();
 
-if ($admins->count() > 0) {
-    Notification::send($admins, new NuevaReservaNotification($reserva));
-}
+        if ($admins->count() > 0) {
+            Notification::send($admins, new NuevaReservaNotification($reserva));
+        }
         
         // =========================================================================
 
@@ -196,6 +199,8 @@ if ($admins->count() > 0) {
         ]);
 
         // 1. Actualizar el estado en la BD
+        // 🟢 IMPORTANTE: Al hacer esto, se disparará el OBSERVER 'updated'
+        // que contiene la lógica de STRIKES y BLOQUEO.
         $reserva->update([
             'status' => $request->status,
         ]);
@@ -233,6 +238,7 @@ if ($admins->count() > 0) {
              return back()->with('error', 'No puedes cancelar una reserva que ya pasó.');
         }
 
+        // 🟢 Al cancelar, el OBSERVER 'updated' aumentará el contador de strikes
         $reserva->update(['status' => 'cancelled']);
 
         return back()->with('success', 'Reserva cancelada exitosamente.');

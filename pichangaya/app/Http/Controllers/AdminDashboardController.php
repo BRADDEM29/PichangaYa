@@ -1,11 +1,12 @@
 <?php
+// C:\laragon\www\PichangaYa\pichangaya\app\Http\Controllers\AdminDashboardController.php
 
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Reserva;
 use App\Models\User;
 use App\Models\Cancha;
-use App\Models\Reserva;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -20,7 +21,6 @@ class AdminDashboardController extends Controller
         $reservasTotales = Reserva::count();
 
         // 2. ESTADOS FINANCIEROS (Sumas separadas)
-        // 🛠️ CORRECCIÓN: Usamos 'fully_paid' en lugar de 'confirmed'
         $ingresosTotales = Reserva::where('status', 'fully_paid')->sum('total_price'); // Verde
         $adelantosTotal  = Reserva::where('status', 'advance_paid')->sum('total_price'); // Azul
         $pendientesMoney = Reserva::where('status', 'pending')->sum('total_price'); // Amarillo
@@ -39,7 +39,6 @@ class AdminDashboardController extends Controller
                 DB::raw('DATE(start_time) as date'),
                 DB::raw('SUM(total_price) as income')
             )
-            // 🛠️ CORRECCIÓN AQUÍ TAMBIÉN
             ->whereIn('status', ['fully_paid', 'advance_paid']) 
             ->whereBetween('start_time', [$startDate, $endDate])
             ->groupBy('date')
@@ -81,11 +80,10 @@ class AdminDashboardController extends Controller
         ));
     }
 
-    // --- REPORTES DETALLADOS ---
+    // --- REPORTES DETALLADOS (LÓGICA REAL) ---
 
     public function reportsIngresos()
     {
-        // 🛠️ CORRECCIÓN: Filtrar por 'fully_paid'
         $monthlyIncome = Reserva::select(DB::raw('MONTH(start_time) as month'), DB::raw('SUM(total_price) as income'))
             ->where('status', 'fully_paid')
             ->whereYear('start_time', Carbon::now()->year)
@@ -95,7 +93,6 @@ class AdminDashboardController extends Controller
         $monthlyData = array_replace(array_fill(1, 12, 0), $monthlyIncome);
 
         $incomeByCancha = Cancha::withSum(['reservas' => function($q) { 
-                // 🛠️ CORRECCIÓN AQUÍ TAMBIÉN
                 $q->where('status', 'fully_paid'); 
             }], 'total_price')
             ->orderByDesc('reservas_sum_total_price')->get();
@@ -145,7 +142,6 @@ class AdminDashboardController extends Controller
 
     public function reportsReservas() {
         $reservasStatus = Reserva::select('status', DB::raw('count(*) as count'))->groupBy('status')->pluck('count', 'status')->toArray();
-        // Ajustamos también el array por defecto para que coincida
         $reservasStatus = array_merge(['fully_paid' => 0, 'pending' => 0, 'cancelled' => 0, 'advance_paid' => 0], $reservasStatus);
         
         $reservasByHour = Reserva::select(DB::raw('HOUR(start_time) as hour'), DB::raw('count(*) as count'))->groupBy('hour')->orderBy('hour')->pluck('count', 'hour')->toArray();
@@ -168,7 +164,6 @@ class AdminDashboardController extends Controller
         $canchasByDistrict = DB::table('canchas')->join('districts', 'canchas.district_id', '=', 'districts.id')->select('districts.name', DB::raw('count(canchas.id) as count'))->groupBy('districts.name')->pluck('count', 'districts.name')->toArray();
         $detailedTopCanchas = Cancha::with('district', 'user')->withCount('reservas')
             ->withSum(['reservas' => function($q) { 
-                // 🛠️ CORRECCIÓN: también aquí
                 $q->where('status', 'fully_paid'); 
             }], 'total_price')
             ->orderByDesc('reservas_count')->get();

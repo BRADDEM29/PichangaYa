@@ -1,4 +1,5 @@
 <x-app-layout>
+    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\admin\dashboard.blade.php --}}
     {{-- Carga de Chart.js --}}
     @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

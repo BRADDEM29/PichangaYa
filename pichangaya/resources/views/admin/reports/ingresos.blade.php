@@ -1,4 +1,5 @@
 <x-app-layout>
+    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\admin\reports\ingresos.blade.php --}}
     {{-- CDN Directo para asegurar carga --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 

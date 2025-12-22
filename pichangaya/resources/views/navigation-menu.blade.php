@@ -1,5 +1,5 @@
 <nav x-data="{ open: false, darkMode: localStorage.getItem('dark-mode') === 'true' }" class="bg-gray-900/90 backdrop-blur-md border-b border-gray-700 shadow-lg sticky top-0 z-50">
-     {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\navigation-menu.blade.php --}}
+    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\navigation-menu.blade.php --}}
     @php
         $displayName = '';
         $bellReserva = null;
@@ -329,6 +329,46 @@
         </div>
     </div>
 </nav>
+
+{{-- MODAL DE ADVERTENCIA POR MAL COMPORTAMIENTO (3 Strikes) --}}
+@auth
+    @if(Auth::user()->consecutive_cancellations == 3 && !Auth::user()->is_blocked)
+        <div class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-lg w-full text-center border-4 border-red-600 shadow-2xl relative overflow-hidden">
+                
+                {{-- Fondo animado sutil --}}
+                <div class="absolute top-0 left-0 w-full h-2 bg-red-600 animate-pulse"></div>
+
+                <div class="mb-6 inline-flex p-4 bg-red-100 rounded-full text-red-600">
+                    <svg class="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+
+                <h2 class="text-3xl font-black text-gray-900 dark:text-white mb-4 uppercase tracking-tighter">
+                    ¡Advertencia Final!
+                </h2>
+
+                <p class="text-gray-600 dark:text-gray-300 text-lg mb-6 leading-relaxed">
+                    Estimado usuario, hemos detectado <strong>3 cancelaciones consecutivas</strong> en tu cuenta. 
+                    <br><br>
+                    Si tu próxima reserva es cancelada o no completada, 
+                    <span class="text-red-600 font-black bg-red-100 px-1 rounded">tu cuenta será bloqueada permanentemente</span>.
+                </p>
+
+                <p class="text-sm text-gray-400 mb-8 italic">
+                    Por favor, asegúrate de realizar reservas que realmente vas a utilizar.
+                </p>
+
+                {{-- Botón para "Aceptar" y cerrar el modal temporalmente (o redirigir) --}}
+                <button onclick="this.closest('.fixed').style.display='none'" 
+                    class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-xl transition transform hover:scale-105 shadow-lg">
+                    ENTENDIDO, SERÉ RESPONSABLE
+                </button>
+            </div>
+        </div>
+    @endif
+@endauth
 
 {{-- SCRIPT PARA EL TEMPORIZADOR --}}
 <script>

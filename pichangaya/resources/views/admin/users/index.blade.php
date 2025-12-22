@@ -1,93 +1,125 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Gestión de Usuarios y Roles') }}
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            {{ __('Gestión de Usuarios') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            {{-- Mensajes de feedback --}}
+            {{-- Mensajes Flash --}}
             @if(session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                <div class="mb-4 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 font-bold rounded shadow-sm">
                     {{ session('success') }}
                 </div>
             @endif
-            @if(session('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {{ session('error') }}
-                </div>
-            @endif
 
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6">
                 
-                {{-- Tabla de Usuarios --}}
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                {{-- ENCABEZADO: Título y Botón Crear --}}
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h3 class="text-lg font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                        <span class="bg-blue-100 text-blue-600 p-2 rounded-lg">👥</span>
+                        Lista de Usuarios Registrados
+                    </h3>
+                    
+                    {{-- 🟢 BOTÓN CREAR USUARIO --}}
+                    <a href="{{ route('admin.users.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition transform hover:scale-105 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                        Crear Nuevo Usuario
+                    </a>
+                </div>
+
+                {{-- TABLA --}}
+                <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol Actual</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
+                                <th class="px-6 py-3">ID</th>
+                                <th class="px-6 py-3">Nombre</th>
+                                <th class="px-6 py-3">Email / Celular</th>
+                                <th class="px-6 py-3 text-center">Rol Actual</th>
+                                <th class="px-6 py-3 text-center">Estado</th> {{-- 🟢 Columna Nueva --}}
+                                <th class="px-6 py-3 text-right">Acción</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($users as $user)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $user->id }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $user->name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $user->email }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        {{ $user->role === 'admin' ? 'bg-red-100 text-red-800' : '' }}
-                                        {{ $user->role === 'owner' ? 'bg-blue-100 text-blue-800' : '' }}
-                                        {{ $user->role === 'user' ? 'bg-green-100 text-green-800' : '' }}">
-                                        {{ ucfirst($user->role) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <tbody>
+                            @foreach ($users as $user)
+                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                    <td class="px-6 py-4 font-mono text-xs">{{ $user->id }}</td>
                                     
-                                    @if($user->id === Auth::id() || $user->id === 1)
-                                        <span class="text-gray-400 italic flex items-center gap-1">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                            Protegido
-                                        </span>
-                                    @else
-                                        <div class="flex items-center space-x-2">
-                                            {{-- Formulario Editar Rol --}}
-                                            <form action="{{ route('admin.users.update', $user->id) }}" method="POST" class="flex items-center space-x-2">
-                                                @csrf
-                                                @method('PUT')
-                                                <select name="role" class="text-sm border-gray-300 rounded-md shadow-sm py-1">
-                                                    <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
-                                                    <option value="owner" {{ $user->role == 'owner' ? 'selected' : '' }}>Dueño</option>
-                                                    <option value="user" {{ $user->role == 'user' ? 'selected' : '' }}>Usuario</option>
-                                                </select>
-                                                <button type="submit" class="text-indigo-600 hover:text-indigo-900 font-bold">
-                                                    Guardar
-                                                </button>
-                                            </form>
+                                    {{-- Nombre y Avatar --}}
+                                    <td class="px-6 py-4 flex items-center gap-3">
+                                        @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
+                                            <img class="h-8 w-8 rounded-full object-cover" src="{{ $user->profile_photo_url }}" alt="{{ $user->name }}" />
+                                        @endif
+                                        <div class="font-bold text-gray-900 dark:text-white">{{ $user->name }}</div>
+                                    </td>
 
-                                            {{-- Formulario ELIMINAR (Nuevo) --}}
-                                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar a este usuario? Esta acción no se puede deshacer.');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900 font-bold ml-2">
-                                                    Eliminar
-                                                </button>
-                                            </form>
+                                    {{-- Contacto --}}
+                                    <td class="px-6 py-4">
+                                        <div class="text-gray-700 dark:text-gray-300">{{ $user->email }}</div>
+                                        <div class="text-xs text-indigo-500 font-bold">{{ $user->phone ?? 'Sin celular' }}</div>
+                                    </td>
+
+                                    {{-- Rol --}}
+                                    <td class="px-6 py-4 text-center">
+                                        @if($user->role === 'admin')
+                                            <span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded border border-red-200">Admin</span>
+                                        @elseif($user->role === 'owner')
+                                            <span class="bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-0.5 rounded border border-purple-200">Dueño</span>
+                                        @else
+                                            <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded border border-blue-200">Cliente</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- 🟢 Estado (Bloqueo/Strikes) --}}
+                                    <td class="px-6 py-4 text-center">
+                                        @if($user->is_blocked)
+                                            <span class="bg-black text-white text-xs font-black px-2 py-1 rounded uppercase tracking-wider">BLOQUEADO</span>
+                                        @else
+                                            @if($user->consecutive_cancellations > 0)
+                                                <span class="text-orange-600 font-bold text-xs">⚠️ {{ $user->consecutive_cancellations }} Strikes</span>
+                                            @else
+                                                <span class="text-green-600 font-bold text-xs">✅ Limpio</span>
+                                            @endif
+                                        @endif
+                                    </td>
+
+                                    {{-- Acciones --}}
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex justify-end items-center gap-2">
+                                            
+                                            {{-- Botón Editar --}}
+                                            <a href="{{ route('admin.users.edit', $user) }}" class="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-100 rounded">
+                                                ✏️
+                                            </a>
+
+                                            {{-- 🟢 BOTÓN BLOQUEAR/DESBLOQUEAR (Formulario) --}}
+                                            @if($user->id !== auth()->id()) {{-- No te puedes bloquear a ti mismo --}}
+                                                <form action="{{ route('admin.users.toggleBlock', $user) }}" method="POST" onsubmit="return confirm('¿Estás seguro de cambiar el bloqueo de este usuario?')">
+                                                    @csrf @method('PATCH')
+                                                    <button type="submit" class="text-xs font-bold uppercase px-3 py-1 rounded transition border
+                                                        {{ $user->is_blocked 
+                                                            ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200' 
+                                                            : 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200' }}">
+                                                        {{ $user->is_blocked ? '🔓 Desbloquear' : '🔒 Bloquear' }}
+                                                    </button>
+                                                </form>
+                                            @endif
+
                                         </div>
-                                    @endif
-                                </td>
-                            </tr>
+                                    </td>
+                                </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
 
+                <div class="mt-4">
+                    {{ $users->links() }}
+                </div>
             </div>
         </div>
     </div>

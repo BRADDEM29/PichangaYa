@@ -5,23 +5,21 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request; 
 use Illuminate\Support\Facades\Auth;
 
-// 1. IMPORTACIONES DE CONTROLADORES
+// Controladores
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminDistrictController;
 use App\Http\Controllers\AdminSportController;
 use App\Http\Controllers\AdminServiceController;
 use App\Http\Controllers\AdminOwnerController;
 use App\Http\Controllers\AdminDashboardController; 
-
-// 🟢 CORREGIDO: Importamos desde la raíz de Controllers (ya no desde Admin\...)
 use App\Http\Controllers\AdminContactController; 
-use App\Http\Controllers\SuggestionController;   
-
+use App\Http\Controllers\SuggestionController;    
 use App\Http\Controllers\CanchaController; 
 use App\Http\Controllers\DashboardController; 
 use App\Http\Controllers\ReservaController; 
 use App\Http\Controllers\NotificationController;
 
+// Modelos
 use App\Models\Cancha;   
 use App\Models\District; 
 use App\Models\Sport;    
@@ -70,16 +68,15 @@ Route::middleware([
     'verified',
 ])->group(function () {
     
-    // Dashboard
+    // Dashboard Usuario
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Ver Canchas
     Route::resource('canchas', CanchaController::class)->only(['index', 'show']);
     
-    // 🟢 GESTIÓN DE RESERVAS DEL USUARIO
+    // Gestión de Reservas
     Route::post('/canchas/{cancha}/reservar', [ReservaController::class, 'store'])->name('reservas.user.store');
     Route::get('/mis-reservas', [ReservaController::class, 'userReservasIndex'])->name('reservas.user.index');
-    
     Route::get('/reservas/{reserva}/editar', [ReservaController::class, 'editUser'])->name('reservas.edit');
     Route::put('/reservas/{reserva}/cancelar', [ReservaController::class, 'cancelUser'])->name('reservas.cancel');
     
@@ -100,23 +97,42 @@ Route::middleware(['auth', 'role:admin'])
         
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
+        // 🟢 AQUÍ ESTÁN LAS RUTAS DE TUS REPORTES (Solución al error 500)
+        Route::controller(AdminDashboardController::class)
+            ->prefix('reportes') 
+            ->name('reports.')   
+            ->group(function () {
+                // Fíjate que el nombre coincide con lo que tienes en el blade: admin.reports.ingresos
+                Route::get('/ingresos', 'reportsIngresos')->name('ingresos');
+                Route::get('/adelantados', 'reportsAdelantados')->name('adelantados');
+                Route::get('/pendientes', 'reportsPendientes')->name('pendientes');
+                Route::get('/cancelados', 'reportsCancelados')->name('cancelados');
+                Route::get('/reservas', 'reportsReservas')->name('reservas');
+                Route::get('/usuarios', 'reportsUsuarios')->name('usuarios');
+                Route::get('/canchas', 'reportsCanchas')->name('canchas');
+            });
+
+        // Gestión de Usuarios y Bloqueos
         Route::resource('users', AdminUserController::class);
+        Route::patch('/users/{id}/toggle-block', [AdminUserController::class, 'toggleBlock'])->name('users.toggleBlock');
+
+        // Otros Recursos
         Route::resource('districts', AdminDistrictController::class);
         Route::resource('sports', AdminSportController::class);
         Route::resource('services', AdminServiceController::class);
         Route::resource('owners', AdminOwnerController::class);
 
-        // Rutas de Consultas
-    Route::get('/consultas', [AdminContactController::class, 'index'])->name('contacts.index');
-    Route::put('/consultas/{id}/status', [AdminContactController::class, 'updateStatus'])->name('contacts.updateStatus'); // 🟢 Nueva
-    Route::delete('/consultas/{id}', [AdminContactController::class, 'destroy'])->name('contacts.destroy');
+        // Consultas
+        Route::get('/consultas', [AdminContactController::class, 'index'])->name('contacts.index');
+        Route::put('/consultas/{id}/status', [AdminContactController::class, 'updateStatus'])->name('contacts.updateStatus'); 
+        Route::delete('/consultas/{id}', [AdminContactController::class, 'destroy'])->name('contacts.destroy');
         
-         // Rutas de Sugerencias
-    Route::get('/sugerencias-recibidas', [SuggestionController::class, 'index'])->name('suggestions.received');
-    Route::put('/sugerencias-recibidas/{id}/status', [SuggestionController::class, 'updateStatus'])->name('suggestions.updateStatus'); // 🟢 Nueva
-    Route::delete('/sugerencias-recibidas/{id}', [SuggestionController::class, 'destroy'])->name('suggestions.destroy');
+        // Sugerencias
+        Route::get('/sugerencias-recibidas', [SuggestionController::class, 'index'])->name('suggestions.received');
+        Route::put('/sugerencias-recibidas/{id}/status', [SuggestionController::class, 'updateStatus'])->name('suggestions.updateStatus'); 
+        Route::delete('/sugerencias-recibidas/{id}', [SuggestionController::class, 'destroy'])->name('suggestions.destroy');
         
-        // Gestión Avanzada
+        // Gestión Dueño
         Route::controller(AdminOwnerController::class)->group(function () {
             Route::get('/owners/{owner}/canchas/create', 'createCancha')->name('owners.canchas.create');
             Route::post('/owners/{owner}/canchas', 'storeCancha')->name('owners.canchas.store');
@@ -126,9 +142,6 @@ Route::middleware(['auth', 'role:admin'])
         Route::put('/reservas/{reserva}/status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
 
-    
-
-   
 /*
 |--------------------------------------------------------------------------
 | 4. ZONA DUEÑO
@@ -138,44 +151,30 @@ Route::middleware(['auth', 'role:owner'])
     ->prefix('panel-dueno')
     ->name('owner.')
     ->group(function () {
-        
         Route::redirect('/', '/panel-dueno/canchas')->name('dashboard');
-        
         Route::get('/canchas/{cancha}/historial', [CanchaController::class, 'history'])->name('canchas.history');
         Route::resource('canchas', CanchaController::class);
-        
         Route::get('/reservas', [ReservaController::class, 'ownerReservasIndex'])->name('reservas.index');
         Route::put('/reservas/{reserva}/update-status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
 
 /*
 |--------------------------------------------------------------------------
-| 5. OTROS (PÁGINAS INFORMATIVAS Y CONTACTO)
+| 5. OTROS
 |--------------------------------------------------------------------------
 */
 Route::view('/nosotros', 'pages.about')->name('about');
 Route::view('/faq', 'pages.faq')->name('faq');
 Route::view('/registrar-mi-cancha', 'pages.register-pitch')->name('register-pitch');
 
-// Solo usuarios registrados pueden ver la página de contacto
 Route::get('/contacto', function () {
-    if (!Auth::check()) {
-        return redirect()->route('register');
-    }
+    if (!Auth::check()) { return redirect()->route('register'); }
     return view('pages.contact');
 })->name('contact.index');
 
 Route::view('/sugerencias', 'pages.suggestions')->name('suggestions.index');
-
-Route::get('/terminos-y-condiciones', function () {
-    return view('terms');
-})->name('terms.show');
-
-Route::get('/politica-de-privacidad', function () {
-    return view('policy');
-})->name('policy.show');
-
+Route::get('/terminos-y-condiciones', function () { return view('terms'); })->name('terms.show');
+Route::get('/politica-de-privacidad', function () { return view('policy'); })->name('policy.show');
 Route::get('/test-gd', function () {
     return extension_loaded('gd') ? "✅ Librería GD ACTIVADA" : "❌ Librería GD APAGADA";
 });
-

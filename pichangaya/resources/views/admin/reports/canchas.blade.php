@@ -1,4 +1,5 @@
 <x-app-layout>
+    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\admin\reports\canchas.blade.php --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <x-slot name="header">
