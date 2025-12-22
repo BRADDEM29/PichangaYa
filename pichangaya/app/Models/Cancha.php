@@ -1,4 +1,5 @@
 <?php
+// C:\laragon\www\PichangaYa\pichangaya\app\Models\Cancha.php
 
 namespace App\Models;
 
@@ -24,7 +25,8 @@ class Cancha extends Model implements HasMedia
         'address',
         'price_per_hour',
         'description',
-        'is_featured', // 🟢 AGREGADO: Necesario para poder guardar el estado destacado
+        'is_featured', 
+        'is_active', // 🟢 AGREGADO: Para ocultar la cancha si el dueño cambia de rol
         'user_id',
         // 'sport_id', 
         'district_id',
@@ -37,14 +39,14 @@ class Cancha extends Model implements HasMedia
     ];
 
     /**
-     * 🟢 NUEVO: Casts para asegurar tipos de datos correctos.
-     * Convierte 'is_featured' automáticamente en true/false (booleano).
+     * Casts para asegurar tipos de datos correctos.
      */
     protected $casts = [
         'price_per_hour' => 'decimal:2',
-        'lat' => 'double',
-        'lng' => 'double',
-        'is_featured' => 'boolean',
+        'lat'            => 'double',
+        'lng'            => 'double',
+        'is_featured'    => 'boolean',
+        'is_active'      => 'boolean', // 🟢 AGREGADO: Asegura que se trate como true/false
     ];
 
     // --- RELACIONES ---
@@ -62,8 +64,10 @@ class Cancha extends Model implements HasMedia
         parent::boot();
 
         static::saving(function ($cancha) {
-            // Crea el slug basado en el nombre.
-            $cancha->slug = Str::slug($cancha->name) . '-' . substr(uniqid(), -4);
+            // Crea el slug basado en el nombre si no existe o si cambia el nombre
+            if (empty($cancha->slug)) {
+                $cancha->slug = Str::slug($cancha->name) . '-' . substr(uniqid(), -4);
+            }
         });
     }
     
@@ -76,8 +80,7 @@ class Cancha extends Model implements HasMedia
     }
     
     /**
-     * 🟢 CAMBIO PRINCIPAL (Sprint 7 - Multideporte):
-     * Ahora usamos belongsToMany para conectar con varios deportes.
+     * Relación: Muchos a Muchos con Deportes (Multideporte)
      */
     public function sports(): BelongsToMany
     {
@@ -104,17 +107,14 @@ class Cancha extends Model implements HasMedia
     
     public function registerMediaCollections(): void
     {
-        // 🟢 CORRECCIÓN: Quitamos ->singleFile()
         $this->addMediaCollection('canchas'); 
     }
 
     /**
-     * 🟢 SPRINT 8: Conversión automática a WebP y Redimensionado
-     * Agregado manteniendo tu diseño de código.
+     * Conversión automática a WebP y Redimensionado
      */
     public function registerMediaConversions(?Media $media = null): void
     {
-        
         // 1. Conversión 'thumb': Para tarjetas de listado
         $this->addMediaConversion('thumb')
             ->width(400)
@@ -129,7 +129,6 @@ class Cancha extends Model implements HasMedia
             ->height(800)
             ->format('webp')   // Convierte a WebP
             ->nonQueued();
-            
     }
 
     /**
@@ -139,5 +138,4 @@ class Cancha extends Model implements HasMedia
     {
         return $this->belongsToMany(Service::class, 'cancha_service');
     }
-    
 }

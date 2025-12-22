@@ -30,7 +30,16 @@ use App\Models\Sport;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function (Request $request) {
-    $query = Cancha::with(['media', 'district', 'sports']);
+    
+    // 🟢 SUPER FILTRO DE SEGURIDAD
+    // Filtra canchas inactivas y canchas de dueños bloqueados o eliminados
+    $query = Cancha::with(['media', 'district', 'sports'])
+        ->where('is_active', true) // 1. Que la cancha esté activa
+        ->whereHas('user', function ($q) {
+            $q->where('is_blocked', false); // 2. Que el dueño NO esté bloqueado
+        });
+        // Nota: 'whereHas' ya hace el trabajo de 'has' (verificar que exista el usuario), 
+        // así que mata dos pájaros de un tiro.
 
     if ($request->filled('search')) {
         $search = $request->input('search');
