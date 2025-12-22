@@ -1,4 +1,5 @@
 <x-app-layout>
+    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\admin\owners\courts.blade.php --}}
     <x-slot name="header">
         <h2 class="font-bold text-xl text-gray-800 leading-tight">
             Canchas de: {{ $user->name }}
