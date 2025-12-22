@@ -4,7 +4,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\UserPhone; // 🟢 Importante: No olvides importar este modelo
+use App\Models\UserPhone; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -12,10 +12,32 @@ use Illuminate\Validation\Rule;
 
 class AdminUserController extends Controller
 {
-    // 1. LISTAR USUARIOS
-    public function index()
+    // 1. LISTAR USUARIOS (CON FILTROS Y BUSCADOR)
+    public function index(Request $request)
     {
-        $users = User::paginate(10); 
+        $query = User::query();
+
+        // 🔍 Lógica del Buscador (Nombre, Email o Teléfono)
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        // 🏷️ Lógica del Filtro por Rol
+        if ($request->filled('role')) {
+            $query->where('role', $request->input('role'));
+        }
+
+        // 🟢 Paginación con withQueryString()
+        // Esto es vital: mantiene los filtros activos cuando le das a "Siguiente Página"
+        $users = $query->orderBy('id', 'asc')
+                       ->paginate(10)
+                       ->withQueryString(); 
+
         return view('admin.users.index', compact('users'));
     }
 
@@ -35,7 +57,6 @@ class AdminUserController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role'     => 'required|in:admin,owner,user',
             'phone'    => 'required|string|max:20', // Teléfono principal obligatorio
-            // Validamos el array de teléfonos secundarios (solo si es owner)
             'secondary_phones'   => 'nullable|array',
             'secondary_phones.*' => 'nullable|string|max:20',
         ]);
@@ -57,7 +78,7 @@ class AdminUserController extends Controller
                     UserPhone::create([
                         'user_id'      => $user->id,
                         'phone_number' => $phoneNum,
-                        'label'        => 'Secundario' // Etiqueta por defecto
+                        'label'        => 'Secundario'
                     ]);
                 }
             }
@@ -70,7 +91,6 @@ class AdminUserController extends Controller
     // 4. 🟢 VISTA DE EDICIÓN
     public function edit($id)
     {
-        // Cargamos el usuario con sus teléfonos secundarios para poder mostrarlos en el form
         $user = User::with('secondaryPhones')->findOrFail($id);
         return view('admin.users.edit', compact('user'));
     }
@@ -82,7 +102,6 @@ class AdminUserController extends Controller
 
         // --- SEGURIDAD ---
         if ($user->id === Auth::id()) {
-            // Permitimos editar datos, pero NO el rol ni bloquearse a sí mismo
             if ($request->role !== $user->role) {
                 return back()->with('error', 'No puedes cambiar tu propio rol.');
             }
@@ -97,7 +116,7 @@ class AdminUserController extends Controller
             'email'    => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'role'     => 'required|in:admin,owner,user',
             'phone'    => 'required|string|max:20',
-            'password' => 'nullable|string|min:8|confirmed', // Opcional en edición
+            'password' => 'nullable|string|min:8|confirmed',
             'secondary_phones'   => 'nullable|array',
             'secondary_phones.*' => 'nullable|string|max:20',
         ]);
@@ -108,20 +127,15 @@ class AdminUserController extends Controller
         $user->role  = $request->role;
         $user->phone = $request->phone;
 
-        // Solo actualizar contraseña si se escribió algo nuevo
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }
 
         $user->save();
 
-        // 🟢 ACTUALIZAR TELÉFONOS SECUNDARIOS (Estrategia: Borrar todo y Recrear)
-        // Esto simplifica la lógica de detectar cuáles se editaron y cuáles son nuevos.
-        
-        // 1. Borramos los anteriores
+        // 🟢 ACTUALIZAR TELÉFONOS SECUNDARIOS (Borrar y Recrear)
         $user->secondaryPhones()->delete();
 
-        // 2. Si sigue siendo Owner, agregamos los que vinieron del formulario
         if ($request->role === 'owner' && $request->has('secondary_phones')) {
             foreach ($request->secondary_phones as $phoneNum) {
                 if (!empty($phoneNum)) {
@@ -150,7 +164,6 @@ class AdminUserController extends Controller
             return back()->with('error', 'No se puede eliminar al Admin Principal.');
         }
 
-        // Borramos teléfonos secundarios primero (aunque onDelete cascade en BD lo haría, es buena práctica)
         $user->secondaryPhones()->delete();
         $user->delete();
 
@@ -168,7 +181,6 @@ class AdminUserController extends Controller
 
         $user->is_blocked = !$user->is_blocked;
         
-        // Si desbloqueamos, reseteamos los strikes a 0
         if (!$user->is_blocked) {
             $user->consecutive_cancellations = 0;
         }

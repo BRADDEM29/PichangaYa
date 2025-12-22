@@ -32,7 +32,6 @@ use App\Models\Sport;
 Route::get('/', function (Request $request) {
     $query = Cancha::with(['media', 'district', 'sports']);
 
-    // ... (Tu lógica de filtros de búsqueda sigue igual aquí) ...
     if ($request->filled('search')) {
         $search = $request->input('search');
         $query->where(function($q) use ($search) {
@@ -56,12 +55,8 @@ Route::get('/', function (Request $request) {
     return view('welcome', compact('canchas', 'districts', 'sports'));
 })->name('home');
 
-// 🟢 NUEVO: RUTA DE CONTACTO PÚBLICA (Fuera del middleware auth)
-Route::get('/contacto', function () {
-    return view('pages.contact'); 
-})->name('contact.index');
-
-// Páginas informativas públicas
+// RUTAS PÚBLICAS
+Route::get('/contacto', function () { return view('pages.contact'); })->name('contact.index');
 Route::view('/nosotros', 'pages.about')->name('about');
 Route::view('/faq', 'pages.faq')->name('faq');
 Route::view('/registrar-mi-cancha', 'pages.register-pitch')->name('register-pitch');
@@ -131,6 +126,8 @@ Route::middleware(['auth', 'role:admin'])
         Route::resource('districts', AdminDistrictController::class);
         Route::resource('sports', AdminSportController::class);
         Route::resource('services', AdminServiceController::class);
+        
+        // Gestión de Dueños (Listado general)
         Route::resource('owners', AdminOwnerController::class);
 
         // Consultas y Sugerencias
@@ -142,11 +139,25 @@ Route::middleware(['auth', 'role:admin'])
         Route::put('/sugerencias-recibidas/{id}/status', [SuggestionController::class, 'updateStatus'])->name('suggestions.updateStatus'); 
         Route::delete('/sugerencias-recibidas/{id}', [SuggestionController::class, 'destroy'])->name('suggestions.destroy');
         
-        // Gestión Avanzada Owner
+        // 🟢 GESTIÓN AVANZADA DE DUEÑOS Y CANCHAS
         Route::controller(AdminOwnerController::class)->group(function () {
-            Route::get('/owners/{owner}/canchas/create', 'createCancha')->name('owners.canchas.create');
-            Route::post('/owners/{owner}/canchas', 'storeCancha')->name('owners.canchas.store');
+            
+            // 👇 1. ESTA ES LA RUTA QUE TE FALTABA PARA VER LAS CANCHAS
+            // Se llamará: admin.owners.courts (por el prefix y name del grupo padre)
+            Route::get('/owners/{user}/canchas', 'courts')->name('owners.courts'); 
+            
+            // Rutas para Crear Canchas desde Admin
+            Route::get('/owners/{user}/canchas/create', 'createCancha')->name('owners.canchas.create');
+            Route::post('/owners/{user}/canchas', 'storeCancha')->name('owners.canchas.store');
+            
+            // Rutas para Gestionar Reservas de Cancha
             Route::get('/canchas/{cancha}/reservas', 'canchaReservas')->name('canchas.reservas.index');
+
+            // 👇 2. RUTAS NECESARIAS PARA LOS BOTONES DE TU VISTA (Editar, Eliminar, Destacar)
+            Route::get('/canchas/{cancha}/edit', 'editCancha')->name('canchas.edit');
+            Route::put('/canchas/{cancha}', 'updateCancha')->name('canchas.update');
+            Route::delete('/canchas/{cancha}', 'destroy')->name('canchas.destroy');
+            Route::put('/canchas/{cancha}/toggle-featured', 'toggleFeatured')->name('canchas.toggleFeatured');
         });
 
         Route::put('/reservas/{reserva}/status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
