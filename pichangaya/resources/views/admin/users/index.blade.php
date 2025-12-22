@@ -1,4 +1,5 @@
 <x-app-layout>
+    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\admin\users\index.blade.php --}}
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Gestión de Usuarios') }}
@@ -14,6 +15,11 @@
                     {{ session('success') }}
                 </div>
             @endif
+            @if(session('error'))
+                <div class="mb-4 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 font-bold rounded shadow-sm">
+                    {{ session('error') }}
+                </div>
+            @endif
 
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6">
                 
@@ -24,7 +30,6 @@
                         Lista de Usuarios Registrados
                     </h3>
                     
-                    {{-- 🟢 BOTÓN CREAR USUARIO --}}
                     <a href="{{ route('admin.users.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition transform hover:scale-105 flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                         Crear Nuevo Usuario
@@ -40,7 +45,7 @@
                                 <th class="px-6 py-3">Nombre</th>
                                 <th class="px-6 py-3">Email / Celular</th>
                                 <th class="px-6 py-3 text-center">Rol Actual</th>
-                                <th class="px-6 py-3 text-center">Estado</th> {{-- 🟢 Columna Nueva --}}
+                                <th class="px-6 py-3 text-center">Estado</th>
                                 <th class="px-6 py-3 text-right">Acción</th>
                             </tr>
                         </thead>
@@ -54,7 +59,13 @@
                                         @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
                                             <img class="h-8 w-8 rounded-full object-cover" src="{{ $user->profile_photo_url }}" alt="{{ $user->name }}" />
                                         @endif
-                                        <div class="font-bold text-gray-900 dark:text-white">{{ $user->name }}</div>
+                                        <div>
+                                            <div class="font-bold text-gray-900 dark:text-white">{{ $user->name }}</div>
+                                            {{-- Etiqueta visual si es el Admin Supremo --}}
+                                            @if($user->id === 1)
+                                                <span class="text-[10px] bg-yellow-100 text-yellow-800 px-1 rounded border border-yellow-200">👑 SUPER ADMIN</span>
+                                            @endif
+                                        </div>
                                     </td>
 
                                     {{-- Contacto --}}
@@ -74,7 +85,7 @@
                                         @endif
                                     </td>
 
-                                    {{-- 🟢 Estado (Bloqueo/Strikes) --}}
+                                    {{-- Estado --}}
                                     <td class="px-6 py-4 text-center">
                                         @if($user->is_blocked)
                                             <span class="bg-black text-white text-xs font-black px-2 py-1 rounded uppercase tracking-wider">BLOQUEADO</span>
@@ -87,24 +98,50 @@
                                         @endif
                                     </td>
 
-                                    {{-- Acciones --}}
+                                    {{-- ACCIONES (Aquí está la lógica mejorada) --}}
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex justify-end items-center gap-2">
                                             
-                                            {{-- Botón Editar --}}
-                                            <a href="{{ route('admin.users.edit', $user) }}" class="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-100 rounded">
-                                                ✏️
-                                            </a>
+                                            {{-- CASO 1: SUPER ADMIN (ID 1) --}}
+                                            @if($user->id === 1)
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 cursor-not-allowed">
+                                                    🔒 Intocable
+                                                </span>
+                                            
+                                            {{-- CASO 2: TU PROPIO USUARIO --}}
+                                            @elseif($user->id === Auth::id())
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                                    👤 Tu Cuenta
+                                                </span>
+                                                {{-- Solo permitimos editar (para cambiar nombre/email), pero no borrar/bloquear --}}
+                                                <a href="{{ route('admin.users.edit', $user) }}" class="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-100 rounded" title="Editar mis datos">
+                                                    ✏️
+                                                </a>
 
-                                            {{-- 🟢 BOTÓN BLOQUEAR/DESBLOQUEAR (Formulario) --}}
-                                            @if($user->id !== auth()->id()) {{-- No te puedes bloquear a ti mismo --}}
-                                                <form action="{{ route('admin.users.toggleBlock', $user) }}" method="POST" onsubmit="return confirm('¿Estás seguro de cambiar el bloqueo de este usuario?')">
+                                            {{-- CASO 3: OTROS USUARIOS (Control Total) --}}
+                                            @else
+                                                {{-- 1. Editar --}}
+                                                <a href="{{ route('admin.users.edit', $user) }}" class="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-100 rounded" title="Editar">
+                                                    ✏️
+                                                </a>
+
+                                                {{-- 2. Bloquear/Desbloquear --}}
+                                                <form action="{{ route('admin.users.toggleBlock', $user) }}" method="POST" class="inline">
                                                     @csrf @method('PATCH')
-                                                    <button type="submit" class="text-xs font-bold uppercase px-3 py-1 rounded transition border
-                                                        {{ $user->is_blocked 
-                                                            ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200' 
-                                                            : 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200' }}">
-                                                        {{ $user->is_blocked ? '🔓 Desbloquear' : '🔒 Bloquear' }}
+                                                    <button type="submit" 
+                                                        onclick="return confirm('¿Seguro que quieres {{ $user->is_blocked ? 'desbloquear' : 'bloquear' }} a este usuario?')"
+                                                        class="text-xs font-bold uppercase px-3 py-1 rounded transition border {{ $user->is_blocked ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200' : 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200' }}">
+                                                        {{ $user->is_blocked ? '🔓' : '🔒' }}
+                                                    </button>
+                                                </form>
+
+                                                {{-- 3. ELIMINAR (El botón que faltaba) --}}
+                                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" 
+                                                        onclick="return confirm('⛔ ¿ESTÁS SEGURO?\n\nEsta acción eliminará al usuario y todas sus relaciones permanentemente.')"
+                                                        class="text-red-500 hover:text-red-700 p-1 hover:bg-red-100 rounded ml-1" title="Eliminar definitivamente">
+                                                        🗑️
                                                     </button>
                                                 </form>
                                             @endif

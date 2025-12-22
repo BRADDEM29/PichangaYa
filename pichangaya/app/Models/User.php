@@ -1,5 +1,5 @@
 <?php
-
+//C:\laragon\www\PichangaYa\pichangaya\app\Models\User.php
 namespace App\Models;
 
 // Importaciones de Laravel
