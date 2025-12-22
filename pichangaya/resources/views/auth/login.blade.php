@@ -6,11 +6,11 @@
 
         <x-validation-errors class="mb-4" />
 
-        @session('status')
+        @if (session('status'))
             <div class="mb-4 font-medium text-sm text-green-600">
-                {{ $value }}
+                {{ session('status') }}
             </div>
-        @endsession
+        @endif
 
         <form method="POST" action="{{ route('login') }}" x-data="{
             email: '{{ old('email') }}',
@@ -22,11 +22,11 @@
                 let isValid = true;
 
                 if (!this.email) {
-                    this.errors.email = 'Falta completar el email';
+                    this.errors.email = 'El correo electrónico es obligatorio';
                     isValid = false;
                 }
                 if (!this.password) {
-                    this.errors.password = 'Contraseña requerida';
+                    this.errors.password = 'La contraseña es obligatoria';
                     isValid = false;
                 }
 
@@ -38,15 +38,22 @@
             @csrf
 
             <div>
-                <x-label for="email" value="{{ __('Email') }}" />
+                <x-label for="email" value="Correo Electrónico" />
                 <x-input id="email" class="block mt-1 w-full" type="email" name="email" x-model="email" required autofocus autocomplete="username" />
                 <span class="text-red-500 text-xs mt-1" x-show="errors.email" x-text="errors.email"></span>
             </div>
 
             <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
+                <x-label for="password" value="Contraseña" />
                 <div class="relative">
-                    <x-input id="password" class="block mt-1 w-full pr-10" type="password" name="password" required autocomplete="current-password" x-model="password" x-bind:type="showPassword ? 'text' : 'password'" />
+                    <x-input id="password" 
+                             class="block mt-1 w-full pr-10" 
+                             x-bind:type="showPassword ? 'text' : 'password'" 
+                             name="password" 
+                             required 
+                             autocomplete="current-password" 
+                             x-model="password" />
+                    
                     <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600 hover:text-gray-900 focus:outline-none">
                         <template x-if="!showPassword">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -67,19 +74,19 @@
             <div class="block mt-4">
                 <label for="remember_me" class="flex items-center">
                     <x-checkbox id="remember_me" name="remember" />
-                    <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+                    <span class="ms-2 text-sm text-gray-600">Recordarme</span>
                 </label>
             </div>
 
             <div class="flex items-center justify-end mt-4">
                 @if (Route::has('password.request'))
                     <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                        {{ __('Forgot your password?') }}
+                        ¿Olvidaste tu contraseña?
                     </a>
                 @endif
 
                 <x-button class="ms-4">
-                    {{ __('Log in') }}
+                    INICIAR SESIÓN
                 </x-button>
             </div>
         </form>

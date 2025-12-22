@@ -12,7 +12,6 @@ use Laravel\Sanctum\HasApiTokens;
 
 // Importaciones de Eloquent para relaciones
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Reserva; // Aseguramos que el modelo Reserva esté disponible
 
 class User extends Authenticatable
 {
@@ -24,9 +23,6 @@ class User extends Authenticatable
 
     /**
      * Los atributos que son asignables en masa (Mass Assignable).
-     *
-     * Se ha verificado que 'role' esté en $fillable, ya que es fundamental para
-     * la lógica de tu aplicación (admin, owner, user).
      *
      * @var array<int, string>
      */
@@ -70,37 +66,43 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            // El campo two_factor_confirmed_at se castea automáticamente por el trait.
         ];
     }
     
-    // --- RELACIONES PARA SPRINT 6 ---
+    // ============================================================
+    // RELACIONES
+    // ============================================================
 
     /**
-     * NUEVA RELACIÓN: Un usuario puede tener muchas reservas.
-     * Esto aplica para el rol 'user' (el que alquila) y 'owner' (el que recibe la reserva).
-     * Nota: Si un 'owner' también es el que gestiona la cancha, esta es la relación de las reservas que hizo como cliente.
+     * Un usuario puede tener muchas reservas.
      */
     public function reservas(): HasMany
     {
         return $this->hasMany(Reserva::class);
     }
     
-    // --- RELACIONES ADICIONALES ---
-
     /**
      * Un usuario con rol 'owner' puede tener múltiples canchas.
-     * Es crucial para que los dueños administren sus canchas.
      */
     public function canchas(): HasMany
     {
         return $this->hasMany(Cancha::class);
     }
 
-    // --- AYUDAS Y ROLES ---
+    /**
+     * Relación con teléfonos secundarios.
+     */
+    public function secondaryPhones(): HasMany
+    {
+        return $this->hasMany(UserPhone::class);
+    }
+
+    // ============================================================
+    // MÉTODOS DE AYUDA PARA ROLES
+    // ============================================================
 
     /**
-     * Método de ayuda para verificar el rol.
+     * Método genérico para verificar el rol.
      */
     public function hasRole(string $role): bool
     {
@@ -108,7 +110,7 @@ class User extends Authenticatable
     }
     
     /**
-     * Verifica si el usuario es un dueño de cancha.
+     * Verifica si el usuario es un dueño de cancha (owner).
      */
     public function isOwner(): bool
     {
@@ -116,15 +118,19 @@ class User extends Authenticatable
     }
     
     /**
-     * Verifica si el usuario es un administrador.
+     * Verifica si el usuario es un administrador (admin).
      */
     public function isAdmin(): bool
     {
         return $this->hasRole('admin');
     }
 
-    public function secondaryPhones()
+    /**
+     * Verifica si el usuario es un cliente normal (user).
+     * Fundamental para la lógica del Modo Oscuro.
+     */
+    public function isUser(): bool
     {
-        return $this->hasMany(UserPhone::class);
+        return $this->role === 'user';
     }
 }
