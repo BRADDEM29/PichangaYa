@@ -235,5 +235,7 @@
             </div>
         </div>
     </footer>
+    {{-- Llamada al componente de Tarjeta Urgente --}}
+    <x-urgent-booking-card />
 </body>
 </html>

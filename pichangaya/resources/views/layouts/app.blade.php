@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es"> {{-- Cambiado a español --}}
+{{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\layouts\app.blade.php --}}
+<html lang="es">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,12 +12,10 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
     @php
-        // Ahora funcionará porque agregamos el método en el Modelo User
         $canUseDarkMode = auth()->check() && auth()->user()->isUser();
     @endphp
 
     <script>
-        // Si es admin o dueño, forzamos modo claro. Si es usuario, respetamos su elección.
         const canUseDarkMode = @json($canUseDarkMode);
         
         if (canUseDarkMode) {
@@ -26,7 +25,6 @@
                 document.documentElement.classList.remove('dark');
             }
         } else {
-            // Forzar modo claro para Admins y Dueños
             document.documentElement.classList.remove('dark');
             document.documentElement.classList.add('light');
         }
@@ -54,5 +52,8 @@
 
     @stack('modals')
     @livewireScripts
+
+    {{-- Llamada al componente de Tarjeta Urgente (Saltarina) --}}
+    <x-urgent-booking-card />
 </body>
 </html>
