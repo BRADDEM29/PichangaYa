@@ -1,5 +1,5 @@
 <nav x-data="{ open: false, darkMode: localStorage.getItem('dark-mode') === 'true' }" class="bg-gray-900/90 backdrop-blur-md border-b border-gray-700 shadow-lg sticky top-0 z-50">
-     {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\navigation-menu.blade.php --}}
+    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\navigation-menu.blade.php --}}
     @php
         $displayName = '';
         $bellReserva = null;
@@ -11,6 +11,7 @@
                 $displayName = strtok($user->name, ' '); 
             }
 
+            // Lógica para la campanita de reservas recientes
             $bellReserva = \App\Models\Reserva::where('user_id', auth()->id())
                 ->where('created_at', '>', now()->subMinutes(12)) 
                 ->with('cancha')
@@ -31,11 +32,17 @@
             animation: swing 2s infinite ease-in-out;
             transform-origin: top center;
         }
+        /* Fuente digital para el reloj */
+        .font-digital {
+            font-family: 'Courier New', Courier, monospace;
+            font-variant-numeric: tabular-nums;
+        }
     </style>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             
+            {{-- LOGO Y LINKS IZQUIERDA --}}
             <div class="flex items-center">
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('home') }}" id="tour-logo" class="flex items-center"> 
@@ -57,6 +64,7 @@
                             </a>
                         </div>
 
+                        {{-- BOTONES ADMIN / OWNER --}}
                         <div class="hidden lg:flex items-center gap-2 ms-4">
                             @if (Auth::user()->role === 'admin')
                                 <x-dropdown align="right" width="48" contentClasses="py-1 bg-white dark:bg-gray-800">
@@ -71,7 +79,6 @@
                                         <x-dropdown-link href="{{ route('admin.dashboard') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Ver Resumen') }}</x-dropdown-link>
                                         <div class="border-t border-gray-100 dark:border-gray-700"></div>
                                         
-                                        {{-- 🟢 BOTONES NORMALIZADOS --}}
                                         <x-dropdown-link href="{{ route('admin.contacts.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Consultas') }}</x-dropdown-link>
                                         <x-dropdown-link href="{{ route('admin.suggestions.received') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Sugerencias') }}</x-dropdown-link>
 
@@ -108,8 +115,10 @@
                 </div>
             </div>
 
+            {{-- MENU DERECHA (Notificaciones + Perfil) --}}
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 @auth
+                    {{-- 🔔 CAMPANITA DE NOTIFICACIONES --}}
                     <div class="ml-3 relative" x-data="{ open: false }">
                         <button @click="open = ! open" class="relative p-1 rounded-full text-gray-400 hover:text-white focus:outline-none transition-colors">
                             <span class="sr-only">Notificaciones</span>
@@ -134,22 +143,36 @@
                                     <a href="{{ route('notifications.read', $notification->id) }}" class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700">
                                         <div class="flex items-start">
                                             <div class="flex-shrink-0 pt-0.5">
+                                                {{-- Iconos dinámicos --}}
                                                 @if(($notification->data['icono'] ?? '') == 'currency_exchange') <span class="text-yellow-600 text-xl">💲</span>
                                                 @elseif(($notification->data['icono'] ?? '') == 'check_circle') <span class="text-green-600 text-xl">✓</span>
                                                 @elseif(($notification->data['icono'] ?? '') == 'cancel') <span class="text-red-600 text-xl">✕</span>
                                                 @elseif(($notification->data['icono'] ?? '') == 'hourglass_empty') <span class="text-orange-500 text-xl">⏳</span>
                                                 @elseif(($notification->data['icono'] ?? '') == 'mail') <span class="text-blue-500 text-xl">📩</span>
                                                 @elseif(($notification->data['icono'] ?? '') == 'lightbulb') <span class="text-yellow-500 text-xl">💡</span>
+                                                @elseif(($notification->data['icono'] ?? '') == 'warning') <span class="text-red-600 text-xl">⚠️</span>
                                                 @else <span class="text-blue-500 text-xl">ℹ</span> @endif
                                             </div>
                                             <div class="ml-3 w-0 flex-1">
                                                 <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $notification->data['titulo'] ?? 'Notificación' }}</p>
+                                                
+                                                {{-- 🟢 TEMPORIZADOR MEJORADO PARA EL CLIENTE Y ADMIN --}}
                                                 @if(isset($notification->data['expiry_ts']))
-                                                    <p class="text-xs font-bold text-orange-600 notif-timer" data-expiry="{{ $notification->data['expiry_ts'] }}">Calculando...</p>
+                                                    <div class="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-between group-timer">
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="animate-pulse text-xs">⏳</span>
+                                                            <span class="text-xs font-bold text-gray-500 dark:text-gray-300">Expira en:</span>
+                                                        </div>
+                                                        <span class="font-digital text-sm font-bold text-orange-600 dark:text-orange-400 notif-timer tracking-widest" 
+                                                              data-expiry="{{ $notification->data['expiry_ts'] }}">
+                                                            Calculando...
+                                                        </span>
+                                                    </div>
                                                 @else
-                                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ Str::limit($notification->data['mensaje'] ?? '', 50) }}</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ Str::limit($notification->data['mensaje'] ?? '', 50) }}</p>
                                                 @endif
-                                                <p class="mt-1 text-xs text-gray-400">{{ $notification->created_at->diffForHumans() }}</p>
+                                                
+                                                <p class="mt-1 text-[10px] text-gray-400 text-right">{{ $notification->created_at->diffForHumans() }}</p>
                                             </div>
                                         </div>
                                     </a>
@@ -163,6 +186,7 @@
                         </div>
                     </div>
 
+                    {{-- PERFIL --}}
                     <div class="ms-3 relative">
                         <x-dropdown align="right" width="48" contentClasses="py-1 bg-white dark:bg-gray-800">
                             <x-slot name="trigger">
@@ -191,9 +215,12 @@
                                 @endif
 
                                 <div class="border-t border-gray-200 dark:border-gray-700"></div>
+                                
+                                {{-- 🔴 CORRECCIÓN CRÍTICA LOGOUT ESCRITORIO --}}
                                 <form method="POST" action="{{ route('logout') }}" x-data>
                                     @csrf
-                                    <x-dropdown-link href="{{ route('logout') }}" @click.prevent="$root.submit();" class="dark:text-white dark:hover:bg-gray-700 font-bold text-red-500">
+                                    {{-- EL HREF DEBE SER #, NO LA RUTA. SI PONES LA RUTA, LARAVEL INTENTA UN GET Y DA ERROR 419 --}}
+                                    <x-dropdown-link href="#" @click.prevent="$root.submit();" class="dark:text-white dark:hover:bg-gray-700 font-bold text-red-500">
                                         {{ __('Cerrar Sesión') }}
                                     </x-dropdown-link>
                                 </form>
@@ -201,6 +228,7 @@
                         </x-dropdown>
                     </div>
                 @else
+                    {{-- LOGIN / REGISTER --}}
                     <div class="space-x-4 flex items-center">
                         <a href="{{ route('login') }}" class="text-sm text-white font-bold hover:text-green-400 transition">Iniciar Sesión</a>
                         <a href="{{ route('register') }}" class="bg-green-600 text-white text-sm font-bold py-2 px-4 rounded hover:bg-green-700 transition shadow-md border border-green-700">Registrarse</a>
@@ -208,6 +236,7 @@
                 @endauth
             </div>
 
+            {{-- HAMBURGER --}}
             <div class="-me-2 flex items-center sm:hidden">
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none focus:bg-gray-800 focus:text-white transition duration-150 ease-in-out">
                     <svg class="size-6" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /><path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -223,7 +252,6 @@
                 {{ __('Inicio') }}
             </x-responsive-nav-link>
             
-            {{-- 🔴 CONDICIONAL: MODO OSCURO MÓVIL SOLO PARA CLIENTES --}}
             @auth
                 @if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'owner')
                     <x-responsive-nav-link @click="darkMode = !darkMode; localStorage.setItem('dark-mode', darkMode); document.documentElement.classList.toggle('dark')" class="cursor-pointer text-gray-300 hover:text-white font-bold">
@@ -262,9 +290,12 @@
                         <x-responsive-nav-link href="{{ route('profile.show') }}" :active="request()->routeIs('profile.show')" class="text-gray-300 hover:text-white font-bold">
                             {{ __('Perfil') }}
                         </x-responsive-nav-link>
+                        
+                        {{-- 🔴 CORRECCIÓN CRÍTICA LOGOUT MÓVIL --}}
                         <form method="POST" action="{{ route('logout') }}" x-data>
                             @csrf
-                            <x-responsive-nav-link href="{{ route('logout') }}" @click.prevent="$root.submit();" class="text-red-400 hover:text-red-300 font-bold">
+                            {{-- IGUAL AQUI: href="#" PARA QUE JS MANEJE EL ENVIO --}}
+                            <x-responsive-nav-link href="#" @click.prevent="$root.submit();" class="text-red-400 hover:text-red-300 font-bold">
                                 {{ __('Cerrar Sesión') }}
                             </x-responsive-nav-link>
                         </form>
@@ -273,4 +304,48 @@
             @endauth
         </div>
     </div>
+
+    {{-- 🟢 SCRIPT DE TEMPORIZADOR MEJORADO --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const timerElements = document.querySelectorAll('.notif-timer');
+            
+            if(timerElements.length === 0) return;
+
+            function updateMenuTimers() {
+                const now = new Date().getTime();
+                
+                timerElements.forEach(el => {
+                    const expiry = parseInt(el.getAttribute('data-expiry'));
+                    const distance = expiry - now;
+                    
+                    if (distance < 0) {
+                        el.innerHTML = "EXPIRADO";
+                        // Cambiar estilos al expirar
+                        el.classList.remove('text-orange-600', 'dark:text-orange-400');
+                        el.classList.add('text-red-600', 'dark:text-red-500'); 
+                        el.parentElement.classList.add('bg-red-50', 'dark:bg-red-900/20', 'border-red-200');
+                        return;
+                    }
+                    
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    
+                    // Formato Digital 00:00
+                    const formattedMin = minutes < 10 ? '0' + minutes : minutes;
+                    const formattedSec = seconds < 10 ? '0' + seconds : seconds;
+                    
+                    el.innerHTML = `${formattedMin}:${formattedSec}`;
+
+                    // Alerta visual si queda menos de 2 minutos
+                    if(minutes < 2) {
+                        el.classList.add('text-red-500', 'animate-pulse');
+                    }
+                });
+            }
+
+            setInterval(updateMenuTimers, 1000);
+            updateMenuTimers(); 
+        });
+    </script>
 </nav>

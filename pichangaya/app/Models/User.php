@@ -33,6 +33,8 @@ class User extends Authenticatable
         'role', 
         'profile_photo_path',
         'phone',
+        'consecutive_cancellations', 
+        'is_blocked',
     ];
 
     /**

@@ -31,41 +31,65 @@ class ReservaObserver
         if ($reserva->isDirty('status')) {
             
             $user = $reserva->user;
+            $nuevoEstado = $reserva->status;
 
-            // =========================================================
-            // 🔒 LÓGICA DE SEGURIDAD (Strikes y Bloqueos)
-            // =========================================================
-
-            // CASO 1: ÉXITO (Resetear contador de mal comportamiento)
-            // Si el usuario completa el pago (total o parcial), perdonamos sus pecados anteriores.
-            if (in_array($reserva->status, ['confirmed', 'advance_paid', 'fully_paid'])) {
-                if ($user->consecutive_cancellations > 0) {
-                    $user->consecutive_cancellations = 0;
-                    $user->save();
-                }
+            // =================================================================
+            // 1. LIMPIEZA DE NOTIFICACIONES (Sincronización Campanita)
+            // =================================================================
+            // Si la reserva deja de estar pendiente (se paga o cancela),
+            // buscamos la notificación de "Pago Pendiente" y la marcamos como leída.
+            if ($nuevoEstado !== 'pending') {
+                $user->unreadNotifications
+                     ->filter(function ($notification) use ($reserva) {
+                         // Buscamos notificaciones asociadas a esta reserva específica
+                         return isset($notification->data['reserva_id']) && 
+                                $notification->data['reserva_id'] === $reserva->id &&
+                                isset($notification->data['expiry_ts']); // Que sea la del temporizador
+                     })
+                     ->markAsRead();
             }
 
-            // CASO 2: CANCELACIÓN (Aumentar strikes)
-            if ($reserva->status === 'cancelled') {
-                $user->increment('consecutive_cancellations');
-                
-                // REGLA DEL 3ER STRIKE (Advertencia Administrativa)
-                if ($user->consecutive_cancellations == 3) {
-                    $admins = User::where('role', 'admin')->get();
-                    if($admins->count() > 0) {
-                        Notification::send($admins, new AlertaConductaUsuario($user, 3));
+            // =================================================================
+            // 2. SISTEMA DE STRIKES (Solo para Usuarios, no Admins/Owners)
+            // =================================================================
+            // Solo aplicamos castigos a usuarios normales, no al staff
+            if ($user->role === 'user') {
+
+                // CASO A: ÉXITO (PAGÓ) -> Perdonamos pecados
+                // Si el usuario completa el pago (total o parcial), perdonamos sus pecados anteriores.
+                if (in_array($nuevoEstado, ['advance_paid', 'fully_paid'])) {
+                    if ($user->consecutive_cancellations > 0) {
+                        $user->consecutive_cancellations = 0;
+                        $user->save();
                     }
                 }
 
-                // REGLA DEL 4TO STRIKE (Bloqueo Definitivo)
-                if ($user->consecutive_cancellations >= 4) {
-                    $user->is_blocked = true;
-                    $user->save();
+                // CASO B: CANCELACIÓN -> Castigo (Aumentar strikes)
+                if ($nuevoEstado === 'cancelled') {
+                    $user->increment('consecutive_cancellations');
                     
-                    // Notificar a Admins del bloqueo automático
-                    $admins = User::where('role', 'admin')->get();
-                    if($admins->count() > 0) {
-                        Notification::send($admins, new AlertaConductaUsuario($user, 4));
+                    // --- 3er STRIKE: ADVERTENCIA DEL TERROR ---
+                    // Guardamos una variable de sesión "flash" para mostrar el Overlay Rojo en la vista
+                    if ($user->consecutive_cancellations == 3) {
+                        session()->flash('warning_strike_level', 3);
+                        
+                        // Opcional: Notificar también a los admins
+                        $admins = User::where('role', 'admin')->get();
+                        if($admins->count() > 0) {
+                            Notification::send($admins, new AlertaConductaUsuario($user, 3));
+                        }
+                    }
+
+                    // --- 4to STRIKE: BLOQUEO DEFINITIVO ---
+                    if ($user->consecutive_cancellations >= 4) {
+                        $user->is_blocked = true;
+                        $user->save();
+                        
+                        // Notificar a Admins del bloqueo automático
+                        $admins = User::where('role', 'admin')->get();
+                        if($admins->count() > 0) {
+                            Notification::send($admins, new AlertaConductaUsuario($user, 4));
+                        }
                     }
                 }
             }

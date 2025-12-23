@@ -124,6 +124,9 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         
+        // 🟢 RUTA PARA ACTUALIZAR STRIKES
+        Route::put('users/{user}/strikes', [AdminUserController::class, 'updateStrikes'])
+            ->name('users.update_strikes');
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
         // Reportes

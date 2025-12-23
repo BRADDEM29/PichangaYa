@@ -216,4 +216,25 @@ class AdminUserController extends Controller
         $status = $user->is_blocked ? 'bloqueado' : 'desbloqueado';
         return back()->with('success', "Usuario $status correctamente.");
     }
+    // 8. GESTIONAR STRIKES MANUALMENTE
+    public function updateStrikes(Request $request, User $user)
+    {
+        // Seguridad: Solo admin puede hacer esto
+        if (Auth::user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $request->validate([
+            'strikes' => 'required|integer|min:0|max:10',
+        ]);
+
+        $user->consecutive_cancellations = $request->strikes;
+        
+        // Si le ponemos menos de 4 strikes y estaba bloqueado, podríamos desbloquearlo opcionalmente
+        // pero mejor respetamos el bloqueo manual. Solo reseteamos el contador.
+        
+        $user->save();
+
+        return back()->with('success', "Strikes actualizados a: {$request->strikes}");
+    }
 }

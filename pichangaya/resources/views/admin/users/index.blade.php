@@ -93,6 +93,8 @@
                                 <th class="px-6 py-3">Email / Celular</th>
                                 <th class="px-6 py-3 text-center">Rol Actual</th>
                                 <th class="px-6 py-3 text-center">Estado</th>
+                                {{-- 🟢 COLUMNA STRIKES --}}
+                                <th class="px-6 py-3 text-center">Strikes</th>
                                 <th class="px-6 py-3 text-right">Acción</th>
                             </tr>
                         </thead>
@@ -146,6 +148,30 @@
                                         @endif
                                     </td>
 
+                                    {{-- 🟢 GESTIÓN DE STRIKES --}}
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if(!$user->is_blocked && $user->role === 'user')
+                                            <div class="text-sm text-gray-900 dark:text-white font-bold text-center">
+                                                {{ $user->consecutive_cancellations }}
+                                            </div>
+                                            
+                                            <form action="{{ route('admin.users.update_strikes', $user) }}" method="POST" class="mt-2 flex items-center justify-center gap-1">
+                                                @csrf
+                                                @method('PUT')
+                                                
+                                                <button type="submit" name="strikes" value="{{ max(0, $user->consecutive_cancellations - 1) }}" 
+                                                        class="bg-green-200 text-green-800 hover:bg-green-300 rounded px-2 py-0.5 text-xs font-bold"
+                                                        title="Quitar un Strike">-</button>
+                                                
+                                                <button type="submit" name="strikes" value="{{ $user->consecutive_cancellations + 1 }}" 
+                                                        class="bg-red-200 text-red-800 hover:bg-red-300 rounded px-2 py-0.5 text-xs font-bold"
+                                                        title="Agregar un Strike">+</button>
+                                            </form>
+                                        @else
+                                            <div class="text-center text-xs text-gray-400">-</div>
+                                        @endif
+                                    </td>
+
                                     {{-- ACCIONES --}}
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex justify-end items-center gap-2">
@@ -196,7 +222,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-6 py-12 text-center">
+                                    <td colspan="7" class="px-6 py-12 text-center">
                                         <div class="flex flex-col items-center justify-center">
                                             <span class="text-4xl mb-2">🔍</span>
                                             <p class="text-gray-500 font-bold">No se encontraron usuarios.</p>

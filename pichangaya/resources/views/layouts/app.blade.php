@@ -34,6 +34,9 @@
     @livewireStyles
 </head>
 <body class="font-sans antialiased">
+    <x-strike-warning-overlay />
+    {{-- ✅ NUEVO: Componente Livewire Inteligente (Polling) --}}
+    @livewire('strike-warning')
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
         @livewire('navigation-menu')
 

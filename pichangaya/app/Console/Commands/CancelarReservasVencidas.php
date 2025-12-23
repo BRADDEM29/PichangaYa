@@ -1,4 +1,5 @@
 <?php
+// C:\laragon\www\PichangaYa\pichangaya\app\Console\Commands\CancelarReservasVencidas.php
 
 namespace App\Console\Commands;
 
@@ -8,16 +9,28 @@ use Carbon\Carbon;
 
 class CancelarReservasVencidas extends Command
 {
-    protected $signature = 'reservas:expirar';
-    protected $description = 'Cancela reservas pendientes que tienen más de 10 minutos de antigüedad';
+    // Puedes mantener tu firma antigua si ya la tienes configurada en el Cron
+    protected $signature = 'reservas:expirar'; 
+    protected $description = 'Cancela reservas pendientes de > 10 min y APLICA STRIKES';
 
     public function handle()
     {
-        // Buscar reservas pendientes creadas hace más de 10 minutos
-        $afectadas = Reserva::where('status', 'pending')
+        // Buscamos las reservas vencidas (damos 2 min de gracia por latencia)
+        $reservas = Reserva::where('status', 'pending')
             ->where('created_at', '<', Carbon::now()->subMinutes(10))
-            ->update(['status' => 'cancelled']);
+            ->get(); // IMPORTANTE: Usar get() para traer los modelos
 
-        $this->info("Se cancelaron $afectadas reservas vencidas.");
+        $count = 0;
+
+        foreach ($reservas as $reserva) {
+            // Al guardar así, se activa el OBSERVER y cuenta el Strike
+            $reserva->status = 'cancelled';
+            $reserva->save();
+            $count++;
+            
+            $this->info("Reserva #{$reserva->id} cancelada. Strike aplicado.");
+        }
+
+        $this->info("Proceso finalizado. Se cancelaron $count reservas.");
     }
 }
