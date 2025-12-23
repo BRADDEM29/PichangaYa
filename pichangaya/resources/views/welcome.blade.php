@@ -18,6 +18,8 @@
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    {{-- LIBRERÍAS PARA EL CARRUSEL (Alpine.js) --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
@@ -96,7 +98,27 @@
         </div>
     </div>
 
-    {{-- 2. LISTADO DE CANCHAS --}}
+    {{-- 2. CARRUSEL (SEPARADO) --}}
+{{-- 
+    MEJORA: Usamos request('search') en lugar de has('search') 
+    porque has() devuelve true incluso si el buscador está vacío. 
+--}}
+@if(isset($featuredCanchas) && $featuredCanchas->isNotEmpty() && !request('search') && !request('sport_id') && !request('district_id'))
+    <div class="bg-white dark:bg-gray-900 py-12"> {{-- Fondo blanco y separación --}}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="text-3xl">⭐</span>
+               <h3 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-wide">Mejores Canchas</h3>
+            </div>
+            
+            {{-- Llamada al componente --}}
+            <x-carousel :items="$featuredCanchas" />
+            
+        </div>
+    </div>
+@endif
+
+    {{-- 3. LISTADO DE CANCHAS --}}
     <section class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 border-l-4 border-green-600 pl-4">
             Canchas Disponibles
@@ -149,7 +171,7 @@
         @endif
     </section>
 
-    {{-- 3. SECCIÓN ¿QUIÉNES SOMOS? (ESTÁTICA EN HOME) --}}
+    {{-- 4. SECCIÓN ¿QUIÉNES SOMOS? --}}
     <section class="py-16 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">
@@ -175,7 +197,6 @@
     <footer class="bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-300 pt-16 pb-8 border-t border-gray-200 dark:border-gray-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-                
                 <div class="space-y-4">
                     <h4 class="text-2xl font-black italic text-gray-900 dark:text-white">
                         ⚽ Pichanga<span class="text-green-500">Ya</span>
@@ -183,14 +204,11 @@
                     <p class="text-sm opacity-80">Encuentra y reserva en las mejores canchas de Cusco.</p>
                 </div>
 
-                {{-- EXPLORAR CON EL ORDEN SOLICITADO --}}
                 <div>
                     <h5 class="text-sm font-bold uppercase tracking-widest text-gray-900 dark:text-white mb-6">Explorar</h5>
                     <ul class="space-y-4 text-sm font-medium">
                         <li><a href="{{ route('home') }}" class="hover:text-green-500 transition">🔍 Buscar Canchas</a></li>
-                        {{-- BOTÓN REGISTRA TU CANCHA --}}
                         <li><a href="{{ route('register-pitch') }}" class="text-green-600 dark:text-green-400 font-bold hover:underline">🏟️ Registra tu Cancha</a></li>
-                        {{-- BOTÓN ¿QUIÉNES SOMOS? QUE LLEVA AL APARTADO /NOSOTROS --}}
                         <li><a href="{{ route('about') }}" class="hover:text-green-500 transition">¿Quiénes somos?</a></li>
                     </ul>
                 </div>

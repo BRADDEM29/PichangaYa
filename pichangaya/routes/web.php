@@ -31,15 +31,24 @@ use App\Models\Sport;
 */
 Route::get('/', function (Request $request) {
     
-    // 🟢 SUPER FILTRO DE SEGURIDAD
-    // Filtra canchas inactivas y canchas de dueños bloqueados o eliminados
-    $query = Cancha::with(['media', 'district', 'sports'])
-        ->where('is_active', true) // 1. Que la cancha esté activa
+    // 🟢 BASE DE SEGURIDAD (Compartida para Carrusel y Listado)
+    // Solo canchas activas de dueños no bloqueados
+    $baseQuery = Cancha::with(['media', 'district', 'sports'])
+        ->where('is_active', true)
         ->whereHas('user', function ($q) {
-            $q->where('is_blocked', false); // 2. Que el dueño NO esté bloqueado
+            $q->where('is_blocked', false);
         });
-        // Nota: 'whereHas' ya hace el trabajo de 'has' (verificar que exista el usuario), 
-        // así que mata dos pájaros de un tiro.
+
+    // 1. OBTENER CANCHAS PARA EL CARRUSEL (Destacadas)
+    // Clonamos la base para no mezclar con los filtros de búsqueda
+    $featuredCanchas = (clone $baseQuery)
+        ->where('is_featured', true)
+        ->latest()
+        ->take(6) 
+        ->get();
+
+    // 2. OBTENER CANCHAS PARA EL LISTADO (Con filtros aplicados)
+    $query = clone $baseQuery;
 
     if ($request->filled('search')) {
         $search = $request->input('search');
@@ -61,8 +70,11 @@ Route::get('/', function (Request $request) {
     $districts = District::all();
     $sports = Sport::all();
 
-    return view('welcome', compact('canchas', 'districts', 'sports'));
+    // 💡 AGREGADO: 'featuredCanchas' se envía a la vista
+    return view('welcome', compact('canchas', 'districts', 'sports', 'featuredCanchas'));
 })->name('home');
+
+
 
 // RUTAS PÚBLICAS
 Route::get('/contacto', function () { return view('pages.contact'); })->name('contact.index');
