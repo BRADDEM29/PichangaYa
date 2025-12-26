@@ -1,25 +1,30 @@
 <x-form-section submit="updateProfileInformation">
     <x-slot name="title">
-        {{ __('Información del Perfil') }}
+        <span class="text-gray-900 dark:text-gray-100">{{ __('Información del Perfil') }}</span>
     </x-slot>
 
     <x-slot name="description">
-        {{ __('Actualiza la información de tu cuenta, correo electrónico y número de contacto.') }}
+        <span class="text-gray-600 dark:text-gray-400">{{ __('Actualiza la información de tu cuenta, correo electrónico y número de contacto.') }}</span>
     </x-slot>
 
     <x-slot name="form">
+        {{-- Estilo para forzar el fondo oscuro de la cartilla principal --}}
+        <style>
+            .dark .bg-white { background-color: #111827 !important; } {{-- gray-900 --}}
+            .dark .bg-gray-50 { background-color: #1f2937 !important; } {{-- gray-800 para el área de botones --}}
+        </style>
+
         @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-            <div x-data="{photoName: null, photoPreview: null}" class="col-span-6 sm:col-span-6 border-b border-gray-200 pb-6 mb-4">
+            <div x-data="{photoName: null, photoPreview: null}" class="col-span-6 sm:col-span-6 border-b border-gray-200 dark:border-gray-700 pb-6 mb-4">
                 
-                {{-- Título y Descripción solicitados --}}
-                <div class="mb-4">
-                    <h3 class="block font-medium text-sm text-gray-700 font-bold">Imagen de perfil</h3>
-                    <p class="text-sm text-gray-500 mt-1">
+                {{-- Bloque de texto de Imagen de Perfil con fondo oscuro --}}
+                <div class="mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <h3 class="block font-medium text-sm text-gray-700 dark:text-gray-200 font-bold">Imagen de perfil</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         Si añades una foto, otras personas podrán reconocerte y sabrás si has iniciado sesión en tu cuenta.
                     </p>
                 </div>
 
-                {{-- Input Oculto (Maneja la subida del archivo) --}}
                 <input type="file" id="photo" class="hidden"
                             wire:model.live="photo"
                             x-ref="photo"
@@ -33,35 +38,22 @@
                             " />
 
                 <div class="flex items-center gap-6">
-                    {{-- 1. CÍRCULO DE FOTO --}}
                     <div>
                         <div class="mt-2" x-show="! photoPreview">
-                            <img src="{{ $this->user->profile_photo_url }}" 
-                                 alt="{{ $this->user->name }}" 
-                                 class="rounded-full h-20 w-20 object-cover border-2 border-gray-100 shadow-sm">
+                            <img src="{{ $this->user->profile_photo_url }}" alt="{{ $this->user->name }}" class="rounded-full h-20 w-20 object-cover border-2 border-gray-100 dark:border-gray-700 shadow-sm">
                         </div>
 
                         <div class="mt-2" x-show="photoPreview" style="display: none;">
-                            <span class="block rounded-full h-20 w-20 bg-cover bg-no-repeat bg-center border-2 border-gray-100 shadow-sm"
+                            <span class="block rounded-full h-20 w-20 bg-cover bg-no-repeat bg-center border-2 border-gray-100 dark:border-gray-700 shadow-sm"
                                   x-bind:style="'background-image: url(\'' + photoPreview + '\');'">
                             </span>
                         </div>
                     </div>
 
-                    {{-- 2. BOTONES DE ACCIÓN --}}
                     <div class="flex flex-col gap-2">
-                        {{-- Botón Cambiar --}}
                         <x-secondary-button class="justify-center" type="button" x-on:click.prevent="$refs.photo.click()">
                             {{ __('Cambiar') }}
                         </x-secondary-button>
-
-                        {{-- Botón Retirar (Solo aparece si el usuario subió una foto personalizada) --}}
-                        @if ($this->user->profile_photo_path)
-                            <x-secondary-button type="button" class="justify-center text-red-600 hover:text-red-800 hover:bg-red-50 border-red-200" wire:click="deleteProfilePhoto">
-                                {{ __('Retirar') }}
-                            </x-secondary-button>
-                        @endif
-
                         <x-input-error for="photo" class="mt-2" />
                     </div>
                 </div>
@@ -69,39 +61,22 @@
         @endif
 
         <div class="col-span-6 sm:col-span-4">
-            <x-label for="name" value="{{ __('Nombre') }}" />
-            <x-input id="name" type="text" class="mt-1 block w-full" wire:model="state.name" required autocomplete="name" />
+            <x-label for="name" value="{{ __('Nombre') }}" class="dark:text-gray-300" />
+            <x-input id="name" type="text" class="mt-1 block w-full dark:bg-gray-900 dark:text-white dark:border-gray-700" wire:model="state.name" required />
             <x-input-error for="name" class="mt-2" />
         </div>
 
         <div class="col-span-6 sm:col-span-4">
-            <x-label for="email" value="{{ __('Correo Electrónico') }}" />
-            <x-input id="email" type="email" class="mt-1 block w-full" wire:model="state.email" required autocomplete="username" />
+            <x-label for="email" value="{{ __('Correo Electrónico') }}" class="dark:text-gray-300" />
+            <x-input id="email" type="email" class="mt-1 block w-full dark:bg-gray-900 dark:text-white dark:border-gray-700" wire:model="state.email" required />
             <x-input-error for="email" class="mt-2" />
-
-            @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::emailVerification()) && ! $this->user->hasVerifiedEmail())
-                <p class="text-sm mt-2 text-gray-600">
-                    {{ __('Tu dirección de correo no está verificada.') }}
-
-                    <button type="button" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" wire:click.prevent="sendEmailVerification">
-                        {{ __('Haz clic aquí para reenviar el correo de verificación.') }}
-                    </button>
-                </p>
-
-                @if ($this->verificationLinkSent)
-                    <p class="mt-2 font-medium text-sm text-green-600">
-                        {{ __('Se ha enviado un nuevo enlace de verificación a tu correo.') }}
-                    </p>
-                @endif
-            @endif
         </div>
 
         <div class="col-span-6 sm:col-span-4">
-            <x-label for="phone" value="{{ __('Número de Celular') }}" />
-            <x-input id="phone" type="text" class="mt-1 block w-full" wire:model="state.phone" required placeholder="" />
+            <x-label for="phone" value="{{ __('Número de Celular') }}" class="dark:text-gray-300" />
+            <x-input id="phone" type="text" class="mt-1 block w-full dark:bg-gray-900 dark:text-white dark:border-gray-700" wire:model="state.phone" required />
             <x-input-error for="phone" class="mt-2" />
         </div>
-
     </x-slot>
 
     <x-slot name="actions">
