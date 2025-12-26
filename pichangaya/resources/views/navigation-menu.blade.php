@@ -46,6 +46,7 @@
             {{-- LOGO Y LINKS IZQUIERDA --}}
             <div class="flex items-center">
                 <div class="shrink-0 flex items-center">
+                    {{-- ID: tour-logo mantenido --}}
                     <a href="{{ route('home') }}" id="tour-logo" class="flex items-center"> 
                         <x-application-mark class="block h-12 w-auto text-white fill-current transition hover:scale-105" />
                     </a>
@@ -60,7 +61,8 @@
 
                     @auth
                         <div class="relative group">
-                            <a href="{{ route('reservas.user.index') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out {{ request()->routeIs('reservas.user.*') ? 'text-green-400 border-b-2 border-green-400' : 'text-white hover:text-green-300' }}">
+                            {{-- ✅ CAMBIO IMPORTANTE: ID actualizado a 'tour-mis-reservas' para coincidir con app.js --}}
+                            <a href="{{ route('reservas.user.index') }}" id="tour-mis-reservas" class="inline-flex items-center px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out {{ request()->routeIs('reservas.user.*') ? 'text-green-400 border-b-2 border-green-400' : 'text-white hover:text-green-300' }}">
                                 {{ __('Mis Reservas') }}
                             </a>
                         </div>
@@ -70,7 +72,7 @@
                             @if (Auth::user()->role === 'admin')
                                 <x-dropdown align="right" width="48" contentClasses="py-1 bg-white dark:bg-gray-800">
                                     <x-slot name="trigger">
-                                        <button type="button" class="w-44 justify-center inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-bold rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none transition shadow-sm">
+                                        <button id="tour-admin" type="button" class="w-44 justify-center inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-bold rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none transition shadow-sm">
                                             {{ __('🛡️ Admin') }}
                                             <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </button>
@@ -99,7 +101,7 @@
                             @if (Auth::user()->role === 'owner' || Auth::user()->role === 'admin')
                                 <x-dropdown align="right" width="48" contentClasses="py-1 bg-white dark:bg-gray-800">
                                     <x-slot name="trigger">
-                                        <button type="button" class="w-44 justify-center inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-bold rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none transition shadow-sm">
+                                        <button id="tour-proveedor" type="button" class="w-44 justify-center inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-bold rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none transition shadow-sm">
                                             {{ __('⚽ Proveedor') }}
                                             <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </button>
@@ -121,7 +123,8 @@
                 @auth
                     {{-- 🔔 CAMPANITA DE NOTIFICACIONES --}}
                     <div class="ml-3 relative" x-data="{ open: false }">
-                        <button @click="open = ! open" class="relative p-1 rounded-full text-gray-400 hover:text-white focus:outline-none transition-colors">
+                        {{-- ID: tour-notificaciones mantenido --}}
+                        <button @click="open = ! open" id="tour-notificaciones" class="relative p-1 rounded-full text-gray-400 hover:text-white focus:outline-none transition-colors">
                             <span class="sr-only">Notificaciones</span>
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -160,7 +163,7 @@
                                 @forelse(auth()->user()->unreadNotifications as $notification)
                                     <a href="{{ route('notifications.read', $notification->id) }}" class="block hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700 relative overflow-hidden group">
                                         
-                                        {{-- 🟢 CASO 1: TEMPORIZADOR ACTIVO (Verde / Pago pendiente) --}}
+                                        {{-- 🟢 CASO 1: TEMPORIZADOR ACTIVO --}}
                                         @if(isset($notification->data['expiry_ts']))
                                             <div class="p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border-l-4 border-green-500">
                                                 <div class="flex flex-col gap-2">
@@ -204,7 +207,7 @@
                                                 </div>
                                             </div>
 
-                                        {{-- 🟢 CASO 2: CANCELACIÓN (Rojo / Alerta de perdida) --}}
+                                        {{-- 🟢 CASO 2: CANCELACIÓN --}}
                                         @elseif(($notification->data['icono'] ?? '') == 'cancel')
                                             <div class="p-4 bg-red-50 dark:bg-red-900/10 border-l-4 border-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition">
                                                 <div class="flex items-start gap-3">
@@ -223,7 +226,7 @@
                                                 </div>
                                             </div>
 
-                                        {{-- CASO 3: DISEÑO ESTÁNDAR (Otras notificaciones) --}}
+                                        {{-- CASO 3: DISEÑO ESTÁNDAR --}}
                                         @else
                                             <div class="px-4 py-3 flex items-start">
                                                 <div class="flex-shrink-0 pt-0.5">

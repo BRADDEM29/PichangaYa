@@ -33,11 +33,12 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
-<body class="font-sans antialiased">
+<body class="font-sans antialiased bg-gray-100 dark:bg-gray-900">
     <x-strike-warning-overlay />
-    {{-- ✅ NUEVO: Componente Livewire Inteligente (Polling) --}}
+    
     @livewire('strike-warning')
-    <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+
+    <div class="min-h-screen">
         @livewire('navigation-menu')
 
         @if (isset($header))
@@ -53,10 +54,14 @@
         </main>
     </div>
 
+    {{-- 
+       HE ELIMINADO EL BOTÓN FLOTANTE Y EL SCRIPT MANUAL DE AQUÍ.
+       AHORA TODO LO CONTROLA APP.JS
+    --}}
+
     @stack('modals')
     @livewireScripts
 
-    {{-- Llamada al componente de Tarjeta Urgente (Saltarina) --}}
     <x-urgent-booking-card />
 </body>
 </html>
