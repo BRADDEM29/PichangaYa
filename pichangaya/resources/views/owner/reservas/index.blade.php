@@ -1,9 +1,19 @@
-<x-app-layout>
+<x-app-layout> 
+    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\owner\reservas\index.blade.php --}}
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Gestión de Cobros y Reservas') }}
         </h2>
     </x-slot>
+
+    {{-- Estilos para el reloj digital --}}
+    <style>
+        .font-digital {
+            font-family: 'Courier New', Courier, monospace;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 1px;
+        }
+    </style>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -29,6 +39,10 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cliente</th>
+                                    
+                                    {{-- 🟢 COLUMNA NUEVA: TIEMPO RESTANTE --}}
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tiempo Restante</th>
+
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Detalles</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Total</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estado de Pago</th>
@@ -36,10 +50,19 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach ($reservas as $reserva)
-                                    <tr class="hover:bg-gray-50 transition-colors">
+                                {{-- 
+                                    🟢 ORDENAMIENTO: Pendientes primero
+                                --}}
+                                @php
+                                    $sortedReservas = $reservas->sortByDesc(function($reserva) {
+                                        return $reserva->status === 'pending' ? 1 : 0;
+                                    });
+                                @endphp
+
+                                @foreach ($sortedReservas as $reserva)
+                                    <tr class="transition-colors {{ $reserva->status === 'pending' ? 'bg-yellow-50 hover:bg-yellow-100' : 'hover:bg-gray-50' }}">
                                         
-                                        {{-- 🟢 CLIENTE CON FOTO Y DATOS --}}
+                                        {{-- CLIENTE --}}
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="flex-shrink-0 h-10 w-10">
@@ -52,6 +75,29 @@
                                             </div>
                                         </td>
 
+                                        {{-- 🟢 TEMPORIZADOR --}}
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            @if($reserva->status === 'pending')
+                                                @php
+                                                    $expiry = $reserva->created_at->addMinutes(10)->timestamp * 1000;
+                                                @endphp
+                                                <div class="flex items-center gap-2">
+                                                    <span class="animate-pulse text-red-500 text-xs">●</span>
+                                                    <span class="font-digital text-lg font-bold text-red-600 owner-timer" 
+                                                          data-expiry="{{ $expiry }}">
+                                                        --:--
+                                                    </span>
+                                                </div>
+                                                <span class="text-[10px] text-gray-500 block mt-1">Expira pronto</span>
+                                            @elseif($reserva->status === 'cancelled')
+                                                <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded">EXPIRADO</span>
+                                            @else
+                                                <div class="text-sm text-gray-500">
+                                                    {{ $reserva->created_at->format('d/m/Y H:i') }}
+                                                </div>
+                                            @endif
+                                        </td>
+
                                         {{-- Detalles --}}
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900 font-medium">{{ $reserva->cancha->name }}</div>
@@ -61,12 +107,12 @@
                                             </div>
                                         </td>
 
-                                        {{-- Precio --}}
+                                        {{-- Total --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-indigo-600">
                                             S/ {{ number_format($reserva->total_price, 2) }}
                                         </td>
 
-                                        {{-- Estado de Pago (Spinner) --}}
+                                        {{-- Estado de Pago --}}
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             @if($reserva->status !== 'cancelled')
                                                 <form action="{{ route('owner.reservas.updateStatus', $reserva) }}" method="POST">
@@ -103,7 +149,7 @@
                                             @endif
                                         </td>
 
-                                        {{-- Acciones (Solo Cancelar) --}}
+                                        {{-- Acciones --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             @if ($reserva->status !== 'cancelled')
                                                 <form action="{{ route('owner.reservas.updateStatus', $reserva) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas cancelar esta reserva?');">
@@ -111,8 +157,9 @@
                                                     @method('PUT')
                                                     <input type="hidden" name="status" value="cancelled">
                                                     
-                                                    <button type="submit" class="text-red-600 hover:text-red-800 hover:underline font-semibold text-xs">
-                                                        Cancelar reserva
+                                                    <button type="submit" class="text-red-600 hover:text-red-800 hover:underline font-semibold text-xs flex items-center justify-end w-full">
+                                                        <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                        Cancelar
                                                     </button>
                                                 </form>
                                             @else
@@ -132,4 +179,40 @@
             </div>
         </div>
     </div>
+
+    {{-- 🟢 SCRIPT DEL RELOJ (Dueño) --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const timerElements = document.querySelectorAll('.owner-timer');
+            
+            if(timerElements.length === 0) return;
+
+            function updateOwnerTimers() {
+                const now = new Date().getTime();
+                
+                timerElements.forEach(el => {
+                    const expiry = parseInt(el.getAttribute('data-expiry'));
+                    const distance = expiry - now;
+                    
+                    if (distance < 0) {
+                        el.innerHTML = "EXPIRADO";
+                        el.classList.remove('text-red-600');
+                        el.classList.add('text-gray-500'); 
+                        return;
+                    }
+                    
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    
+                    const formattedMin = minutes < 10 ? '0' + minutes : minutes;
+                    const formattedSec = seconds < 10 ? '0' + seconds : seconds;
+                    
+                    el.innerHTML = `${formattedMin}:${formattedSec}`;
+                });
+            }
+
+            setInterval(updateOwnerTimers, 1000);
+            updateOwnerTimers(); 
+        });
+    </script>
 </x-app-layout>

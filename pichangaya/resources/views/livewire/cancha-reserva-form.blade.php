@@ -1,4 +1,5 @@
 <div class="bg-white relative">
+    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\livewire\cancha-reserva-form.blade.php --}}
     
     <style>
         .custom-scrollbar::-webkit-scrollbar { height: 4px; }
@@ -27,8 +28,10 @@
     <div class="mb-4">
         <div class="flex justify-between items-end mb-3 px-1">
             <h3 class="text-sm font-bold text-gray-800">Selecciona tu horario</h3>
-            <div class="flex gap-3 text-[10px] uppercase font-bold text-gray-500">
+            {{-- LEYENDA (Sin cambios en diseño, solo agregando indicador amarillo) --}}
+            <div class="flex gap-2 text-[10px] uppercase font-bold text-gray-500">
                 <span class="flex items-center gap-1"><span class="w-2 h-2 bg-white border border-gray-300 rounded-full"></span> Libre</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 bg-yellow-400 rounded-full border border-yellow-500"></span> Espera</span>
                 <span class="flex items-center gap-1"><span class="w-2 h-2 bg-gray-300 rounded-full"></span> Ocupado</span>
                 <span class="flex items-center gap-1"><span class="w-2 h-2 bg-green-500 rounded-full"></span> Tu Juego</span>
             </div>
@@ -44,44 +47,61 @@
                 <div class="inline-flex min-w-full gap-1">
                     @foreach($timeSlots as $slot)
                         @php
-                            $isOccupied = $slot['is_occupied'] || $slot['disabled'];
+                            // Capturamos los estados que vienen del componente Livewire
+                            $isOccupied = $slot['is_occupied'];
+                            $isPending  = $slot['is_pending'] ?? false; // 🟡 Captura amarillo
+                            $disabled   = $slot['disabled'];
                             
-                            // LÓGICA VISUAL DE RANGO SELECCIONADO
+                            // LÓGICA VISUAL DE RANGO SELECCIONADO (Tu lógica original intacta)
                             $isInRange = false;
                             if ($time) {
                                 $slotTime = \Carbon\Carbon::parse($slot['value']);
                                 $selectedStart = \Carbon\Carbon::parse($time);
                                 $selectedEnd = $selectedStart->copy()->addHours($duration);
 
-                                // Si está entre el inicio y el final
                                 if ($slotTime->gte($selectedStart) && $slotTime->lt($selectedEnd)) {
                                     $isInRange = true;
                                 }
                             }
 
+                            // ASIGNACIÓN DE ESTILOS
                             if ($isOccupied) {
+                                // GRIS: Ocupado confirmado
                                 $bgClass = 'bg-gray-100 text-gray-400 cursor-not-allowed';
                                 $borderClass = 'border border-gray-200';
+                            } elseif ($isPending) {
+                                // 🟡 AMARILLO: Pendiente (10 min)
+                                $bgClass = 'bg-yellow-50 text-yellow-600 cursor-not-allowed';
+                                $borderClass = 'border border-yellow-300';
+                            } elseif ($disabled) {
+                                // GRIS: Pasado de tiempo (Tolerancia 20 min agotada)
+                                $bgClass = 'bg-gray-100 text-gray-300 cursor-not-allowed opacity-60';
+                                $borderClass = 'border border-gray-100';
                             } elseif ($isInRange) {
-                                // Seleccionado (Verde)
+                                // VERDE: Seleccionado
                                 $bgClass = 'bg-green-500 text-white shadow-md transform -translate-y-1 z-10 ring-2 ring-green-300 ring-offset-1';
                                 $borderClass = 'border-none';
                             } else {
-                                // Libre (Blanco)
+                                // BLANCO: Libre
                                 $bgClass = 'bg-white text-gray-700 hover:border-green-400 hover:text-green-600 cursor-pointer';
                                 $borderClass = 'border border-gray-200';
                             }
                         @endphp
 
                         <div 
-                            @if(!$isOccupied) wire:click="selectTimeSlot('{{ $slot['value'] }}')" @endif
-                            class="flex flex-col items-center justify-center w-14 h-20 flex-shrink-0 rounded-lg transition-all duration-200 {{ $bgClass }} {{ $borderClass }} select-none"
+                            @if(!$disabled) wire:click="selectTimeSlot('{{ $slot['value'] }}')" @endif
+                            class="flex flex-col items-center justify-center w-14 h-20 flex-shrink-0 rounded-lg transition-all duration-200 {{ $bgClass }} {{ $borderClass }} select-none relative"
                         >
+                            {{-- Icono pequeño para pendientes --}}
+                            @if($isPending)
+                                <span class="absolute top-1 right-1 text-[8px]">⏳</span>
+                            @endif
+
                             <span class="text-xs font-bold">{{ $slot['value'] }}</span>
                             
                             @if($isInRange)
                                 <svg class="w-4 h-4 mt-1 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            @elseif(!$isOccupied)
+                            @elseif(!$disabled && !$isPending && !$isOccupied)
                                 <div class="w-1.5 h-1.5 bg-green-400 rounded-full mt-2 opacity-0 group-hover:opacity-100"></div>
                             @endif
                         </div>
@@ -119,7 +139,6 @@
                 </div>
                 
                 {{-- 2. Estado CARGANDO (Visible SOLO cuando carga) --}}
-                {{-- Usamos wire:loading.flex para forzar que sea una línea --}}
                 <div wire:loading.flex class="items-center gap-2">
                     <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

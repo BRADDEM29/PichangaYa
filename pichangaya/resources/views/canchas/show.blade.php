@@ -143,18 +143,18 @@
                 {{-- COLUMNA PRINCIPAL --}}
                 <div class="lg:col-span-8 space-y-8">
                 {{-- VISUALIZADOR DE ERRORES DE LÓGICA (Ej: Reserva pendiente) --}}
-@if (session('error'))
-    <div class="mb-6 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-400 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300 px-4 py-3 rounded relative shadow" role="alert">
-        <strong class="font-bold">¡No se pudo reservar!</strong>
-        <span class="block sm:inline">{{ session('error') }}</span>
-        
-        <div class="mt-2">
-            <a href="{{ route('reservas.user.index') }}" class="inline-block bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold py-1 px-3 rounded transition shadow-sm">
-                Solucionar reservas pendientes →
-            </a>
-        </div>
-    </div>
-@endif    
+                @if (session('error'))
+                    <div class="mb-6 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-400 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300 px-4 py-3 rounded relative shadow" role="alert">
+                        <strong class="font-bold">¡No se pudo reservar!</strong>
+                        <span class="block sm:inline">{{ session('error') }}</span>
+                        
+                        <div class="mt-2">
+                            <a href="{{ route('reservas.user.index') }}" class="inline-block bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold py-1 px-3 rounded transition shadow-sm">
+                                Solucionar reservas pendientes →
+                            </a>
+                        </div>
+                    </div>
+                @endif    
                     {{-- 🟢 VISUALIZADORES DE ERRORES (Aquí es donde los necesitas) --}}
                     
                     {{-- 🔴 ERRORES DE VALIDACIÓN --}}
@@ -183,16 +183,39 @@
                         </div>
                     @endif
 
-                    {{-- TARJETA DE RESERVA (TU DISEÑO ORIGINAL) --}}
+                    {{-- TARJETA DE RESERVA --}}
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-300">
-                        <div class="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 flex items-center gap-2 transition-colors duration-300">
-                            <div class="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-full">
-                                <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <div class="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 flex items-center justify-between transition-colors duration-300">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-full">
+                                    <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Elige tu turno</h3>
                             </div>
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Elige tu turno</h3>
                         </div>
                         
+                        {{-- 🟢 NUEVA LEYENDA DE COLORES (CON LA MEJORA QUE PEDISTE) --}}
+                        <div class="px-6 pt-4 flex flex-wrap gap-4 text-xs font-bold">
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 bg-white border border-gray-300 rounded shadow-sm"></div>
+                                <span class="text-gray-600 dark:text-gray-400">Libre</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 bg-yellow-100 border border-yellow-400 rounded shadow-sm"></div>
+                                <span class="text-yellow-700 dark:text-yellow-500">Por confirmar (10 min)</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 bg-gray-200 border border-gray-400 rounded shadow-sm"></div>
+                                <span class="text-gray-500 dark:text-gray-400">Ocupado</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 bg-indigo-600 border border-indigo-600 rounded shadow-sm"></div>
+                                <span class="text-gray-500 dark:text-gray-400">Tu Juego</span>
+                            </div>
+                        </div>
+
                         <div class="p-6">
+                            {{-- AQUÍ ESTÁ LA LÓGICA DEL CALENDARIO QUE DEBEMOS ARREGLAR EN EL BACKEND --}}
                             @livewire('cancha-reserva-form', ['cancha' => $cancha])
                         </div>
                     </div>

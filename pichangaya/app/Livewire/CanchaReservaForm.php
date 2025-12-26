@@ -1,4 +1,5 @@
 <?php
+// C:\laragon\www\PichangaYa\pichangaya\app\Livewire\CanchaReservaForm.php
 
 namespace App\Livewire;
 
@@ -23,7 +24,6 @@ class CanchaReservaForm extends Component
     protected $rules = [
         'date' => 'required|date|after_or_equal:today',
         'time' => 'required', 
-        // 🟢 CORRECCIÓN 1: Aumentamos el máximo a 24 horas (o 15, lo que sea suficiente)
         'duration' => 'required|integer|min:1|max:24', 
     ];
 
@@ -41,10 +41,15 @@ class CanchaReservaForm extends Component
         $this->resetSelection();
     }
 
-    // 🟢 LÓGICA DE SELECCIÓN Y RECORTE (TRIMMING)
     public function selectTimeSlot($clickedTime)
     {
-        // 1. SI NO HAY NADA SELECCIONADO: MARCAR INICIO
+        // 1. Validar que no estemos seleccionando slots deshabilitados (Pasados u Ocupados)
+        foreach ($this->timeSlots as $slot) {
+            if ($slot['value'] === $clickedTime && ($slot['disabled'] ?? false)) {
+                return;
+            }
+        }
+
         if (!$this->time) {
             $this->time = $clickedTime;
             $this->duration = 1;
@@ -56,10 +61,8 @@ class CanchaReservaForm extends Component
         $clicked = Carbon::parse($this->date . ' ' . $clickedTime);
         $endOfSelection = $start->copy()->addHours($this->duration);
 
-        // 2. LOGICA DE RECORTE (SI CLICKEO DENTRO DE LO VERDE)
+        // Lógica de recorte (si clickea dentro de su selección actual)
         if ($clicked->gte($start) && $clicked->lt($endOfSelection)) {
-            
-            // CASO A: Clickeó el PRIMER cuadro (Inicio) -> Mover inicio
             if ($clicked->eq($start)) {
                 if ($this->duration == 1) {
                     $this->resetSelection(); 
@@ -67,35 +70,25 @@ class CanchaReservaForm extends Component
                     $this->time = $start->addHour()->format('H:i'); 
                     $this->duration--; 
                 }
-            }
-            // CASO B: Clickeó en MEDIO o FINAL -> Recortar cola
-            else {
+            } else {
                 $newDuration = $start->diffInHours($clicked);
                 $this->duration = $newDuration;
             }
-
             $this->calculatePrice();
             return;
         }
 
-        // 3. LOGICA DE EXTENSIÓN (SI CLICKEO FUERA)
-        
-        // Clickeó antes del inicio -> Nueva selección
+        // Lógica de nueva selección o extensión
         if ($clicked->lt($start)) {
             $this->time = $clickedTime;
             $this->duration = 1;
-        } 
-        // Clickeó después del final -> Intentar extender
-        else {
+        } else {
             $potentialDuration = $start->diffInHours($clicked) + 1;
             $potentialEnd = $start->copy()->addHours($potentialDuration);
 
-            // 🟢 CORRECCIÓN 2: Quitamos la restricción "&& $potentialDuration <= 6"
-            // Ahora el único límite es que la cancha esté libre (isRangeAvailable).
             if ($this->isRangeAvailable($start, $potentialEnd)) {
                 $this->duration = $potentialDuration;
             } else {
-                // Si choca con otra reserva, reiniciamos en el click
                 $this->time = $clickedTime;
                 $this->duration = 1;
             }
@@ -131,8 +124,9 @@ class CanchaReservaForm extends Component
             $closeTime->addDay();
         }
 
+        // Traer reservas activas (No canceladas)
         $occupied = Reserva::where('cancha_id', $this->cancha->id)
-            ->whereIn('status', ['confirmed', 'pending'])
+            ->where('status', '!=', 'cancelled')
             ->where(function ($query) use ($openTime, $closeTime) {
                 $query->whereBetween('start_time', [$openTime, $closeTime])
                       ->orWhereBetween('end_time', [$openTime, $closeTime]);
@@ -146,21 +140,44 @@ class CanchaReservaForm extends Component
             
             if ($slotEnd->gt($closeTime)) break; 
 
+            // 🟢 LÓGICA DE TOLERANCIA DE 20 MINUTOS
             $isPast = false;
-            if (Carbon::now()->gt($currentSlot->copy()->addMinutes(15))) {
-                if (Carbon::parse($this->date)->isToday()) {
-                    $isPast = true;
-                } elseif (Carbon::parse($this->date)->isPast()) {
+            
+            // Solo verificamos si es "pasado" si estamos en el día de hoy
+            // Si la fecha seleccionada es hoy...
+            if (Carbon::parse($this->date)->isToday()) {
+                // ...y la hora actual es MAYOR a la hora del slot + 20 minutos
+                // Ejemplo: Slot 9:00. Tolerancia hasta 9:20. Si son 9:21 -> Bloqueado.
+                if (now()->gt($currentSlot->copy()->addMinutes(20))) {
                     $isPast = true;
                 }
+            } 
+            // Si la fecha es ayer o antes, todo es pasado
+            elseif (Carbon::parse($this->date)->isPast()) {
+                $isPast = true;
             }
 
             $isOccupied = false;
+            $isPending = false; // 🟡 Bandera amarilla
+
             foreach ($occupied as $reserva) {
                 $resStart = Carbon::parse($reserva->start_time);
                 $resEnd = Carbon::parse($reserva->end_time);
+                
                 if ($currentSlot->lt($resEnd) && $slotEnd->gt($resStart)) {
-                    $isOccupied = true;
+                    
+                    // Si existe una reserva (PENDIENTE), la mostramos aunque sea hora pasada
+                    // porque el cliente la "ganó" a tiempo.
+                    if ($reserva->status === 'pending') {
+                        if ($reserva->created_at > now()->subMinutes(10)) {
+                            $isPending = true; // Amarillo
+                            $isPast = false; // Forzamos false para que se vea el amarillo y no el gris de "pasado"
+                        } else {
+                            $isOccupied = true; // Gris (Vencido pero no borrado aun)
+                        }
+                    } else {
+                        $isOccupied = true; // Gris (Confirmado)
+                    }
                     break;
                 }
             }
@@ -168,8 +185,10 @@ class CanchaReservaForm extends Component
             $this->timeSlots[] = [
                 'value' => $currentSlot->format('H:i'),
                 'label' => $currentSlot->format('h:i A'),
-                'disabled' => $isPast || $isOccupied,
-                'is_occupied' => $isOccupied
+                // Se deshabilita si: Pasó la tolerancia, o está ocupado, o está pendiente de otro
+                'disabled' => $isPast || $isOccupied || $isPending,
+                'is_occupied' => $isOccupied,
+                'is_pending' => $isPending,
             ];
 
             $currentSlot->addHour();
@@ -178,7 +197,7 @@ class CanchaReservaForm extends Component
 
     protected function isRangeAvailable($start, $end) {
         return !Reserva::where('cancha_id', $this->cancha->id)
-            ->whereIn('status', ['confirmed', 'pending'])
+            ->where('status', '!=', 'cancelled')
             ->where(function ($query) use ($start, $end) {
                 $query->where(function ($q) use ($start, $end) {
                     $q->where('start_time', '>=', $start)
@@ -201,6 +220,20 @@ class CanchaReservaForm extends Component
         try {
             $startDateTime = Carbon::parse($this->date . ' ' . $this->time);
             $endDateTime = $startDateTime->copy()->addHours((int)$this->duration);
+
+            // 🟢 VALIDACIÓN DE SEGURIDAD BACKEND (TOLERANCIA 20 MIN)
+            // Esto evita que alguien modifique el HTML disabled y mande la petición igual
+            if ($startDateTime->isToday()) {
+                if (now()->gt($startDateTime->copy()->addMinutes(20))) {
+                    throw ValidationException::withMessages([
+                        'time' => 'El tiempo de tolerancia (20 min) para este horario ha expirado.'
+                    ]);
+                }
+            } elseif ($startDateTime->isPast()) {
+                 throw ValidationException::withMessages([
+                    'time' => 'No puedes reservar en una fecha pasada.'
+                ]);
+            }
 
             if (!$this->isRangeAvailable($startDateTime, $endDateTime)) {
                 throw ValidationException::withMessages([

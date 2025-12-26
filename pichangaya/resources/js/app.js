@@ -1,3 +1,4 @@
+//C:\laragon\www\PichangaYa\pichangaya\resources\js\app.js
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import Swal from 'sweetalert2';
