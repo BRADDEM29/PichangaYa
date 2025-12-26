@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Notification;
 // 👇 IMPORTANTE: Las clases de Notificación
 use App\Notifications\ReservaEstadoActualizado; // Para cambios de estado
 use App\Notifications\NuevaReservaNotification; // ✅ ÚNICA CLASE para Cliente, Admin y Dueño
+use App\Notifications\ReservaCancelada;         // 🔴 NUEVA: Para cancelaciones (Manuales o Automáticas)
 
 class ReservaController extends Controller
 {
@@ -209,7 +210,12 @@ class ReservaController extends Controller
         // Notificar al Cliente sobre el cambio de estado
         // =========================================================
         try {
-            $reserva->user->notify(new ReservaEstadoActualizado($reserva));
+            // Si es cancelado por el dueño, usamos la nueva notificacion
+            if ($request->status === 'cancelled') {
+                 $reserva->user->notify(new ReservaCancelada($reserva));
+            } else {
+                 $reserva->user->notify(new ReservaEstadoActualizado($reserva));
+            }
         } catch (\Exception $e) {
             // Log::error('Error enviando notificacion: ' . $e->getMessage());
         }
@@ -239,7 +245,16 @@ class ReservaController extends Controller
         }
 
         // 🟢 Al cancelar, el OBSERVER 'updated' aumentará el contador de strikes
-        $reserva->update(['status' => 'cancelled']);
+        // Usamos save() explícito para asegurar eventos y claridad
+        $reserva->status = 'cancelled';
+        $reserva->save();
+
+        // 🔔 Enviar alerta al usuario (email de confirmación de cancelación)
+        try {
+            $reserva->user->notify(new ReservaCancelada($reserva));
+        } catch (\Exception $e) {
+            // Manejo silencioso de error de email
+        }
 
         return back()->with('success', 'Reserva cancelada exitosamente.');
     }

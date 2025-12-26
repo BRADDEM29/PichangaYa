@@ -36,6 +36,7 @@
         .font-digital {
             font-family: 'Courier New', Courier, monospace;
             font-variant-numeric: tabular-nums;
+            letter-spacing: 1px;
         }
     </style>
 
@@ -131,57 +132,128 @@
                         </button>
                     
                         <div x-show="open" @click.away="open = false" style="display: none;"
-                             class="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                             class="origin-top-right absolute right-0 mt-2 w-80 sm:w-96 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                             
-                            <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-200 flex justify-between items-center">
-                                <span>Notificaciones</span>
-                                <span class="text-xs text-gray-400">{{ auth()->user()->unreadNotifications->count() }} nuevas</span>
+                            {{-- CABECERA DE NOTIFICACIONES --}}
+                            <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 rounded-t-md">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-black text-gray-800 dark:text-gray-100">ALERTAS</span>
+                                    @if(auth()->user()->unreadNotifications->count() > 0)
+                                        <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full border border-red-200 font-bold">
+                                            {{ auth()->user()->unreadNotifications->count() }}
+                                        </span>
+                                    @endif
+                                </div>
+                                
+                                {{-- 🟢 BOTÓN MARCAR TODO COMO LEÍDO --}}
+                                @if(auth()->user()->unreadNotifications->count() > 0)
+                                    <form action="{{ route('notifications.markAllRead') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="text-xs font-bold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition underline decoration-dotted">
+                                            Marcar todo leído
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                     
-                            <div class="max-h-64 overflow-y-auto">
+                            <div class="max-h-[25rem] overflow-y-auto">
                                 @forelse(auth()->user()->unreadNotifications as $notification)
-                                    <a href="{{ route('notifications.read', $notification->id) }}" class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700">
-                                        <div class="flex items-start">
-                                            <div class="flex-shrink-0 pt-0.5">
-                                                {{-- Iconos dinámicos --}}
-                                                @if(($notification->data['icono'] ?? '') == 'currency_exchange') <span class="text-yellow-600 text-xl">💲</span>
-                                                @elseif(($notification->data['icono'] ?? '') == 'check_circle') <span class="text-green-600 text-xl">✓</span>
-                                                @elseif(($notification->data['icono'] ?? '') == 'cancel') <span class="text-red-600 text-xl">✕</span>
-                                                @elseif(($notification->data['icono'] ?? '') == 'hourglass_empty') <span class="text-orange-500 text-xl">⏳</span>
-                                                @elseif(($notification->data['icono'] ?? '') == 'mail') <span class="text-blue-500 text-xl">📩</span>
-                                                @elseif(($notification->data['icono'] ?? '') == 'lightbulb') <span class="text-yellow-500 text-xl">💡</span>
-                                                @elseif(($notification->data['icono'] ?? '') == 'warning') <span class="text-red-600 text-xl">⚠️</span>
-                                                @else <span class="text-blue-500 text-xl">ℹ</span> @endif
-                                            </div>
-                                            <div class="ml-3 w-0 flex-1">
-                                                <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $notification->data['titulo'] ?? 'Notificación' }}</p>
-                                                
-                                                {{-- 🟢 TEMPORIZADOR MEJORADO PARA EL CLIENTE Y ADMIN --}}
-                                                @if(isset($notification->data['expiry_ts']))
-                                                    <div class="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center justify-between group-timer">
+                                    <a href="{{ route('notifications.read', $notification->id) }}" class="block hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700 relative overflow-hidden group">
+                                        
+                                        {{-- 🟢 CASO 1: TEMPORIZADOR ACTIVO (Verde / Pago pendiente) --}}
+                                        @if(isset($notification->data['expiry_ts']))
+                                            <div class="p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border-l-4 border-green-500">
+                                                <div class="flex flex-col gap-2">
+                                                    <div class="flex items-center justify-between mb-1">
                                                         <div class="flex items-center gap-2">
-                                                            <span class="animate-pulse text-xs">⏳</span>
-                                                            <span class="text-xs font-bold text-gray-500 dark:text-gray-300">Expira en:</span>
+                                                            <div class="bg-green-100 dark:bg-green-900 p-1.5 rounded-md shadow-sm">
+                                                                <span class="text-lg">💸</span>
+                                                            </div>
+                                                            <div>
+                                                                <p class="text-sm font-black text-gray-800 dark:text-gray-100 leading-none">
+                                                                    {{ $notification->data['titulo'] ?? 'Reserva Pendiente' }}
+                                                                </p>
+                                                                <p class="text-[10px] text-green-600 dark:text-green-400 font-bold uppercase tracking-wider mt-0.5">
+                                                                    Requiere Atención
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                        <span class="font-digital text-sm font-bold text-orange-600 dark:text-orange-400 notif-timer tracking-widest" 
-                                                              data-expiry="{{ $notification->data['expiry_ts'] }}">
-                                                            Calculando...
+                                                        <span class="text-[10px] bg-gray-200 dark:bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded border border-gray-300 dark:border-gray-600" title="Esta notificación no se puede borrar hasta completar la acción">
+                                                            🔒 Activa
                                                         </span>
                                                     </div>
-                                                @else
-                                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ Str::limit($notification->data['mensaje'] ?? '', 50) }}</p>
-                                                @endif
-                                                
-                                                <p class="mt-1 text-[10px] text-gray-400 text-right">{{ $notification->created_at->diffForHumans() }}</p>
+
+                                                    <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed pl-1">
+                                                        {{ Str::limit($notification->data['mensaje'] ?? 'Gestione esta solicitud antes de que expire el tiempo.', 80) }}
+                                                    </p>
+
+                                                    <div class="mt-2 bg-black rounded-lg p-2.5 border border-gray-700 shadow-inner flex items-center justify-between relative overflow-hidden group-timer">
+                                                        <div class="absolute bottom-0 left-0 h-0.5 bg-green-500 animate-[pulse_2s_infinite] w-full opacity-70"></div>
+                                                        <div class="flex flex-col z-10 pl-1">
+                                                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Tiempo Restante</span>
+                                                            <span class="text-[9px] text-gray-500">Auto-cancelación</span>
+                                                        </div>
+                                                        <div class="z-10 flex items-center gap-2">
+                                                            <span class="animate-pulse text-green-500 text-xs">●</span>
+                                                            <span class="font-digital text-xl font-bold text-green-400 notif-timer tracking-widest drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]" 
+                                                                  data-expiry="{{ $notification->data['expiry_ts'] }}">
+                                                                --:--
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
+
+                                        {{-- 🟢 CASO 2: CANCELACIÓN (Rojo / Alerta de perdida) --}}
+                                        @elseif(($notification->data['icono'] ?? '') == 'cancel')
+                                            <div class="p-4 bg-red-50 dark:bg-red-900/10 border-l-4 border-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="flex-shrink-0 text-2xl pt-1">🚫</div>
+                                                    <div class="w-full">
+                                                        <p class="text-sm font-black text-red-700 dark:text-red-400 leading-none">
+                                                            ¡Reserva Cancelada!
+                                                        </p>
+                                                        <p class="text-xs text-red-600 dark:text-red-300 mt-1 font-medium leading-tight">
+                                                            {{ $notification->data['mensaje'] ?? 'La reserva ha sido anulada.' }}
+                                                        </p>
+                                                        <p class="mt-2 text-[10px] text-red-400 uppercase font-bold text-right">
+                                                            {{ $notification->created_at->diffForHumans() }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        {{-- CASO 3: DISEÑO ESTÁNDAR (Otras notificaciones) --}}
+                                        @else
+                                            <div class="px-4 py-3 flex items-start">
+                                                <div class="flex-shrink-0 pt-0.5">
+                                                    @if(($notification->data['icono'] ?? '') == 'currency_exchange') <span class="text-yellow-600 text-xl">💲</span>
+                                                    @elseif(($notification->data['icono'] ?? '') == 'check_circle') <span class="text-green-600 text-xl">✓</span>
+                                                    @elseif(($notification->data['icono'] ?? '') == 'mail') <span class="text-blue-500 text-xl">📩</span>
+                                                    @elseif(($notification->data['icono'] ?? '') == 'lightbulb') <span class="text-yellow-500 text-xl">💡</span>
+                                                    @elseif(($notification->data['icono'] ?? '') == 'warning') <span class="text-red-600 text-xl">⚠️</span>
+                                                    @else <span class="text-blue-500 text-xl">ℹ</span> @endif
+                                                </div>
+                                                <div class="ml-3 w-0 flex-1">
+                                                    <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $notification->data['titulo'] ?? 'Notificación' }}</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ Str::limit($notification->data['mensaje'] ?? '', 60) }}</p>
+                                                    <p class="mt-1 text-[10px] text-gray-400 text-right">{{ $notification->created_at->diffForHumans() }}</p>
+                                                </div>
+                                            </div>
+                                        @endif
                                     </a>
                                 @empty
-                                    <div class="px-4 py-4 text-center text-gray-500 dark:text-gray-400 text-sm">No hay notificaciones.</div>
+                                    <div class="px-4 py-12 text-center flex flex-col items-center justify-center opacity-60">
+                                        <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-full mb-3">
+                                            <span class="text-2xl">💤</span>
+                                        </div>
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm font-bold">Todo está tranquilo</p>
+                                        <p class="text-gray-400 text-xs">No hay nuevas notificaciones</p>
+                                    </div>
                                 @endforelse
                             </div>
                             <div class="block bg-gray-50 dark:bg-gray-700 text-center px-4 py-2 border-t border-gray-100 dark:border-gray-600 rounded-b-md">
-                                <a href="{{ route('notifications.index') }}" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 w-full block">Ver historial completo →</a>
+                                <a href="{{ route('notifications.index') }}" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 w-full block uppercase tracking-wide">Ver historial completo</a>
                             </div>
                         </div>
                     </div>
@@ -203,23 +275,20 @@
                                 <div class="block px-4 py-2 text-xs text-gray-400 dark:text-gray-300 uppercase font-bold">{{ __('Administrar Cuenta') }}</div>
                                 <x-dropdown-link href="{{ route('profile.show') }}" class="dark:text-white dark:hover:bg-gray-700 font-bold">{{ __('Perfil') }}</x-dropdown-link>
                                 
-                                {{-- 🔴 CONDICIONAL: MODO OSCURO SOLO PARA CLIENTES --}}
                                 @if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'owner')
                                     <div class="border-t border-gray-200 dark:border-gray-700"></div>
                                     <button @click="darkMode = !darkMode; localStorage.setItem('dark-mode', darkMode); document.documentElement.classList.toggle('dark')" 
                                             type="button" 
                                             class="flex w-full px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150 ease-in-out items-center font-bold">
-                                        <span x-show="!darkMode" class="flex items-center">🌙 {{ __('Modo Oscuro') }}</span>
-                                        <span x-show="darkMode" class="flex items-center">☀️ {{ __('Modo Claro') }}</span>
+                                            <span x-show="!darkMode" class="flex items-center">🌙 {{ __('Modo Oscuro') }}</span>
+                                            <span x-show="darkMode" class="flex items-center">☀️ {{ __('Modo Claro') }}</span>
                                     </button>
                                 @endif
 
                                 <div class="border-t border-gray-200 dark:border-gray-700"></div>
                                 
-                                {{-- 🔴 CORRECCIÓN CRÍTICA LOGOUT ESCRITORIO --}}
                                 <form method="POST" action="{{ route('logout') }}" x-data>
                                     @csrf
-                                    {{-- EL HREF DEBE SER #, NO LA RUTA. SI PONES LA RUTA, LARAVEL INTENTA UN GET Y DA ERROR 419 --}}
                                     <x-dropdown-link href="#" @click.prevent="$root.submit();" class="dark:text-white dark:hover:bg-gray-700 font-bold text-red-500">
                                         {{ __('Cerrar Sesión') }}
                                     </x-dropdown-link>
@@ -291,10 +360,8 @@
                             {{ __('Perfil') }}
                         </x-responsive-nav-link>
                         
-                        {{-- 🔴 CORRECCIÓN CRÍTICA LOGOUT MÓVIL --}}
                         <form method="POST" action="{{ route('logout') }}" x-data>
                             @csrf
-                            {{-- IGUAL AQUI: href="#" PARA QUE JS MANEJE EL ENVIO --}}
                             <x-responsive-nav-link href="#" @click.prevent="$root.submit();" class="text-red-400 hover:text-red-300 font-bold">
                                 {{ __('Cerrar Sesión') }}
                             </x-responsive-nav-link>
@@ -321,25 +388,24 @@
                     
                     if (distance < 0) {
                         el.innerHTML = "EXPIRADO";
-                        // Cambiar estilos al expirar
-                        el.classList.remove('text-orange-600', 'dark:text-orange-400');
-                        el.classList.add('text-red-600', 'dark:text-red-500'); 
-                        el.parentElement.classList.add('bg-red-50', 'dark:bg-red-900/20', 'border-red-200');
+                        // Estilos de expiración
+                        el.classList.remove('text-green-400', 'animate-pulse', 'drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]');
+                        el.classList.add('text-red-600', 'drop-shadow-[0_0_8px_rgba(220,38,38,0.6)]'); 
                         return;
                     }
                     
                     const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
                     
-                    // Formato Digital 00:00
                     const formattedMin = minutes < 10 ? '0' + minutes : minutes;
                     const formattedSec = seconds < 10 ? '0' + seconds : seconds;
                     
                     el.innerHTML = `${formattedMin}:${formattedSec}`;
 
-                    // Alerta visual si queda menos de 2 minutos
+                    // Alerta: menos de 2 minutos
                     if(minutes < 2) {
-                        el.classList.add('text-red-500', 'animate-pulse');
+                        el.classList.remove('text-green-400', 'drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]');
+                        el.classList.add('text-red-500', 'animate-pulse', 'drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]');
                     }
                 });
             }

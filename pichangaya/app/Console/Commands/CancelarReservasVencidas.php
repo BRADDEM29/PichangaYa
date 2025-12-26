@@ -6,6 +6,8 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Reserva;
 use Carbon\Carbon;
+// 👇 IMPORTANTE: Importamos la notificación
+use App\Notifications\ReservaCancelada;
 
 class CancelarReservasVencidas extends Command
 {
@@ -28,7 +30,14 @@ class CancelarReservasVencidas extends Command
             $reserva->save();
             $count++;
             
-            $this->info("Reserva #{$reserva->id} cancelada. Strike aplicado.");
+            // 🔔 Enviar alerta al usuario sobre la cancelación automática
+            try {
+                $reserva->user->notify(new ReservaCancelada($reserva));
+            } catch (\Exception $e) {
+                $this->error("Error notificando reserva #{$reserva->id}: " . $e->getMessage());
+            }
+
+            $this->info("Reserva #{$reserva->id} cancelada. Strike aplicado y notificación enviada.");
         }
 
         $this->info("Proceso finalizado. Se cancelaron $count reservas.");

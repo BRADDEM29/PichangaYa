@@ -112,6 +112,9 @@ Route::middleware([
     // Notificaciones
     Route::get('/notificaciones', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notificaciones/{id}/leer', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    
+    // 🟢 ESTA ES LA RUTA QUE FALTA (AGREGADA):
+    Route::post('/notificaciones/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
 });
 
 /*
