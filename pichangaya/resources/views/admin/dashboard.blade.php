@@ -1,6 +1,6 @@
 <x-app-layout>
     {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\admin\dashboard.blade.php --}}
-    {{-- Carga de Chart.js --}}
+    
     @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     @endpush
@@ -14,14 +14,11 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             
-            {{-- ========================================== --}}
-            {{-- 1. FILA FINANCIERA (AHORA 4 COLUMNAS)    --}}
-            {{-- ========================================== --}}
+            {{-- 1. KPI CARDS --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                
-                {{-- 1. INGRESOS CONFIRMADOS (Verde) --}}
+                {{-- CARD VERDE --}}
                 <a href="{{ route('admin.reports.ingresos') }}" class="block group transform transition hover:-translate-y-1">
-                    <div class="bg-white overflow-hidden shadow-lg hover:shadow-xl sm:rounded-lg p-6 border-l-8 border-green-500 group-hover:bg-green-50 transition-colors h-full flex items-center justify-between">
+                    <div class="bg-white overflow-hidden shadow-lg sm:rounded-lg p-6 border-l-8 border-green-500 flex items-center justify-between group-hover:bg-green-50 transition-colors">
                         <div>
                             <p class="text-xs font-bold text-green-600 uppercase tracking-widest mb-1">Pagos Completos</p>
                             <p class="text-3xl font-black text-gray-800">S/ {{ number_format($ingresosTotales, 2) }}</p>
@@ -32,10 +29,10 @@
                         </div>
                     </div>
                 </a>
-
-                {{-- 2. NUEVO: PAGOS ADELANTADOS (Azul) --}}
+                
+                {{-- CARD AZUL --}}
                 <a href="{{ route('admin.reports.adelantados') }}" class="block group transform transition hover:-translate-y-1">
-                    <div class="bg-white overflow-hidden shadow-lg hover:shadow-xl sm:rounded-lg p-6 border-l-8 border-blue-500 group-hover:bg-blue-50 transition-colors h-full flex items-center justify-between">
+                    <div class="bg-white overflow-hidden shadow-lg sm:rounded-lg p-6 border-l-8 border-blue-500 flex items-center justify-between group-hover:bg-blue-50 transition-colors">
                         <div>
                             <p class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">Pagos Adelantados</p>
                             <p class="text-3xl font-black text-gray-800">S/ {{ number_format($adelantosTotal, 2) }}</p>
@@ -44,15 +41,14 @@
                             </p>
                         </div>
                         <div class="p-4 rounded-full bg-blue-100 text-blue-600 group-hover:scale-110 transition-transform">
-                            {{-- Icono de Rayo/Energía o Factura --}}
                             <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                         </div>
                     </div>
                 </a>
 
-                {{-- 3. PENDIENTES POR COBRAR (Amarillo) --}}
+                {{-- CARD AMARILLA --}}
                 <a href="{{ route('admin.reports.pendientes') }}" class="block group transform transition hover:-translate-y-1">
-                    <div class="bg-white overflow-hidden shadow-lg hover:shadow-xl sm:rounded-lg p-6 border-l-8 border-yellow-400 group-hover:bg-yellow-50 transition-colors h-full flex items-center justify-between">
+                    <div class="bg-white overflow-hidden shadow-lg sm:rounded-lg p-6 border-l-8 border-yellow-400 flex items-center justify-between group-hover:bg-yellow-50 transition-colors">
                         <div>
                             <p class="text-xs font-bold text-yellow-600 uppercase tracking-widest mb-1">Por Cobrar</p>
                             <p class="text-3xl font-black text-gray-800">S/ {{ number_format($pendientesMoney, 2) }}</p>
@@ -64,9 +60,9 @@
                     </div>
                 </a>
 
-                {{-- 4. CANCELADOS / PERDIDOS (Rojo) --}}
+                {{-- CARD ROJA --}}
                 <a href="{{ route('admin.reports.cancelados') }}" class="block group transform transition hover:-translate-y-1">
-                    <div class="bg-white overflow-hidden shadow-lg hover:shadow-xl sm:rounded-lg p-6 border-l-8 border-red-500 group-hover:bg-red-50 transition-colors h-full flex items-center justify-between">
+                    <div class="bg-white overflow-hidden shadow-lg sm:rounded-lg p-6 border-l-8 border-red-500 flex items-center justify-between group-hover:bg-red-50 transition-colors">
                         <div>
                             <p class="text-xs font-bold text-red-600 uppercase tracking-widest mb-1">Ingreso Perdido</p>
                             <p class="text-3xl font-black text-gray-800">S/ {{ number_format($canceladosMoney, 2) }}</p>
@@ -79,9 +75,7 @@
                 </a>
             </div>
 
-            {{-- ========================================== --}}
-            {{-- 2. FILA DE GESTIÓN (OPERATIVO) --}}
-            {{-- ========================================== --}}
+            {{-- 2. OPERATIVO --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <a href="{{ route('admin.reports.reservas') }}" class="block group bg-white shadow p-4 rounded-lg flex items-center border hover:border-indigo-300 transition hover:-translate-y-0.5">
                     <div class="p-3 bg-indigo-100 rounded text-indigo-600 mr-4"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
@@ -98,186 +92,195 @@
             </div>
 
             {{-- ========================================== --}}
-            {{-- 3. GRÁFICO PRINCIPAL --}}
+            {{-- 3. GRÁFICO BURSÁTIL (MULTI-LÍNEA) --}}
             {{-- ========================================== --}}
             <div class="bg-white shadow-xl sm:rounded-lg p-6">
-                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                    <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
-                    Ingresos Reales (Confirmados + Adelantados)
-                </h3>
-                <div class="h-80 w-full">
-                    <canvas id="mainChart"></canvas>
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+                        Tendencia Financiera (Últimos 15 días)
+                    </h3>
+                    {{-- Leyenda personalizada --}}
+                    <div class="flex gap-4 text-xs font-bold">
+                        <span class="flex items-center"><span class="w-3 h-3 bg-green-500 rounded-full mr-1"></span> Pagado</span>
+                        <span class="flex items-center"><span class="w-3 h-3 bg-blue-500 rounded-full mr-1"></span> Adelanto</span>
+                        <span class="flex items-center"><span class="w-3 h-3 bg-yellow-400 rounded-full mr-1"></span> Pendiente</span>
+                        <span class="flex items-center"><span class="w-3 h-3 bg-red-500 rounded-full mr-1"></span> Perdido</span>
+                    </div>
+                </div>
+                
+                <div class="h-96 w-full relative">
+                    <canvas id="financialChart"></canvas>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
-                {{-- ========================================== --}}
-                {{-- 4. COMPOSICIÓN DE USUARIOS (BARRAS + PASTEL) --}}
-                {{-- ========================================== --}}
+                {{-- 4. COMPOSICIÓN DE USUARIOS --}}
                 <div class="bg-white shadow-xl sm:rounded-lg p-6 flex flex-col justify-between">
                     <h3 class="text-lg font-bold text-gray-800 mb-4">Composición de Usuarios</h3>
-                    
-                    {{-- Gráfico Circular --}}
-                    <div class="h-48 w-full flex justify-center mb-6">
+                    <div class="h-48 w-full flex justify-center mb-6 relative">
                         <canvas id="userRoleChart"></canvas>
                     </div>
-
-                    {{-- Barritas de Progreso --}}
                     <div class="space-y-4">
-                        {{-- Clientes --}}
                         <div>
                             <div class="flex justify-between text-xs font-bold mb-1 uppercase text-gray-500">
-                                <span>Clientes</span>
-                                <span>{{ $usersByRole['users'] }}</span>
+                                <span>Clientes</span> <span>{{ $usersByRole['users'] }}</span>
                             </div>
                             <div class="w-full bg-gray-100 rounded-full h-2.5">
-                                <div class="bg-blue-500 h-2.5 rounded-full shadow-sm" style="width: {{ $totalUsers > 0 ? ($usersByRole['users'] / $totalUsers) * 100 : 0 }}%"></div>
+                                <div class="bg-blue-500 h-2.5 rounded-full" style="width: {{ $totalUsers > 0 ? ($usersByRole['users'] / $totalUsers) * 100 : 0 }}%"></div>
                             </div>
                         </div>
-                        {{-- Dueños --}}
                         <div>
                             <div class="flex justify-between text-xs font-bold mb-1 uppercase text-gray-500">
-                                <span>Dueños de Cancha</span>
-                                <span>{{ $usersByRole['owners'] }}</span>
+                                <span>Dueños</span> <span>{{ $usersByRole['owners'] }}</span>
                             </div>
                             <div class="w-full bg-gray-100 rounded-full h-2.5">
-                                <div class="bg-green-500 h-2.5 rounded-full shadow-sm" style="width: {{ $totalUsers > 0 ? ($usersByRole['owners'] / $totalUsers) * 100 : 0 }}%"></div>
+                                <div class="bg-green-500 h-2.5 rounded-full" style="width: {{ $totalUsers > 0 ? ($usersByRole['owners'] / $totalUsers) * 100 : 0 }}%"></div>
                             </div>
                         </div>
-                        {{-- Admins --}}
                         <div>
                             <div class="flex justify-between text-xs font-bold mb-1 uppercase text-gray-500">
-                                <span>Administradores</span>
-                                <span>{{ $usersByRole['admins'] }}</span>
+                                <span>Admins</span> <span>{{ $usersByRole['admins'] }}</span>
                             </div>
                             <div class="w-full bg-gray-100 rounded-full h-2.5">
-                                <div class="bg-red-500 h-2.5 rounded-full shadow-sm" style="width: {{ $totalUsers > 0 ? ($usersByRole['admins'] / $totalUsers) * 100 : 0 }}%"></div>
+                                <div class="bg-red-500 h-2.5 rounded-full" style="width: {{ $totalUsers > 0 ? ($usersByRole['admins'] / $totalUsers) * 100 : 0 }}%"></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- ========================================== --}}
-                {{-- 5. TABLA: CANCHAS POPULARES --}}
-                {{-- ========================================== --}}
+                {{-- 5. CANCHAS POPULARES --}}
                 <div class="bg-white shadow-xl sm:rounded-lg p-6 lg:col-span-2">
                     <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
                         <span class="mr-2 text-xl">🏆</span> Canchas Más Populares
                     </h3>
-                    @if($topCanchas->isEmpty())
-                        <div class="flex flex-col items-center justify-center h-48 text-gray-400">
-                            <span class="text-3xl mb-2">📊</span>
-                            <p class="text-sm">Aún no hay datos suficientes.</p>
-                        </div>
-                    @else
-                        <div class="overflow-x-auto rounded-lg border border-gray-100">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cancha</th>
-                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Distrito</th>
-                                        <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Reservas</th>
+                    <div class="overflow-x-auto rounded-lg border border-gray-100">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Cancha</th>
+                                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Distrito</th>
+                                    <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase">Reservas</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                @foreach($topCanchas as $cancha)
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $cancha->name }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $cancha->district->name }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-black text-indigo-600">{{ $cancha->reservas_count }}</td>
                                     </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-100">
-                                    @foreach($topCanchas as $cancha)
-                                        <tr class="hover:bg-gray-50 transition-colors">
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $cancha->name }}</td>
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $cancha->district->name }}</td>
-                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-black text-indigo-600">{{ $cancha->reservas_count }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            {{-- ========================================== --}}
-            {{-- 6. TABLA: ACTIVIDAD RECIENTE --}}
-            {{-- ========================================== --}}
+            {{-- 6. ÚLTIMAS RESERVAS --}}
             <div class="bg-white shadow-xl sm:rounded-lg p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-bold text-gray-800 flex items-center">
                         <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Últimas Reservas
+                        Últimas Reservas (Incluye Usuarios Eliminados)
                     </h3>
                     <a href="{{ route('admin.reports.reservas') }}" class="text-sm text-indigo-600 hover:text-indigo-800 font-bold hover:underline">Ver todas</a>
                 </div>
-                
                 <div class="overflow-x-auto rounded-lg border border-gray-100">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cliente</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cancha</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Total</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Cliente</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Cancha</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Estado</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-100">
                             @forelse($recentReservas as $reserva)
                                 <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ \Carbon\Carbon::parse($reserva->created_at)->diffForHumans() }}
-                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $reserva->created_at->diffForHumans() }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-bold text-gray-900">{{ $reserva->user->name ?? 'Usuario Eliminado' }}</div>
-                                        <div class="text-xs text-gray-400">{{ $reserva->user->email ?? '' }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                        {{ $reserva->cancha->name }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-gray-900">
-                                        S/ {{ number_format($reserva->total_price, 2) }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($reserva->status == 'confirmed')
-                                            <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800">Confirmado</span>
-                                        @elseif($reserva->status == 'pending')
-                                            <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-yellow-100 text-yellow-800">Pendiente</span>
+                                        @if($reserva->user)
+                                            <div class="flex flex-col">
+                                                <span class="text-sm font-bold text-gray-900">{{ $reserva->user->name }}
+                                                    @if($reserva->user->trashed()) <span class="text-red-500 text-[10px] ml-1">(Eliminado)</span> @endif
+                                                </span>
+                                                <span class="text-xs text-gray-400">{{ $reserva->user->email }}</span>
+                                            </div>
                                         @else
-                                            <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800">Cancelado</span>
+                                            <span class="text-sm text-red-500 font-bold italic">Usuario purgado</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $reserva->cancha->name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-gray-900">S/ {{ number_format($reserva->total_price, 2) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($reserva->status == 'fully_paid')
+                                            <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-green-100 text-green-800">Pagado</span>
+                                        @elseif($reserva->status == 'advance_paid')
+                                            <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-blue-100 text-blue-800">Adelanto</span>
+                                        @elseif($reserva->status == 'pending')
+                                            <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800">Pendiente</span>
+                                        @else
+                                            <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-red-100 text-red-800">Cancelado</span>
                                         @endif
                                     </td>
                                 </tr>
                             @empty
-                                <tr>
-                                    <td colspan="5" class="px-6 py-8 text-center text-gray-400">No hay actividad reciente.</td>
-                                </tr>
+                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">No hay actividad reciente.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
-
         </div>
     </div>
 
-    {{-- SCRIPTS (Inicialización de Gráficos) --}}
+    {{-- SCRIPTS (GRÁFICOS) --}}
     @push('scripts')
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             
-            // 1. Gráfico Principal (Lineal)
-            const ctxMain = document.getElementById('mainChart');
-            if (ctxMain) {
-                new Chart(ctxMain.getContext('2d'), {
+            // 🟢 1. GRÁFICO MULTI-SERIE (BOLSA DE VALORES)
+            const ctxFin = document.getElementById('financialChart');
+            if (ctxFin) {
+                new Chart(ctxFin.getContext('2d'), {
+                    type: 'line',
                     data: {
-                        labels: {!! json_encode($chartLabels) !!},
+                        labels: {{ Js::from($fechas ?? []) }},
                         datasets: [
                             {
-                                type: 'line',
-                                label: 'Ingresos (S/)',
-                                data: {!! json_encode($chartIncomeData) !!},
-                                borderColor: '#10B981', // Green 500
+                                label: 'Pagado',
+                                data: {{ Js::from($dataFullyPaid ?? []) }},
+                                borderColor: '#10B981', // Verde
                                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                                fill: true,
-                                tension: 0.4,
-                                yAxisID: 'y-income'
+                                borderWidth: 3,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Adelanto',
+                                data: {{ Js::from($dataAdvance ?? []) }},
+                                borderColor: '#3B82F6', // Azul
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderWidth: 3,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Pendiente',
+                                data: {{ Js::from($dataPending ?? []) }},
+                                borderColor: '#FBBF24', // Amarillo
+                                borderDash: [5, 5],
+                                borderWidth: 2,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Perdido',
+                                data: {{ Js::from($dataCancelled ?? []) }},
+                                borderColor: '#EF4444', // Rojo
+                                borderWidth: 2,
+                                tension: 0.4
                             }
                         ]
                     },
@@ -285,15 +288,16 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         interaction: { mode: 'index', intersect: false },
+                        plugins: { legend: { display: false } }, // Leyenda custom
                         scales: {
-                            'y-income': { type: 'linear', display: true, position: 'left' },
+                            y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
                             x: { grid: { display: false } }
                         }
                     }
                 });
             }
 
-            // 2. Gráfico Usuarios (Pastel)
+            // 🟢 2. GRÁFICO DE USUARIOS
             const ctxUser = document.getElementById('userRoleChart');
             if (ctxUser) {
                 new Chart(ctxUser.getContext('2d'), {
@@ -310,7 +314,7 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        cutout: '70%',
+                        cutout: '75%',
                         plugins: { legend: { display: false } }
                     }
                 });

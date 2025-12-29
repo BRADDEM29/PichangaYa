@@ -54,13 +54,11 @@
         </main>
     </div>
 
-    {{-- 
-       HE ELIMINADO EL BOTÓN FLOTANTE Y EL SCRIPT MANUAL DE AQUÍ.
-       AHORA TODO LO CONTROLA APP.JS
-    --}}
-
     @stack('modals')
     @livewireScripts
+
+    {{-- 🟢 AQUÍ ESTABA EL ERROR: Faltaba esta línea para cargar los gráficos --}}
+    @stack('scripts')
 
     <x-urgent-booking-card />
 </body>

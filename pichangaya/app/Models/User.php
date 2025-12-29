@@ -1,5 +1,6 @@
 <?php
-//C:\laragon\www\PichangaYa\pichangaya\app\Models\User.php
+// C:\laragon\www\PichangaYa\pichangaya\app\Models\User.php
+
 namespace App\Models;
 
 // Importaciones de Laravel
@@ -9,6 +10,8 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+// 🟢 1. IMPORTANTE: Importamos SoftDeletes
+use Illuminate\Database\Eloquent\SoftDeletes; 
 
 // Importaciones de Eloquent para relaciones
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,6 +23,8 @@ class User extends Authenticatable
     use HasProfilePhoto;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    // 🟢 2. IMPORTANTE: Usamos el Trait dentro de la clase
+    use SoftDeletes; 
 
     /**
      * Los atributos que son asignables en masa (Mass Assignable).
