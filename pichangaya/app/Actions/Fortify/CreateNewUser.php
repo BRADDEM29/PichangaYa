@@ -14,6 +14,11 @@ class CreateNewUser implements CreatesNewUsers
 {
     use PasswordValidationRules;
 
+    /**
+     * Validate and create a newly registered user.
+     *
+     * @param  array<string, string>  $input
+     */
     public function create(array $input): User
     {
         Validator::make($input, [
@@ -22,7 +27,8 @@ class CreateNewUser implements CreatesNewUsers
             'phone' => ['required', 'string', 'max:20'], 
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
             
-            // 🟢 REGLAS DE CONTRASEÑA NIVEL "MEDIO"
+            // 🟢 REGLAS DE CONTRASEÑA:
+            // Aseguramos que el backend pida lo mismo que el medidor visual.
             'password' => [
                 'required',
                 'string',
@@ -30,8 +36,13 @@ class CreateNewUser implements CreatesNewUsers
                 Password::min(8)        // Mínimo 8 caracteres
                     ->mixedCase()       // Mayúsculas y Minúsculas
                     ->numbers()         // Números
-                    // ->symbols()      // NO lo ponemos, para que "Medio" sea suficiente
+                    // ->symbols()      // Opcional: descomenta si quieres obligar símbolos
             ],
+
+            // 🟢 NUEVAS VALIDACIONES: ACUERDOS OBLIGATORIOS
+            'marketing_consent' => ['required', 'accepted'],
+            'age_verification'  => ['required', 'accepted'],
+
         ])->validate();
 
         return User::create([
