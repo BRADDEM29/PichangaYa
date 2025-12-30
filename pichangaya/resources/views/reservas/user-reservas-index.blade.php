@@ -116,4 +116,10 @@
             </div>
         </div>
     </div>
+
+    {{-- 🟢 FOOTER AGREGADO CON LA MEJORA --}}
+    <div class="relative z-10">
+        <x-footer />
+    </div>
+
 </x-app-layout>

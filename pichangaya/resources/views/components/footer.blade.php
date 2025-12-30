@@ -1,3 +1,4 @@
+{{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\components\footer.blade.php --}}
 <footer class="bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-300 pt-16 pb-8 border-t border-gray-200 dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">

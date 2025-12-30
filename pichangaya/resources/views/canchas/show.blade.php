@@ -329,8 +329,14 @@
             </div>
         </div>
     </div>
+    {{-- 🟢 SOLUCIÓN: Agregamos el footer AQUÍ, dentro del layout y con z-index --}}
+        <div class="relative z-10">
+            <x-footer />
+        </div>
 </x-app-layout>
 
+
+    
 {{-- SCRIPTS DE MAPA --}}
 @if($cancha->lat && $cancha->lng)
 <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_key') }}&callback=initShowMap" async defer></script>
@@ -354,3 +360,4 @@
     }
 </script>
 @endif
+
