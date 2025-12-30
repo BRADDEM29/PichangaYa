@@ -103,6 +103,10 @@ Route::middleware([
     // Ver Canchas
     Route::resource('canchas', CanchaController::class)->only(['index', 'show']);
     
+    // 🟢 NUEVA RUTA: FAVORITOS
+    // Al estar dentro de este grupo, ya cuenta con la protección de autenticación
+    Route::post('/canchas/{cancha}/favorite', [CanchaController::class, 'toggleFavorite'])->name('canchas.favorite');
+    
     // Gestión de Reservas
     Route::post('/canchas/{cancha}/reservar', [ReservaController::class, 'store'])->name('reservas.user.store');
     Route::get('/mis-reservas', [ReservaController::class, 'userReservasIndex'])->name('reservas.user.index');
@@ -113,7 +117,7 @@ Route::middleware([
     Route::get('/notificaciones', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notificaciones/{id}/leer', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     
-    // 🟢 ESTA ES LA RUTA QUE FALTA (AGREGADA):
+    // Marcar todas como leídas
     Route::post('/notificaciones/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
 });
 
@@ -169,8 +173,7 @@ Route::middleware(['auth', 'role:admin'])
         // 🟢 GESTIÓN AVANZADA DE DUEÑOS Y CANCHAS
         Route::controller(AdminOwnerController::class)->group(function () {
             
-            // 👇 1. ESTA ES LA RUTA QUE TE FALTABA PARA VER LAS CANCHAS
-            // Se llamará: admin.owners.courts (por el prefix y name del grupo padre)
+            // Ver las canchas de un dueño
             Route::get('/owners/{user}/canchas', 'courts')->name('owners.courts'); 
             
             // Rutas para Crear Canchas desde Admin
@@ -180,7 +183,7 @@ Route::middleware(['auth', 'role:admin'])
             // Rutas para Gestionar Reservas de Cancha
             Route::get('/canchas/{cancha}/reservas', 'canchaReservas')->name('canchas.reservas.index');
 
-            // 👇 2. RUTAS NECESARIAS PARA LOS BOTONES DE TU VISTA (Editar, Eliminar, Destacar)
+            // Rutas para Editar/Eliminar/Destacar
             Route::get('/canchas/{cancha}/edit', 'editCancha')->name('canchas.edit');
             Route::put('/canchas/{cancha}', 'updateCancha')->name('canchas.update');
             Route::delete('/canchas/{cancha}', 'destroy')->name('canchas.destroy');

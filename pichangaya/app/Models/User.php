@@ -140,4 +140,8 @@ class User extends Authenticatable
     {
         return $this->role === 'user';
     }
+
+    public function favorites() {
+    return $this->belongsToMany(Cancha::class, 'favorites', 'user_id', 'cancha_id')->withTimestamps();
+}
 }

@@ -19,6 +19,7 @@
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Alpine.js (Defer) --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
@@ -47,7 +48,6 @@
             </div>
 
             <header class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8 text-center z-10">
-                {{-- ID: hero-title (Para el tutorial) --}}
                 <h1 id="hero-title" class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 drop-shadow-xl">
                     Encuentra tu cancha en <span class="text-green-400">Cusco</span>
                 </h1>
@@ -55,7 +55,6 @@
                     Fútbol, Vóley, Básquet y más. Reserva al instante.
                 </p>
 
-                {{-- ID: search-form (Para el tutorial) --}}
                 <div id="search-form" class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-2xl max-w-4xl mx-auto text-gray-900 dark:text-gray-100">
                     <form method="GET" action="{{ route('home') }}" class="grid grid-cols-1 md:grid-cols-12 gap-3">
                         <div class="md:col-span-4">
@@ -98,7 +97,6 @@
 
         {{-- 2. CARRUSEL DESTACADOS --}}
         @if(isset($featuredCanchas) && $featuredCanchas->isNotEmpty() && !request('search'))
-            {{-- ID: featured-section (Para el tutorial) --}}
             <div id="featured-section" class="relative pb-28 z-10">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex items-center gap-3 mb-6">
@@ -118,8 +116,39 @@
         </div>
     </div>
 
+    {{-- 2.5. SECCIÓN NUEVA: MIS FAVORITOS --}}
+    @auth
+        @if(auth()->user()->favorites->isNotEmpty())
+        <section class="py-10 bg-green-50 dark:bg-green-900/10 border-b border-green-100 dark:border-green-900/30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center gap-2 mb-6">
+                    <span class="text-3xl animate-pulse">❤️</span>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Tus Canchas Favoritas</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    @foreach(auth()->user()->favorites as $favCancha)
+                        <a href="{{ route('canchas.show', $favCancha) }}" class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 dark:border-gray-700 flex flex-col overflow-hidden">
+                            <div class="h-32 bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
+                                @if($favCancha->getFirstMediaUrl('canchas'))
+                                    <img src="{{ $favCancha->getFirstMediaUrl('canchas') }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                @else
+                                    <div class="flex items-center justify-center h-full text-2xl">🏟️</div>
+                                @endif
+                            </div>
+                            <div class="p-4">
+                                <h4 class="font-bold text-gray-800 dark:text-gray-200 group-hover:text-green-600 truncate">{{ $favCancha->name }}</h4>
+                                <p class="text-xs text-gray-500 mt-1">📍 {{ $favCancha->district->name ?? 'Cusco' }}</p>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+    @endauth
+
     {{-- 3. LISTADO DE CANCHAS --}}
-    {{-- ID: canchas-grid (Para el tutorial) --}}
     <section id="canchas-grid" class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 border-l-4 border-green-600 pl-4">
             Explora Todas las Canchas
@@ -135,6 +164,7 @@
                 @foreach($canchas as $cancha)
                     <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 flex flex-col h-full group">
                         
+                        {{-- IMAGEN + BOTON FAVORITOS + PRECIO --}}
                         <div class="relative h-56 bg-gray-200 dark:bg-gray-700 overflow-hidden">
                             @if($cancha->getFirstMediaUrl('canchas'))
                                 <img src="{{ $cancha->getFirstMediaUrl('canchas') }}" 
@@ -144,9 +174,53 @@
                                 <div class="flex items-center justify-center h-full text-4xl">🏟️</div>
                             @endif
                             
+                            {{-- Precio --}}
                             <div class="absolute top-4 right-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur px-3 py-1 rounded-lg shadow-sm text-sm font-bold text-green-700">
                                 S/ {{ number_format($cancha->price_per_hour, 2) }}
                             </div>
+
+                            {{-- BOTÓN DE FAVORITOS (Alpine.js) --}}
+                            @auth
+                                <div class="absolute top-4 left-4 z-20"
+                                     x-data="{ 
+                                         isFaved: {{ $cancha->isFavoritedBy(auth()->user()) ? 'true' : 'false' }},
+                                         isLoading: false,
+                                         toggleFav() {
+                                             this.isLoading = true;
+                                             fetch('{{ route('canchas.favorite', $cancha) }}', {
+                                                 method: 'POST',
+                                                 headers: {
+                                                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                     'Content-Type': 'application/json',
+                                                     'Accept': 'application/json'
+                                                 }
+                                             })
+                                             .then(response => {
+                                                 if (response.ok) {
+                                                     this.isFaved = !this.isFaved;
+                                                 }
+                                             })
+                                             .finally(() => {
+                                                 this.isLoading = false;
+                                             });
+                                         }
+                                     }">
+                                    <button @click="toggleFav()" 
+                                            :disabled="isLoading"
+                                            class="bg-white/90 dark:bg-gray-900/90 p-2 rounded-full shadow-md hover:scale-110 active:scale-95 transition-all duration-200 group/btn focus:outline-none focus:ring-2 focus:ring-green-400">
+                                        
+                                        {{-- Corazón Lleno (Rojo) --}}
+                                        <svg x-show="isFaved" x-cloak class="w-6 h-6 text-red-500 fill-current" viewBox="0 0 24 24">
+                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                        </svg>
+                                        
+                                        {{-- Corazón Vacío (Outline) --}}
+                                        <svg x-show="!isFaved" x-cloak class="w-6 h-6 text-gray-400 group-hover/btn:text-red-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            @endauth
                         </div>
 
                         <div class="p-5 flex-grow flex flex-col">
@@ -189,7 +263,6 @@
     </section>
 
     {{-- 4. SECCIÓN ¿QUIÉNES SOMOS? --}}
-    {{-- ID: about-section (Para el tutorial) --}}
     <section id="about-section" class="py-20 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">

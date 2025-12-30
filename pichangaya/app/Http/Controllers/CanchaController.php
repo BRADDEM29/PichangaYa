@@ -241,4 +241,9 @@ class CanchaController extends Controller
 
         return view('owner.canchas.history', compact('cancha', 'reservasPorMes'));
     }
+
+    public function toggleFavorite(Cancha $cancha) {
+    auth()->user()->favorites()->toggle($cancha->id);
+    return response()->json(['status' => 'success']);
+    }
 }

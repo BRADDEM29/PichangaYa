@@ -138,4 +138,20 @@ class Cancha extends Model implements HasMedia
     {
         return $this->belongsToMany(Service::class, 'cancha_service');
     }
+
+    /**
+     * 🟢 ESTA ES LA FUNCIÓN QUE TE FALTABA
+     * Relación muchos a muchos con usuarios (Favoritos)
+     */
+    public function favorites(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'favorites', 'cancha_id', 'user_id')->withTimestamps();
+    }
+
+    public function isFavoritedBy($user) 
+    {
+        if (!$user) return false;
+        // Ahora sí existe el método favorites()
+        return $this->favorites()->where('user_id', $user->id)->exists();
+    }
 }
