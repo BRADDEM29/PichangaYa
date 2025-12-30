@@ -2,9 +2,14 @@
     <div class="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 transition-colors duration-300">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             
+            {{-- CABECERA MODIFICADA --}}
             <div class="mb-8 text-center">
-                <h1 class="text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight italic">PichangaYa Cusco</h1>
-                <p class="text-green-600 font-bold uppercase tracking-widest text-xs">Protección de Datos Personales</p>
+                <h1 class="text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight italic">
+                    Políticas de Privacidad
+                </h1>
+                <p class="text-green-600 font-bold uppercase tracking-widest text-xs">
+                    Protección de Datos Personales - PichangaYa
+                </p>
             </div>
 
             <div class="bg-white dark:bg-gray-900 shadow-2xl rounded-3xl border border-gray-100 dark:border-gray-800 p-8 sm:p-16 space-y-12">
