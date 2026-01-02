@@ -18,14 +18,15 @@
 
 <x-app-layout>
     
-    {{-- 🟢 FONDO ADAPTABLE CON PATRÓN DE PELOTAS --}}
-    <div class="fixed inset-0 z-0 pointer-events-none bg-gray-200 dark:bg-gray-950 transition-colors duration-300">
-        <div class="absolute inset-0 opacity-10 grayscale dark:invert" 
-             style="background-image: url('data:image/svg+xml,%3Csvg width=\'240\' height=\'240\' viewBox=\'0 0 240 240\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Ctext x=\'20\' y=\'60\' font-size=\'60\'%3E⚽%3C/text%3E%3Ctext x=\'100\' y=\'120\' font-size=\'60\'%3E🏀%3C/text%3E%3Ctext x=\'180\' y=\'60\' font-size=\'60\'%3E🏐%3C/text%3E%3Ctext x=\'20\' y=\'180\' font-size=\'60\'%3E🏈%3C/text%3E%3Ctext x=\'100\' y=\'220\' font-size=\'60\'%3E⚾%3C/text%3E%3Ctext x=\'180\' y=\'180\' font-size=\'60\'%3E🏉%3C/text%3E%3C/svg%3E');">
+    {{-- 🟢 FONDO CAMBIADO: Ahora usa la imagen fondo.webp --}}
+    <div class="fixed inset-0 z-0 pointer-events-none">
+        <div class="absolute inset-0 bg-gray-200 dark:bg-gray-950 transition-colors duration-300"></div>
+        <div class="absolute inset-0 opacity-30 dark:opacity-20 bg-cover bg-center bg-no-repeat transition-opacity duration-500" 
+             style="background-image: url('{{ asset('images/fondo.webp') }}');">
         </div>
     </div>
 
-    {{-- 1. ENCABEZADO (Header Info) - MEJORADO CON DARK MODE --}}
+    {{-- 1. ENCABEZADO (Header Info) --}}
     <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm relative z-20 transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -142,44 +143,32 @@
                 
                 {{-- COLUMNA PRINCIPAL --}}
                 <div class="lg:col-span-8 space-y-8">
-                {{-- VISUALIZADOR DE ERRORES DE LÓGICA (Ej: Reserva pendiente) --}}
-                @if (session('error'))
-                    <div class="mb-6 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-400 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300 px-4 py-3 rounded relative shadow" role="alert">
-                        <strong class="font-bold">¡No se pudo reservar!</strong>
-                        <span class="block sm:inline">{{ session('error') }}</span>
-                        
-                        <div class="mt-2">
-                            <a href="{{ route('reservas.user.index') }}" class="inline-block bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold py-1 px-3 rounded transition shadow-sm">
-                                Solucionar reservas pendientes →
-                            </a>
-                        </div>
-                    </div>
-                @endif    
-                    {{-- 🟢 VISUALIZADORES DE ERRORES (Aquí es donde los necesitas) --}}
                     
-                    {{-- 🔴 ERRORES DE VALIDACIÓN --}}
-                    @if ($errors->any())
-                        <div class="mb-6 bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded relative shadow" role="alert">
-                            <strong class="font-bold">¡Atención!</strong>
-                            <span class="block sm:inline">
-                                @foreach ($errors->all() as $error)
-                                    {{ $error }}<br>
-                                @endforeach
-                            </span>
-                        </div>
-                    @endif
+                    {{-- VISUALIZADORES DE ERRORES --}}
+                    @if ($errors->any() || session('error'))
+                        <div class="space-y-4">
+                            @if ($errors->any())
+                                <div class="bg-red-100 dark:bg-red-900/50 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded relative shadow" role="alert">
+                                    <strong class="font-bold">¡Atención!</strong>
+                                    <span class="block sm:inline">
+                                        @foreach ($errors->all() as $error)
+                                            {{ $error }}<br>
+                                        @endforeach
+                                    </span>
+                                </div>
+                            @endif
 
-                    {{-- 🟡 ERRORES DE LÓGICA (Ej: Reserva pendiente) --}}
-                    @if (session('error'))
-                        <div class="mb-6 bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-400 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300 px-4 py-3 rounded relative shadow" role="alert">
-                            <strong class="font-bold">¡Ups!</strong>
-                            <span class="block sm:inline">{{ session('error') }}</span>
-                            {{-- Botón para ir a pagar la pendiente --}}
-                            <div class="mt-2">
-                                <a href="{{ route('reservas.user.index') }}" class="inline-block bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold py-1 px-3 rounded transition shadow-sm">
-                                    Ver mis reservas pendientes →
-                                </a>
-                            </div>
+                            @if (session('error'))
+                                <div class="bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-400 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300 px-4 py-3 rounded relative shadow" role="alert">
+                                    <strong class="font-bold">¡Ups!</strong>
+                                    <span class="block sm:inline">{{ session('error') }}</span>
+                                    <div class="mt-2">
+                                        <a href="{{ route('reservas.user.index') }}" class="inline-block bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold py-1 px-3 rounded transition shadow-sm">
+                                            Ver mis reservas pendientes →
+                                        </a>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     @endif
 
@@ -194,7 +183,7 @@
                             </div>
                         </div>
                         
-                        {{-- 🟢 NUEVA LEYENDA DE COLORES (CON LA MEJORA QUE PEDISTE) --}}
+                        {{-- LEYENDA DE COLORES --}}
                         <div class="px-6 pt-4 flex flex-wrap gap-4 text-xs font-bold">
                             <div class="flex items-center gap-2">
                                 <div class="w-4 h-4 bg-white border border-gray-300 rounded shadow-sm"></div>
@@ -210,39 +199,12 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="w-4 h-4 bg-indigo-600 border border-indigo-600 rounded shadow-sm"></div>
-                                <span class="text-gray-500 dark:text-gray-400">Tu Juego</span>
+                                <span class="text-indigo-600 dark:text-indigo-400">Tu Juego</span>
                             </div>
                         </div>
 
-                        {{-- 🟢 AQUÍ ESTÁ EL CAMBIO IMPORTANTE: BLOQUEO DE SEGURIDAD --}}
                         <div class="p-6">
-                            @php
-                                $user = Auth::user();
-                                // Lógica: Está verificado SI (tiene email verificado O tiene celular verificado)
-                                // Si no está logueado, lo dejamos pasar para que el middleware auth o el botón de reservar lo maneje.
-                                $isVerified = $user && ($user->hasVerifiedEmail() || !is_null($user->phone_verified_at));
-                            @endphp
-
-                            @if($isVerified)
-                                {{-- USUARIO VERIFICADO: PUEDE VER LA TABLA Y RESERVAR --}}
-                                @livewire('cancha-reserva-form', ['cancha' => $cancha])
-                            @else
-                                {{-- USUARIO NO VERIFICADO: BLOQUEO --}}
-                                <div class="text-center py-10 border-2 border-dashed border-red-300 dark:border-red-800 rounded-xl bg-red-50 dark:bg-red-900/10">
-                                    <div class="mb-4">
-                                        <span class="text-4xl">🔒</span>
-                                    </div>
-                                    <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">¡Verificación Requerida!</h3>
-                                    <p class="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto">
-                                        Para poder reservar y tocar la cancha, necesitamos validar que eres una persona real. 
-                                        <br>Por favor, verifica tu <b>Correo</b> o tu <b>Celular</b>.
-                                    </p>
-                                    
-                                    <a href="{{ route('profile.show') }}#verification-section" class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-lg transition transform hover:scale-105">
-                                        Ir a Verificar Ahora →
-                                    </a>
-                                </div>
-                            @endif
+                            @livewire('cancha-reserva-form', ['cancha' => $cancha])
                         </div>
                     </div>
 
@@ -291,14 +253,15 @@
 
                         <hr class="border-gray-100 dark:border-gray-700 my-4">
 
+                        {{-- 🟢 SERVICIOS MEJORADOS --}}
                         <div>
-                            <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">Servicios de la Cancha</p>
+                            <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-3">Servicios Adicionales</p>
                             @if($cancha->services->count() > 0)
-                                <div class="grid grid-cols-2 gap-y-2 gap-x-1">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     @foreach($cancha->services as $service)
-                                        <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                            <span class="text-lg">{{ $service->icon }}</span>
-                                            <span class="truncate">{{ $service->name }}</span>
+                                        <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700">
+                                            <span class="text-xl flex-shrink-0">{{ $service->icon }}</span>
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{{ $service->name }}</span>
                                         </div>
                                     @endforeach
                                 </div>
@@ -331,22 +294,15 @@
                             <div class="w-full h-48 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center text-gray-400 text-xs mb-4">Mapa no disponible</div>
                         @endif
 
-                        {{-- Botón WhatsApp (CORREGIDO) --}}
                         @php
                             $telefono = $cancha->contact_phone ?? $cancha->user->phone ?? '';
-                            // 1. Limpiamos caracteres no numéricos
                             $cleanPhone = preg_replace('/[^0-9]/', '', $telefono);
-                            
-                            // 2. Si tiene 9 dígitos (celular Perú), agregamos 51 para que el link funcione
-                            if (strlen($cleanPhone) == 9) {
-                                $cleanPhone = '51' . $cleanPhone;
-                            }
-
+                            if (strlen($cleanPhone) == 9) { $cleanPhone = '51' . $cleanPhone; }
                             $linkWa = "https://wa.me/" . $cleanPhone . "?text=" . urlencode("Hola, vi su cancha " . $cancha->name . " en PichangaYa y me gustaría hacer una consulta.");
                         @endphp
                         
                         <a href="{{ $linkWa }}" target="_blank" class="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
                             Contactar al Dueño
                         </a>
                     </div>
@@ -355,13 +311,13 @@
             </div>
         </div>
     </div>
-    {{-- 🟢 SOLUCIÓN: Agregamos el footer AQUÍ, dentro del layout y con z-index --}}
-        <div class="relative z-10">
-            <x-footer />
-        </div>
+
+    {{-- FOOTER --}}
+    <div class="relative z-10">
+        <x-footer />
+    </div>
 </x-app-layout>
 
-    
 {{-- SCRIPTS DE MAPA --}}
 @if($cancha->lat && $cancha->lng)
 <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_key') }}&callback=initShowMap" async defer></script>
@@ -373,13 +329,7 @@
             zoom: 15,
             disableDefaultUI: true,
             zoomControl: true,
-            styles: [
-                {
-                    "featureType": "all",
-                    "elementType": "labels.text.fill",
-                    "stylers": [{"color": "#ffffff"}]
-                }
-            ]
+            styles: [{"featureType":"all","elementType":"labels.text.fill","stylers":[{"color":"#ffffff"}]}]
         });
         new google.maps.Marker({ position: location, map: map });
     }

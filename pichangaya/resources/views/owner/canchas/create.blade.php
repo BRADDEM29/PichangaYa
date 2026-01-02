@@ -38,17 +38,31 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Deportes Disponibles</label>
                             <p class="text-xs text-gray-500 mb-3">Selecciona máximo 2 deportes.</p>
                             
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 items-stretch">
                                 @foreach($sports as $sport)
-                                    <label class="cursor-pointer relative">
-                                        {{-- Input con clase 'sport-checkbox' para control JS --}}
+                                    @php
+                                        $sportIcon = match(true) {
+                                            str_contains(strtolower($sport->name), 'fútbol 5') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>',
+                                            str_contains(strtolower($sport->name), 'fútbol 7') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>',
+                                            str_contains(strtolower($sport->name), 'fútbol 11') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>',
+                                            str_contains(strtolower($sport->name), 'vóley') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>',
+                                            str_contains(strtolower($sport->name), 'básquet') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>',
+                                            str_contains(strtolower($sport->name), 'tenis') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>',
+                                            str_contains(strtolower($sport->name), 'futsal') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+                                            default => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h1.5a2.5 2.5 0 012.5 2.5v.665M19 10.5l1 1.5-1.5 1.5a2.5 2.5 0 01-3.5 0L14 12" /></svg>'
+                                        };
+                                    @endphp
+                                    <label class="cursor-pointer group h-full">
                                         <input type="checkbox" name="sports[]" value="{{ $sport->id }}" 
                                             class="peer sr-only sport-checkbox"
                                             @if(is_array(old('sports')) && in_array($sport->id, old('sports'))) checked @endif
                                         >
-                                        {{-- Diseño de Tarjeta --}}
-                                        <div class="p-3 bg-white border rounded-lg hover:bg-gray-50 peer-checked:bg-indigo-50 peer-checked:border-indigo-500 peer-checked:text-indigo-700 transition-all flex items-center justify-center gap-2 text-sm font-medium text-gray-600 shadow-sm peer-disabled:opacity-50 peer-disabled:cursor-not-allowed">
-                                            <span class="text-xl">{{ $sport->icon }}</span> {{ $sport->name }}
+                                        {{-- Contenedor con altura fija mínima y flex-col para uniformidad --}}
+                                        <div class="h-full min-h-[100px] p-4 bg-white border rounded-xl flex flex-col items-center justify-center gap-2 text-sm font-bold text-gray-600 shadow-sm transition-all peer-checked:bg-indigo-50 peer-checked:border-indigo-500 peer-checked:text-indigo-700 peer-disabled:opacity-40 peer-disabled:grayscale text-center whitespace-normal">
+                                            <span class="shrink-0 text-gray-400 group-hover:scale-110 transition-transform peer-checked:text-indigo-600">
+                                                {!! $sportIcon !!}
+                                            </span> 
+                                            <span class="leading-tight">{{ $sport->name }}</span>
                                         </div>
                                     </label>
                                 @endforeach
@@ -60,16 +74,27 @@
                         {{-- 4. SERVICIOS (SIN LÍMITE) --}}
                         <div class="mb-6 border-t border-gray-100 pt-4">
                             <label class="block text-sm font-semibold text-gray-700 mb-3">Servicios Adicionales</label>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 items-stretch">
                                 @foreach($services as $service)
-                                    <label class="cursor-pointer relative">
+                                    @php
+                                        $serviceIcon = match(true) {
+                                            str_contains(strtolower($service->name), 'wi-fi') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071a10.5 10.5 0 0114.142 0M2.121 8.879C7.62 3.38 16.38 3.38 21.879 8.879" /></svg>',
+                                            str_contains(strtolower($service->name), 'estacionamiento') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>',
+                                            str_contains(strtolower($service->name), 'ducha') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>',
+                                            str_contains(strtolower($service->name), 'iluminación') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>',
+                                            default => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>'
+                                        };
+                                    @endphp
+                                    <label class="cursor-pointer group h-full">
                                         <input type="checkbox" name="services[]" value="{{ $service->id }}" 
                                             class="peer sr-only"
                                             @if(is_array(old('services')) && in_array($service->id, old('services'))) checked @endif
                                         >
-                                        {{-- Diseño Verde para Servicios --}}
-                                        <div class="p-3 bg-white border rounded-lg hover:bg-gray-50 peer-checked:bg-green-50 peer-checked:border-green-500 peer-checked:text-green-700 transition-all flex items-center justify-center gap-2 text-sm font-medium text-gray-600 shadow-sm">
-                                            <span class="text-xl">{{ $service->icon }}</span> {{ $service->name }}
+                                        <div class="h-full min-h-[100px] p-4 bg-white border rounded-xl flex flex-col items-center justify-center gap-2 text-sm font-bold text-gray-600 shadow-sm transition-all peer-checked:bg-green-50 peer-checked:border-green-500 peer-checked:text-green-700 text-center whitespace-normal">
+                                            <span class="shrink-0 text-indigo-500 group-hover:scale-110 transition-transform peer-checked:text-green-600">
+                                                {!! $serviceIcon !!}
+                                            </span> 
+                                            <span class="leading-tight">{{ $service->name }}</span>
                                         </div>
                                     </label>
                                 @endforeach
@@ -114,7 +139,6 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <p class="text-xs text-gray-500 mt-1">Este será el número al que los clientes escribirán.</p>
                             @error('contact_phone') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
                         </div>
 
@@ -124,27 +148,15 @@
                             <div id="map" class="w-full h-96 rounded-lg shadow-md border border-gray-300"></div>
                             <input type="hidden" name="lat" id="lat" value="{{ old('lat') }}">
                             <input type="hidden" name="lng" id="lng" value="{{ old('lng') }}">
-                            <p class="text-xs text-gray-500 mt-2">* Arrastra el marcador rojo para fijar la ubicación exacta.</p>
                             @error('lat') <p class="text-red-500 text-xs mt-1 font-bold">Selecciona una ubicación en el mapa.</p> @enderror
                         </div>
 
                         {{-- 10. Imágenes --}}
                         <div class="mb-4">
-                            <label for="images" class="block text-sm font-semibold text-gray-700">Fotos de la Cancha (Mínimo 1)</label>
+                            <label for="images" class="block text-sm font-semibold text-gray-700">Fotos de la Cancha</label>
                             <input type="file" name="images[]" id="images" multiple accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" required>
                             <div id="image-preview" class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
-                            
-                            {{-- Mensajes de error para imágenes --}}
-                            @error('images') 
-                                <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> 
-                            @enderror
-                            @if($errors->has('images.*'))
-                                <ul class="mt-1 list-disc list-inside text-xs text-red-500 font-bold">
-                                    @foreach($errors->get('images.*') as $errorsArray)
-                                        @foreach($errorsArray as $error) <li>{{ $error }}</li> @endforeach
-                                    @endforeach
-                                </ul>
-                            @endif
+                            @error('images') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
                         </div>
 
                         {{-- 11. Descripción --}}
@@ -168,33 +180,24 @@
 <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_key') }}&callback=initMap" async defer></script>
 
 <script>
-    // --- LÓGICA DE MÁXIMO 2 DEPORTES ---
+    // LÓGICA DE MÁXIMO 2 DEPORTES
     const sportCheckboxes = document.querySelectorAll('.sport-checkbox');
-    const maxSports = 2; // Regla: Máximo 2 deportes
+    const maxSports = 2;
 
     sportCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', () => {
             const selected = document.querySelectorAll('.sport-checkbox:checked');
-            
             if (selected.length >= maxSports) {
-                // Deshabilitar los no seleccionados
                 sportCheckboxes.forEach(cb => {
-                    if (!cb.checked) {
-                        cb.disabled = true;
-                        cb.parentElement.querySelector('div').classList.add('opacity-50', 'cursor-not-allowed');
-                    }
+                    if (!cb.checked) cb.disabled = true;
                 });
             } else {
-                // Habilitar todos
-                sportCheckboxes.forEach(cb => {
-                    cb.disabled = false;
-                    cb.parentElement.querySelector('div').classList.remove('opacity-50', 'cursor-not-allowed');
-                });
+                sportCheckboxes.forEach(cb => cb.disabled = false);
             }
         });
     });
 
-    // --- SCRIPT DE IMÁGENES ---
+    // VISTA PREVIA DE IMÁGENES
     document.getElementById('images').addEventListener('change', function(event) {
         const previewContainer = document.getElementById('image-preview');
         previewContainer.innerHTML = ''; 
@@ -212,64 +215,30 @@
         }
     });
 
-    // --- SCRIPT MAPA ---
-    let map;
-    let marker;
-
+    // MAPA
+    let map, marker;
     function initMap() {
-        const defaultCusco = { lat: -13.5167, lng: -71.9788 }; // Plaza de Armas
+        const defaultCusco = { lat: -13.5167, lng: -71.9788 };
         const oldLat = "{{ old('lat') }}";
         const oldLng = "{{ old('lng') }}";
+        let startPos = (oldLat && oldLng) ? { lat: parseFloat(oldLat), lng: parseFloat(oldLng) } : defaultCusco;
 
-        let startPos = defaultCusco;
-        let useGps = true; 
+        map = new google.maps.Map(document.getElementById("map"), { center: startPos, zoom: 15 });
+        marker = new google.maps.Marker({ position: startPos, map: map, draggable: true, animation: google.maps.Animation.DROP });
 
-        // Si hay un error de validación y volvemos, usamos la posición vieja
-        if (oldLat && oldLng) {
-            startPos = { lat: parseFloat(oldLat), lng: parseFloat(oldLng) };
-            useGps = false; 
-        }
-
-        map = new google.maps.Map(document.getElementById("map"), {
-            center: startPos,
-            zoom: 15,
-        });
-
-        marker = new google.maps.Marker({
-            position: startPos,
-            map: map,
-            draggable: true,
-            title: "Ubicación de la cancha",
-            animation: google.maps.Animation.DROP
-        });
-
-        // Actualizar inputs al arrastrar
         marker.addListener("dragend", () => {
             const position = marker.getPosition();
             document.getElementById('lat').value = position.lat();
             document.getElementById('lng').value = position.lng();
         });
 
-        // Intentar usar GPS solo si es carga nueva
-        if (useGps && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const userPos = { lat: position.coords.latitude, lng: position.coords.longitude };
-                    map.setCenter(userPos);
-                    marker.setPosition(userPos);
-                    document.getElementById('lat').value = userPos.lat;
-                    document.getElementById('lng').value = userPos.lng;
-                },
-                () => {
-                    // Si falla GPS, poner valores por defecto en los inputs
-                    document.getElementById('lat').value = startPos.lat;
-                    document.getElementById('lng').value = startPos.lng;
-                }
-            );
-        } else {
-            // Inicializar inputs si no hay GPS
-            document.getElementById('lat').value = startPos.lat;
-            document.getElementById('lng').value = startPos.lng;
+        if (!oldLat && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const userPos = { lat: position.coords.latitude, lng: position.coords.longitude };
+                map.setCenter(userPos); marker.setPosition(userPos);
+                document.getElementById('lat').value = userPos.lat;
+                document.getElementById('lng').value = userPos.lng;
+            });
         }
     }
 </script>

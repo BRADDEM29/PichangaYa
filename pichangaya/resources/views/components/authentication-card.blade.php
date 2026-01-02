@@ -1,11 +1,10 @@
 <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 relative overflow-hidden">
     
-    {{-- FONDO DE PELOTAS --}}
+    {{-- FONDO DE ESTADIO --}}
     <div class="absolute inset-0 z-0">
-        {{-- He puesto una imagen de balones de alta calidad. Si tienes una propia en tu carpeta public,
-             cambia la URL por: asset('images/tu-fondo-pelotas.jpg') --}}
-        <img src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?q=80&w=1920&auto=format&fit=crop" 
-             alt="Fondo Deportivo" 
+        {{-- Cambio realizado aquí: Apuntando a tu imagen local --}}
+        <img src="{{ asset('images/estadio.webp') }}" 
+             alt="Fondo Estadio" 
              class="w-full h-full object-cover">
              
         {{-- Capa oscura para asegurar que el texto se lea bien --}}
