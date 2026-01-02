@@ -48,7 +48,10 @@
                 <div class="shrink-0 flex items-center">
                     {{-- ID: tour-logo mantenido --}}
                     <a href="{{ route('home') }}" id="tour-logo" class="flex items-center"> 
-                        <x-application-mark class="block h-12 w-auto text-white fill-current transition hover:scale-105" />
+                        {{-- 🟢 CAMBIO SOLO AQUI: NUEVO LOGO --}}
+                        <img src="{{ asset('images/Pichanga-_1_.webp') }}" 
+                             alt="PichangaYa Logo" 
+                             class="block h-16 w-auto object-contain transition hover:scale-105 drop-shadow-md">
                     </a>
                 </div>
 
@@ -61,7 +64,7 @@
 
                     @auth
                         <div class="relative group">
-                            {{-- ✅ CAMBIO IMPORTANTE: ID actualizado a 'tour-mis-reservas' para coincidir con app.js --}}
+                            {{-- ID actualizado a 'tour-mis-reservas' --}}
                             <a href="{{ route('reservas.user.index') }}" id="tour-mis-reservas" class="inline-flex items-center px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out {{ request()->routeIs('reservas.user.*') ? 'text-green-400 border-b-2 border-green-400' : 'text-white hover:text-green-300' }}">
                                 {{ __('Mis Reservas') }}
                             </a>
@@ -291,13 +294,11 @@
                                 <div class="border-t border-gray-200 dark:border-gray-700"></div>
                                 
                                 <form method="POST" action="{{ route('logout') }}" x-data>
-    @csrf
-
-    <x-dropdown-link href="{{ route('logout') }}"
-             @click.prevent="$root.submit();">
-        {{ __('Cerrar Sesión') }}
-    </x-dropdown-link>
-    </form>
+                                    @csrf
+                                    <x-dropdown-link href="{{ route('logout') }}" @click.prevent="$root.submit();">
+                                        {{ __('Cerrar Sesión') }}
+                                    </x-dropdown-link>
+                                </form>
                             </x-slot>
                         </x-dropdown>
                     </div>
@@ -377,7 +378,7 @@
         </div>
     </div>
 
-    {{-- 🟢 SCRIPT DE TEMPORIZADOR MEJORADO --}}
+    {{-- SCRIPT DE TEMPORIZADOR MEJORADO --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const timerElements = document.querySelectorAll('.notif-timer');
@@ -393,7 +394,6 @@
                     
                     if (distance < 0) {
                         el.innerHTML = "EXPIRADO";
-                        // Estilos de expiración
                         el.classList.remove('text-green-400', 'animate-pulse', 'drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]');
                         el.classList.add('text-red-600', 'drop-shadow-[0_0_8px_rgba(220,38,38,0.6)]'); 
                         return;
@@ -407,7 +407,6 @@
                     
                     el.innerHTML = `${formattedMin}:${formattedSec}`;
 
-                    // Alerta: menos de 2 minutos
                     if(minutes < 2) {
                         el.classList.remove('text-green-400', 'drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]');
                         el.classList.add('text-red-500', 'animate-pulse', 'drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]');
