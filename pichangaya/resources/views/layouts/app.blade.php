@@ -43,6 +43,24 @@
             visibility: hidden;
         }
     </style>
+
+    {{-- 🟢 INICIO DE AXIOS FIX --}}
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Configuración Global de Axios para Laravel
+        window.axios = axios;
+        window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+        
+        // Adjuntar el Token CSRF automáticamente a cada petición
+        let token = document.head.querySelector('meta[name="csrf-token"]');
+        if (token) {
+            window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+        } else {
+            console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
+        }
+    </script>
+    {{-- 🟢 FIN DE AXIOS FIX --}}
+
 </head>
 <body class="font-sans antialiased bg-gray-100 dark:bg-gray-900">
     

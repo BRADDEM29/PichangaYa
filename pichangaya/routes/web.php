@@ -15,8 +15,10 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminContactController; 
 use App\Http\Controllers\SuggestionController;    
 use App\Http\Controllers\CanchaController; 
+use App\Http\Controllers\DashboardController; 
 use App\Http\Controllers\ReservaController; 
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\VerificationController; // 🟢 NUEVO CONTROLADOR
 
 // Modelos
 use App\Models\Cancha;   
@@ -96,9 +98,7 @@ Route::middleware([
     'verified',
 ])->group(function () {
     
-    // 🟢 CAMBIO IMPORTANTE: ELIMINAR DASHBOARD
-    // En lugar de mostrar la vista dashboard, redirigimos al home.
-    // Mantenemos el name('dashboard') porque Jetstream lo usa internamente.
+    // 🟢 ELIMINAR DASHBOARD
     Route::redirect('/dashboard', '/')->name('dashboard');
     
     // Ver Canchas
@@ -107,6 +107,10 @@ Route::middleware([
     // 🟢 NUEVA RUTA: FAVORITOS
     Route::post('/canchas/{cancha}/favorite', [CanchaController::class, 'toggleFavorite'])->name('canchas.favorite');
     
+    // 📱 VERIFICACIÓN DE CELULAR (NUEVAS RUTAS)
+    Route::post('/verificar-celular/enviar', [VerificationController::class, 'sendCode'])->name('verification.send');
+    Route::post('/verificar-celular/confirmar', [VerificationController::class, 'verifyCode'])->name('verification.check');
+
     // Gestión de Reservas
     Route::post('/canchas/{cancha}/reservar', [ReservaController::class, 'store'])->name('reservas.user.store');
     Route::get('/mis-reservas', [ReservaController::class, 'userReservasIndex'])->name('reservas.user.index');

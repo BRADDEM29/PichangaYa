@@ -1,8 +1,12 @@
 <nav x-data="{ open: false, darkMode: localStorage.getItem('dark-mode') === 'true' }" class="bg-gray-900/90 backdrop-blur-md border-b border-gray-700 shadow-lg sticky top-0 z-50">
     {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\navigation-menu.blade.php --}}
+    
+    {{-- 🟢 LÓGICA PHP INYECTADA --}}
     @php
         $displayName = '';
-        $bellReserva = null;
+        $alertEmail = false;
+        $alertPhone = false;
+        $bellReserva = null; 
         
         if (Auth::check()) {
             $user = Auth::user();
@@ -11,7 +15,11 @@
                 $displayName = strtok($user->name, ' '); 
             }
 
-            // Lógica para la campanita de reservas recientes
+            // Lógica de Alertas de Seguridad
+            $alertEmail = !$user->hasVerifiedEmail(); // Falta correo
+            $alertPhone = is_null($user->phone_verified_at); // Falta celular
+            
+            // Tu lógica opcional de reserva reciente
             $bellReserva = \App\Models\Reserva::where('user_id', auth()->id())
                 ->where('created_at', '>', now()->subMinutes(12)) 
                 ->with('cancha')
@@ -21,6 +29,7 @@
     @endphp
 
     <style>
+        /* Animación y Fuentes */
         @keyframes swing {
             0%, 100% { transform: rotate(0deg); }
             20% { transform: rotate(15deg); }
@@ -32,7 +41,6 @@
             animation: swing 2s infinite ease-in-out;
             transform-origin: top center;
         }
-        /* Fuente digital para el reloj */
         .font-digital {
             font-family: 'Courier New', Courier, monospace;
             font-variant-numeric: tabular-nums;
@@ -46,9 +54,7 @@
             {{-- LOGO Y LINKS IZQUIERDA --}}
             <div class="flex items-center">
                 <div class="shrink-0 flex items-center">
-                    {{-- ID: tour-logo mantenido --}}
                     <a href="{{ route('home') }}" id="tour-logo" class="flex items-center"> 
-                        {{-- 🟢 CAMBIO SOLO AQUI: NUEVO LOGO --}}
                         <img src="{{ asset('images/Pichanga-_1_.webp') }}" 
                              alt="PichangaYa Logo" 
                              class="block h-16 w-auto object-contain transition hover:scale-105 drop-shadow-md">
@@ -64,30 +70,29 @@
 
                     @auth
                         <div class="relative group">
-                            {{-- ID actualizado a 'tour-mis-reservas' --}}
                             <a href="{{ route('reservas.user.index') }}" id="tour-mis-reservas" class="inline-flex items-center px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out {{ request()->routeIs('reservas.user.*') ? 'text-green-400 border-b-2 border-green-400' : 'text-white hover:text-green-300' }}">
                                 {{ __('Mis Reservas') }}
                             </a>
                         </div>
 
-                        {{-- BOTONES ADMIN / OWNER --}}
+                        {{-- BOTONES ADMIN / OWNER (Iconos SVG) --}}
                         <div class="hidden lg:flex items-center gap-2 ms-4">
                             @if (Auth::user()->role === 'admin')
                                 <x-dropdown align="right" width="48" contentClasses="py-1 bg-white dark:bg-gray-800">
                                     <x-slot name="trigger">
-                                        <button id="tour-admin" type="button" class="w-44 justify-center inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-bold rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none transition shadow-sm">
-                                            {{ __('🛡️ Admin') }}
-                                            <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                        <button id="tour-admin" type="button" class="w-44 justify-center inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-bold rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none transition shadow-sm gap-2">
+                                            {{-- Icono Shield --}}
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.956 11.956 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                            {{ __('Admin') }}
+                                            <svg class="ms-1 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </button>
                                     </x-slot>
                                     <x-slot name="content">
                                         <div class="block px-4 py-2 text-xs text-gray-500 font-bold uppercase">{{ __('Gestión del Sistema') }}</div>
                                         <x-dropdown-link href="{{ route('admin.dashboard') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Ver Resumen') }}</x-dropdown-link>
                                         <div class="border-t border-gray-100 dark:border-gray-700"></div>
-                                        
                                         <x-dropdown-link href="{{ route('admin.contacts.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Consultas') }}</x-dropdown-link>
                                         <x-dropdown-link href="{{ route('admin.suggestions.received') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Sugerencias') }}</x-dropdown-link>
-
                                         <div class="border-t border-gray-100 dark:border-gray-700"></div>
                                         <x-dropdown-link href="{{ route('admin.users.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Usuarios') }}</x-dropdown-link>
                                         <x-dropdown-link href="{{ route('admin.districts.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Distritos') }}</x-dropdown-link>
@@ -96,17 +101,21 @@
                                     </x-slot>
                                 </x-dropdown>
 
-                                <a href="{{ route('admin.owners.index') }}" class="w-44 justify-center inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-bold rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none transition shadow-sm">
-                                    {{ __('👥 Gestión Dueños') }}
+                                <a href="{{ route('admin.owners.index') }}" class="w-44 justify-center inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-bold rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none transition shadow-sm gap-2">
+                                    {{-- Icono Users --}}
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                    {{ __('Gestión Dueños') }}
                                 </a>
                             @endif
 
                             @if (Auth::user()->role === 'owner' || Auth::user()->role === 'admin')
                                 <x-dropdown align="right" width="48" contentClasses="py-1 bg-white dark:bg-gray-800">
                                     <x-slot name="trigger">
-                                        <button id="tour-proveedor" type="button" class="w-44 justify-center inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-bold rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none transition shadow-sm">
-                                            {{ __('⚽ Proveedor') }}
-                                            <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                                        <button id="tour-proveedor" type="button" class="w-44 justify-center inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-bold rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none transition shadow-sm gap-2">
+                                            {{-- Icono Ball --}}
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            {{ __('Proveedor') }}
+                                            <svg class="ms-1 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </button>
                                     </x-slot>
                                     <x-slot name="content">
@@ -126,13 +135,14 @@
                 @auth
                     {{-- 🔔 CAMPANITA DE NOTIFICACIONES --}}
                     <div class="ml-3 relative" x-data="{ open: false }">
-                        {{-- ID: tour-notificaciones mantenido --}}
                         <button @click="open = ! open" id="tour-notificaciones" class="relative p-1 rounded-full text-gray-400 hover:text-white focus:outline-none transition-colors">
                             <span class="sr-only">Notificaciones</span>
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
-                            @if(auth()->user()->unreadNotifications->count() > 0)
+                            
+                            {{-- PUNTO ROJO DE ALERTA --}}
+                            @if(auth()->user()->unreadNotifications->count() > 0 || $alertEmail || $alertPhone)
                                 <span class="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-gray-900 bg-red-500 animate-pulse"></span>
                             @endif
                         </button>
@@ -151,7 +161,6 @@
                                     @endif
                                 </div>
                                 
-                                {{-- 🟢 BOTÓN MARCAR TODO COMO LEÍDO --}}
                                 @if(auth()->user()->unreadNotifications->count() > 0)
                                     <form action="{{ route('notifications.markAllRead') }}" method="POST">
                                         @csrf
@@ -163,17 +172,41 @@
                             </div>
                     
                             <div class="max-h-[25rem] overflow-y-auto">
+                                
+                                {{-- 🟢 ALERTAS FIJAS DE VERIFICACIÓN (SVG Icons) --}}
+                                @if($alertEmail)
+                                    <a href="{{ route('profile.show') }}#verification-section" class="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/20 border-l-4 border-red-500 transition border-b border-gray-100 dark:border-gray-700">
+                                        <div class="font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                            Verifica tu Correo
+                                        </div>
+                                        <p class="text-xs mt-1 opacity-80">Es necesario para asegurar tus reservas.</p>
+                                    </a>
+                                @endif
+
+                                @if($alertPhone)
+                                    <a href="{{ route('profile.show') }}#verification-section" class="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-orange-50 dark:hover:bg-orange-900/20 border-l-4 border-orange-500 transition border-b border-gray-100 dark:border-gray-700">
+                                        <div class="font-bold text-orange-600 dark:text-orange-400 flex items-center gap-2">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                            Verifica tu Celular
+                                        </div>
+                                        <p class="text-xs mt-1 opacity-80">Valida tu número para confirmar partidos.</p>
+                                    </a>
+                                @endif
+
+                                {{-- LOOP DE NOTIFICACIONES --}}
                                 @forelse(auth()->user()->unreadNotifications as $notification)
                                     <a href="{{ route('notifications.read', $notification->id) }}" class="block hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700 relative overflow-hidden group">
                                         
-                                        {{-- 🟢 CASO 1: TEMPORIZADOR ACTIVO --}}
+                                        {{-- CASO 1: TEMPORIZADOR ACTIVO --}}
                                         @if(isset($notification->data['expiry_ts']))
                                             <div class="p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border-l-4 border-green-500">
                                                 <div class="flex flex-col gap-2">
                                                     <div class="flex items-center justify-between mb-1">
                                                         <div class="flex items-center gap-2">
                                                             <div class="bg-green-100 dark:bg-green-900 p-1.5 rounded-md shadow-sm">
-                                                                <span class="text-lg">💸</span>
+                                                                {{-- Icono Money/Cash --}}
+                                                                <svg class="w-5 h-5 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                                                             </div>
                                                             <div>
                                                                 <p class="text-sm font-black text-gray-800 dark:text-gray-100 leading-none">
@@ -184,8 +217,9 @@
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <span class="text-[10px] bg-gray-200 dark:bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded border border-gray-300 dark:border-gray-600" title="Esta notificación no se puede borrar hasta completar la acción">
-                                                            🔒 Activa
+                                                        <span class="flex items-center gap-1 text-[10px] bg-gray-200 dark:bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded border border-gray-300 dark:border-gray-600" title="Esta notificación no se puede borrar hasta completar la acción">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                                            Activa
                                                         </span>
                                                     </div>
 
@@ -210,11 +244,13 @@
                                                 </div>
                                             </div>
 
-                                        {{-- 🟢 CASO 2: CANCELACIÓN --}}
+                                        {{-- CASO 2: CANCELACIÓN --}}
                                         @elseif(($notification->data['icono'] ?? '') == 'cancel')
                                             <div class="p-4 bg-red-50 dark:bg-red-900/10 border-l-4 border-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition">
                                                 <div class="flex items-start gap-3">
-                                                    <div class="flex-shrink-0 text-2xl pt-1">🚫</div>
+                                                    <div class="flex-shrink-0 text-red-500 pt-1">
+                                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                    </div>
                                                     <div class="w-full">
                                                         <p class="text-sm font-black text-red-700 dark:text-red-400 leading-none">
                                                             ¡Reserva Cancelada!
@@ -229,16 +265,23 @@
                                                 </div>
                                             </div>
 
-                                        {{-- CASO 3: DISEÑO ESTÁNDAR --}}
+                                        {{-- CASO 3: DISEÑO ESTÁNDAR (Reemplazo de Emojis por SVG) --}}
                                         @else
                                             <div class="px-4 py-3 flex items-start">
                                                 <div class="flex-shrink-0 pt-0.5">
-                                                    @if(($notification->data['icono'] ?? '') == 'currency_exchange') <span class="text-yellow-600 text-xl">💲</span>
-                                                    @elseif(($notification->data['icono'] ?? '') == 'check_circle') <span class="text-green-600 text-xl">✓</span>
-                                                    @elseif(($notification->data['icono'] ?? '') == 'mail') <span class="text-blue-500 text-xl">📩</span>
-                                                    @elseif(($notification->data['icono'] ?? '') == 'lightbulb') <span class="text-yellow-500 text-xl">💡</span>
-                                                    @elseif(($notification->data['icono'] ?? '') == 'warning') <span class="text-red-600 text-xl">⚠️</span>
-                                                    @else <span class="text-blue-500 text-xl">ℹ</span> @endif
+                                                    @if(($notification->data['icono'] ?? '') == 'currency_exchange')
+                                                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                    @elseif(($notification->data['icono'] ?? '') == 'check_circle')
+                                                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                    @elseif(($notification->data['icono'] ?? '') == 'mail')
+                                                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                                    @elseif(($notification->data['icono'] ?? '') == 'lightbulb')
+                                                        <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                                                    @elseif(($notification->data['icono'] ?? '') == 'warning')
+                                                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                                    @else
+                                                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                    @endif
                                                 </div>
                                                 <div class="ml-3 w-0 flex-1">
                                                     <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $notification->data['titulo'] ?? 'Notificación' }}</p>
@@ -249,13 +292,16 @@
                                         @endif
                                     </a>
                                 @empty
-                                    <div class="px-4 py-12 text-center flex flex-col items-center justify-center opacity-60">
-                                        <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-full mb-3">
-                                            <span class="text-2xl">💤</span>
+                                    @if(!$alertEmail && !$alertPhone)
+                                        <div class="px-4 py-12 text-center flex flex-col items-center justify-center opacity-60">
+                                            <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-full mb-3 text-gray-400 dark:text-gray-300">
+                                                {{-- Icono Sleep/Zzz --}}
+                                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                                            </div>
+                                            <p class="text-gray-500 dark:text-gray-400 text-sm font-bold">Todo está tranquilo</p>
+                                            <p class="text-gray-400 text-xs">No hay nuevas notificaciones</p>
                                         </div>
-                                        <p class="text-gray-500 dark:text-gray-400 text-sm font-bold">Todo está tranquilo</p>
-                                        <p class="text-gray-400 text-xs">No hay nuevas notificaciones</p>
-                                    </div>
+                                    @endif
                                 @endforelse
                             </div>
                             <div class="block bg-gray-50 dark:bg-gray-700 text-center px-4 py-2 border-t border-gray-100 dark:border-gray-600 rounded-b-md">
@@ -286,8 +332,16 @@
                                     <button @click="darkMode = !darkMode; localStorage.setItem('dark-mode', darkMode); document.documentElement.classList.toggle('dark')" 
                                             type="button" 
                                             class="flex w-full px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-150 ease-in-out items-center font-bold">
-                                            <span x-show="!darkMode" class="flex items-center">🌙 {{ __('Modo Oscuro') }}</span>
-                                            <span x-show="darkMode" class="flex items-center">☀️ {{ __('Modo Claro') }}</span>
+                                            {{-- Icono Luna --}}
+                                            <span x-show="!darkMode" class="flex items-center gap-2">
+                                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                                                {{ __('Modo Oscuro') }}
+                                            </span>
+                                            {{-- Icono Sol --}}
+                                            <span x-show="darkMode" class="flex items-center gap-2">
+                                                <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                                {{ __('Modo Claro') }}
+                                            </span>
                                     </button>
                                 @endif
 
@@ -329,8 +383,15 @@
             
             @auth
                 @if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'owner')
-                    <x-responsive-nav-link @click="darkMode = !darkMode; localStorage.setItem('dark-mode', darkMode); document.documentElement.classList.toggle('dark')" class="cursor-pointer text-gray-300 hover:text-white font-bold">
-                        <span x-text="darkMode ? '☀️ Modo Claro' : '🌙 Modo Oscuro'"></span>
+                    <x-responsive-nav-link @click="darkMode = !darkMode; localStorage.setItem('dark-mode', darkMode); document.documentElement.classList.toggle('dark')" class="cursor-pointer text-gray-300 hover:text-white font-bold flex items-center gap-2">
+                        <span x-show="!darkMode" class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                            Modo Oscuro
+                        </span>
+                        <span x-show="darkMode" class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                            Modo Claro
+                        </span>
                     </x-responsive-nav-link>
                 @endif
             @endauth
@@ -378,7 +439,7 @@
         </div>
     </div>
 
-    {{-- SCRIPT DE TEMPORIZADOR MEJORADO --}}
+    {{-- SCRIPT DE TEMPORIZADOR INTACTO --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const timerElements = document.querySelectorAll('.notif-timer');

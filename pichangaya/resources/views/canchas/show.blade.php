@@ -214,9 +214,35 @@
                             </div>
                         </div>
 
+                        {{-- 🟢 AQUÍ ESTÁ EL CAMBIO IMPORTANTE: BLOQUEO DE SEGURIDAD --}}
                         <div class="p-6">
-                            {{-- AQUÍ ESTÁ LA LÓGICA DEL CALENDARIO QUE DEBEMOS ARREGLAR EN EL BACKEND --}}
-                            @livewire('cancha-reserva-form', ['cancha' => $cancha])
+                            @php
+                                $user = Auth::user();
+                                // Lógica: Está verificado SI (tiene email verificado O tiene celular verificado)
+                                // Si no está logueado, lo dejamos pasar para que el middleware auth o el botón de reservar lo maneje.
+                                $isVerified = $user && ($user->hasVerifiedEmail() || !is_null($user->phone_verified_at));
+                            @endphp
+
+                            @if($isVerified)
+                                {{-- USUARIO VERIFICADO: PUEDE VER LA TABLA Y RESERVAR --}}
+                                @livewire('cancha-reserva-form', ['cancha' => $cancha])
+                            @else
+                                {{-- USUARIO NO VERIFICADO: BLOQUEO --}}
+                                <div class="text-center py-10 border-2 border-dashed border-red-300 dark:border-red-800 rounded-xl bg-red-50 dark:bg-red-900/10">
+                                    <div class="mb-4">
+                                        <span class="text-4xl">🔒</span>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">¡Verificación Requerida!</h3>
+                                    <p class="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto">
+                                        Para poder reservar y tocar la cancha, necesitamos validar que eres una persona real. 
+                                        <br>Por favor, verifica tu <b>Correo</b> o tu <b>Celular</b>.
+                                    </p>
+                                    
+                                    <a href="{{ route('profile.show') }}#verification-section" class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-lg transition transform hover:scale-105">
+                                        Ir a Verificar Ahora →
+                                    </a>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -335,7 +361,6 @@
         </div>
 </x-app-layout>
 
-
     
 {{-- SCRIPTS DE MAPA --}}
 @if($cancha->lat && $cancha->lng)
@@ -360,4 +385,3 @@
     }
 </script>
 @endif
-
