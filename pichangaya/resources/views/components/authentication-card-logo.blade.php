@@ -1,3 +1,5 @@
 <a href="/">
-    <img src="{{ asset('images/1-sinfondo.png') }}" alt="Logo PichangaYa" class="w-48 h-auto shadow-md rounded-full">
+    <img src="{{ asset('images/Pichanga-_1_.webp') }}" 
+         alt="PichangaYa Logo" 
+         class="w-32 h-32 object-contain hover:scale-105 transition-transform duration-300 drop-shadow-lg">
 </a>
