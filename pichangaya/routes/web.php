@@ -15,7 +15,6 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminContactController; 
 use App\Http\Controllers\SuggestionController;    
 use App\Http\Controllers\CanchaController; 
-use App\Http\Controllers\DashboardController; 
 use App\Http\Controllers\ReservaController; 
 use App\Http\Controllers\NotificationController;
 
@@ -97,14 +96,15 @@ Route::middleware([
     'verified',
 ])->group(function () {
     
-    // Dashboard Usuario
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // 🟢 CAMBIO IMPORTANTE: ELIMINAR DASHBOARD
+    // En lugar de mostrar la vista dashboard, redirigimos al home.
+    // Mantenemos el name('dashboard') porque Jetstream lo usa internamente.
+    Route::redirect('/dashboard', '/')->name('dashboard');
     
     // Ver Canchas
     Route::resource('canchas', CanchaController::class)->only(['index', 'show']);
     
     // 🟢 NUEVA RUTA: FAVORITOS
-    // Al estar dentro de este grupo, ya cuenta con la protección de autenticación
     Route::post('/canchas/{cancha}/favorite', [CanchaController::class, 'toggleFavorite'])->name('canchas.favorite');
     
     // Gestión de Reservas

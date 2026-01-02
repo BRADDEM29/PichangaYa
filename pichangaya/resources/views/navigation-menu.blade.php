@@ -291,11 +291,13 @@
                                 <div class="border-t border-gray-200 dark:border-gray-700"></div>
                                 
                                 <form method="POST" action="{{ route('logout') }}" x-data>
-                                    @csrf
-                                    <x-dropdown-link href="#" @click.prevent="$root.submit();" class="dark:text-white dark:hover:bg-gray-700 font-bold text-red-500">
-                                        {{ __('Cerrar Sesión') }}
-                                    </x-dropdown-link>
-                                </form>
+    @csrf
+
+    <x-dropdown-link href="{{ route('logout') }}"
+             @click.prevent="$root.submit();">
+        {{ __('Cerrar Sesión') }}
+    </x-dropdown-link>
+    </form>
                             </x-slot>
                         </x-dropdown>
                     </div>
