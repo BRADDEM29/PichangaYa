@@ -26,6 +26,16 @@
                 </div>
             </div>
 
+            {{-- NUEVO: GRÁFICO DE CANCHAS FAVORITAS --}}
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="text-xl mr-2">❤️</span> Canchas con más Favoritos (Top 5)
+                </h3>
+                <div class="h-80 w-full">
+                    <canvas id="chartFavoritos"></canvas>
+                </div>
+            </div>
+
             {{-- TABLA DETALLADA --}}
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                 <h3 class="text-lg font-bold text-gray-800 mb-4">Inventario y Rendimiento</h3>
@@ -65,6 +75,7 @@
     
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // --- GRÁFICO 1: DISTRIBUCIÓN POR DISTRITO ---
             const ctx = document.getElementById('chartCanchas');
             if(ctx) {
                 new Chart(ctx, {
@@ -84,6 +95,32 @@
                         scales: { 
                             y: { beginAtZero: true, ticks: { stepSize: 1 } },
                             x: { grid: { display: false } }
+                        } 
+                    }
+                });
+            }
+
+            // --- GRÁFICO 2: CANCHAS FAVORITAS (NUEVO) ---
+            const ctxFav = document.getElementById('chartFavoritos');
+            if(ctxFav) {
+                new Chart(ctxFav, {
+                    type: 'bar',
+                    data: {
+                        labels: {!! json_encode($favLabels) !!},
+                        datasets: [{ 
+                            label: 'Número de Favoritos', 
+                            data: {!! json_encode($favData) !!}, 
+                            backgroundColor: '#EF4444', // Color Rojo
+                            borderRadius: 4
+                        }]
+                    }, 
+                    options: { 
+                        indexAxis: 'y', // Lo ponemos horizontal para que los nombres se lean mejor
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: { 
+                            x: { beginAtZero: true, ticks: { stepSize: 1 } },
+                            y: { grid: { display: false } }
                         } 
                     }
                 });

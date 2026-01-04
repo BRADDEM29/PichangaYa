@@ -16,7 +16,7 @@
             
             {{-- 1. KPI CARDS --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {{-- CARD VERDE --}}
+                {{-- CARD VERDE: Pagos Completos --}}
                 <a href="{{ route('admin.reports.ingresos') }}" class="block group transform transition hover:-translate-y-1">
                     <div class="bg-white overflow-hidden shadow-lg sm:rounded-lg p-6 border-l-8 border-green-500 flex items-center justify-between group-hover:bg-green-50 transition-colors">
                         <div>
@@ -30,7 +30,7 @@
                     </div>
                 </a>
                 
-                {{-- CARD AZUL --}}
+                {{-- CARD AZUL: Adelantos --}}
                 <a href="{{ route('admin.reports.adelantados') }}" class="block group transform transition hover:-translate-y-1">
                     <div class="bg-white overflow-hidden shadow-lg sm:rounded-lg p-6 border-l-8 border-blue-500 flex items-center justify-between group-hover:bg-blue-50 transition-colors">
                         <div>
@@ -46,7 +46,7 @@
                     </div>
                 </a>
 
-                {{-- CARD AMARILLA --}}
+                {{-- CARD AMARILLA: Pendientes --}}
                 <a href="{{ route('admin.reports.pendientes') }}" class="block group transform transition hover:-translate-y-1">
                     <div class="bg-white overflow-hidden shadow-lg sm:rounded-lg p-6 border-l-8 border-yellow-400 flex items-center justify-between group-hover:bg-yellow-50 transition-colors">
                         <div>
@@ -60,7 +60,7 @@
                     </div>
                 </a>
 
-                {{-- CARD ROJA --}}
+                {{-- CARD ROJA: Cancelados --}}
                 <a href="{{ route('admin.reports.cancelados') }}" class="block group transform transition hover:-translate-y-1">
                     <div class="bg-white overflow-hidden shadow-lg sm:rounded-lg p-6 border-l-8 border-red-500 flex items-center justify-between group-hover:bg-red-50 transition-colors">
                         <div>
@@ -91,17 +91,14 @@
                 </a>
             </div>
 
-            {{-- ========================================== --}}
-            {{-- 3. GRÁFICO BURSÁTIL (MULTI-LÍNEA) --}}
-            {{-- ========================================== --}}
+            {{-- 3. GRÁFICO TENDENCIA FINANCIERA --}}
             <div class="bg-white shadow-xl sm:rounded-lg p-6">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <h3 class="text-lg font-bold text-gray-800 flex items-center">
                         <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
                         Tendencia Financiera (Últimos 15 días)
                     </h3>
-                    {{-- Leyenda personalizada --}}
-                    <div class="flex gap-4 text-xs font-bold">
+                    <div class="flex flex-wrap gap-4 text-xs font-bold">
                         <span class="flex items-center"><span class="w-3 h-3 bg-green-500 rounded-full mr-1"></span> Pagado</span>
                         <span class="flex items-center"><span class="w-3 h-3 bg-blue-500 rounded-full mr-1"></span> Adelanto</span>
                         <span class="flex items-center"><span class="w-3 h-3 bg-yellow-400 rounded-full mr-1"></span> Pendiente</span>
@@ -115,7 +112,6 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
                 {{-- 4. COMPOSICIÓN DE USUARIOS --}}
                 <div class="bg-white shadow-xl sm:rounded-lg p-6 flex flex-col justify-between">
                     <h3 class="text-lg font-bold text-gray-800 mb-4">Composición de Usuarios</h3>
@@ -123,12 +119,17 @@
                         <canvas id="userRoleChart"></canvas>
                     </div>
                     <div class="space-y-4">
+                        @php
+                            $userPercent = $totalUsers > 0 ? ($usersByRole['users'] / $totalUsers) * 100 : 0;
+                            $ownerPercent = $totalUsers > 0 ? ($usersByRole['owners'] / $totalUsers) * 100 : 0;
+                            $adminPercent = $totalUsers > 0 ? ($usersByRole['admins'] / $totalUsers) * 100 : 0;
+                        @endphp
                         <div>
                             <div class="flex justify-between text-xs font-bold mb-1 uppercase text-gray-500">
                                 <span>Clientes</span> <span>{{ $usersByRole['users'] }}</span>
                             </div>
                             <div class="w-full bg-gray-100 rounded-full h-2.5">
-                                <div class="bg-blue-500 h-2.5 rounded-full" style="width: {{ $totalUsers > 0 ? ($usersByRole['users'] / $totalUsers) * 100 : 0 }}%"></div>
+                                <div class="bg-blue-500 h-2.5 rounded-full" style="width: {{ $userPercent }}%"></div>
                             </div>
                         </div>
                         <div>
@@ -136,7 +137,7 @@
                                 <span>Dueños</span> <span>{{ $usersByRole['owners'] }}</span>
                             </div>
                             <div class="w-full bg-gray-100 rounded-full h-2.5">
-                                <div class="bg-green-500 h-2.5 rounded-full" style="width: {{ $totalUsers > 0 ? ($usersByRole['owners'] / $totalUsers) * 100 : 0 }}%"></div>
+                                <div class="bg-green-500 h-2.5 rounded-full" style="width: {{ $ownerPercent }}%"></div>
                             </div>
                         </div>
                         <div>
@@ -144,7 +145,7 @@
                                 <span>Admins</span> <span>{{ $usersByRole['admins'] }}</span>
                             </div>
                             <div class="w-full bg-gray-100 rounded-full h-2.5">
-                                <div class="bg-red-500 h-2.5 rounded-full" style="width: {{ $totalUsers > 0 ? ($usersByRole['admins'] / $totalUsers) * 100 : 0 }}%"></div>
+                                <div class="bg-red-500 h-2.5 rounded-full" style="width: {{ $adminPercent }}%"></div>
                             </div>
                         </div>
                     </div>
@@ -168,7 +169,7 @@
                                 @foreach($topCanchas as $cancha)
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $cancha->name }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $cancha->district->name }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $cancha->district->name ?? 'N/A' }}</td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-black text-indigo-600">{{ $cancha->reservas_count }}</td>
                                     </tr>
                                 @endforeach
@@ -214,18 +215,26 @@
                                             <span class="text-sm text-red-500 font-bold italic">Usuario purgado</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $reserva->cancha->name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $reserva->cancha->name ?? 'N/A' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-gray-900">S/ {{ number_format($reserva->total_price, 2) }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($reserva->status == 'fully_paid')
-                                            <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-green-100 text-green-800">Pagado</span>
-                                        @elseif($reserva->status == 'advance_paid')
-                                            <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-blue-100 text-blue-800">Adelanto</span>
-                                        @elseif($reserva->status == 'pending')
-                                            <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800">Pendiente</span>
-                                        @else
-                                            <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-red-100 text-red-800">Cancelado</span>
-                                        @endif
+                                        @php
+                                            $statusColors = [
+                                                'fully_paid' => 'bg-green-100 text-green-800',
+                                                'advance_paid' => 'bg-blue-100 text-blue-800',
+                                                'pending' => 'bg-yellow-100 text-yellow-800',
+                                                'cancelled' => 'bg-red-100 text-red-800'
+                                            ];
+                                            $statusLabels = [
+                                                'fully_paid' => 'Pagado',
+                                                'advance_paid' => 'Adelanto',
+                                                'pending' => 'Pendiente',
+                                                'cancelled' => 'Cancelado'
+                                            ];
+                                        @endphp
+                                        <span class="px-2.5 py-0.5 text-xs font-bold rounded-full {{ $statusColors[$reserva->status] ?? 'bg-gray-100 text-gray-800' }}">
+                                            {{ $statusLabels[$reserva->status] ?? $reserva->status }}
+                                        </span>
                                     </td>
                                 </tr>
                             @empty
@@ -243,43 +252,51 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             
-            // 🟢 1. GRÁFICO MULTI-SERIE (BOLSA DE VALORES)
+            // 🟢 1. GRÁFICO TENDENCIA FINANCIERA (MEJORADO)
             const ctxFin = document.getElementById('financialChart');
             if (ctxFin) {
                 new Chart(ctxFin.getContext('2d'), {
                     type: 'line',
                     data: {
-                        labels: {{ Js::from($fechas ?? []) }},
+                        labels: {!! json_encode($fechas ?? []) !!},
                         datasets: [
                             {
                                 label: 'Pagado',
-                                data: {{ Js::from($dataFullyPaid ?? []) }},
-                                borderColor: '#10B981', // Verde
+                                data: {!! json_encode($dataFullyPaid ?? []) !!},
+                                borderColor: '#10B981',
                                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
                                 borderWidth: 3,
-                                tension: 0.4
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                tension: 0.4,
+                                fill: true
                             },
                             {
                                 label: 'Adelanto',
-                                data: {{ Js::from($dataAdvance ?? []) }},
-                                borderColor: '#3B82F6', // Azul
+                                data: {!! json_encode($dataAdvance ?? []) !!},
+                                borderColor: '#3B82F6',
                                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                                 borderWidth: 3,
-                                tension: 0.4
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                tension: 0.4,
+                                fill: true
                             },
                             {
                                 label: 'Pendiente',
-                                data: {{ Js::from($dataPending ?? []) }},
-                                borderColor: '#FBBF24', // Amarillo
+                                data: {!! json_encode($dataPending ?? []) !!},
+                                borderColor: '#FBBF24',
                                 borderDash: [5, 5],
                                 borderWidth: 2,
+                                pointRadius: 3,
                                 tension: 0.4
                             },
                             {
                                 label: 'Perdido',
-                                data: {{ Js::from($dataCancelled ?? []) }},
-                                borderColor: '#EF4444', // Rojo
+                                data: {!! json_encode($dataCancelled ?? []) !!},
+                                borderColor: '#EF4444',
                                 borderWidth: 2,
+                                pointRadius: 3,
                                 tension: 0.4
                             }
                         ]
@@ -287,17 +304,49 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        interaction: { mode: 'index', intersect: false },
-                        plugins: { legend: { display: false } }, // Leyenda custom
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                                titleFont: { size: 14, weight: 'bold' },
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) label += ': ';
+                                        if (context.parsed.y !== null) {
+                                            label += new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(context.parsed.y);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
                         scales: {
-                            y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
-                            x: { grid: { display: false } }
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: '#f3f4f6' },
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'S/ ' + value;
+                                    },
+                                    font: { size: 11 }
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { font: { size: 11 } }
+                            }
                         }
                     }
                 });
             }
 
-            // 🟢 2. GRÁFICO DE USUARIOS
+            // 🟢 2. GRÁFICO DE USUARIOS (DOUGHNUT)
             const ctxUser = document.getElementById('userRoleChart');
             if (ctxUser) {
                 new Chart(ctxUser.getContext('2d'), {
@@ -308,14 +357,26 @@
                             data: [{{ $usersByRole['users'] }}, {{ $usersByRole['owners'] }}, {{ $usersByRole['admins'] }}],
                             backgroundColor: ['#3B82F6', '#22C55E', '#EF4444'],
                             borderWidth: 0,
-                            hoverOffset: 5
+                            hoverOffset: 15
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         cutout: '75%',
-                        plugins: { legend: { display: false } }
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const value = context.raw;
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return ` ${context.label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
                     }
                 });
             }

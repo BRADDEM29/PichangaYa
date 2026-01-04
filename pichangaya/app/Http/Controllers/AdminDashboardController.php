@@ -21,17 +21,17 @@ class AdminDashboardController extends Controller
         $reservasTotales = Reserva::count();
 
         // 2. ESTADOS FINANCIEROS (Totales Globales)
-        $ingresosTotales = Reserva::where('status', 'fully_paid')->sum('total_price');
-        $adelantosTotal  = Reserva::where('status', 'advance_paid')->sum('total_price');
-        $pendientesMoney = Reserva::where('status', 'pending')->sum('total_price');
-        $canceladosMoney = Reserva::where('status', 'cancelled')->sum('total_price');
+        $ingresosTotales = Reserva::where('status', 'fully_paid')->sum('total_price') ?? 0;
+        $adelantosTotal  = Reserva::where('status', 'advance_paid')->sum('total_price') ?? 0;
+        $pendientesMoney = Reserva::where('status', 'pending')->sum('total_price') ?? 0;
+        $canceladosMoney = Reserva::where('status', 'cancelled')->sum('total_price') ?? 0;
 
         $adelantosCount  = Reserva::where('status', 'advance_paid')->count();
         $pendientesCount = Reserva::where('status', 'pending')->count();
         $canceladosCount = Reserva::where('status', 'cancelled')->count();
 
         // =========================================================================
-        // 3. GRÁFICO MULTI-LÍNEA (TIPO BOLSA) - ÚLTIMOS 15 DÍAS
+        // 3. GRÁFICO TENDENCIA FINANCIERA (ÚLTIMOS 15 DÍAS)
         // =========================================================================
         $fechas = [];
         $dataFullyPaid = [];
@@ -39,24 +39,20 @@ class AdminDashboardController extends Controller
         $dataPending = [];
         $dataCancelled = [];
 
-        // Iteramos los últimos 15 días para construir la tendencia
         for ($i = 14; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
-            $fechas[] = $date->format('d/m'); // Eje X
+            $fechas[] = $date->format('d/m'); 
             
-            // Consultamos los 4 estados por día
-            // Usamos queries simples por fecha para mayor claridad y seguridad en el gráfico
-            $queryBase = Reserva::whereDate('created_at', $date->toDateString()); // O start_time según prefieras
+            $dateString = $date->toDateString();
 
-            $dataFullyPaid[] = (clone $queryBase)->where('status', 'fully_paid')->sum('total_price');
-            $dataAdvance[]   = (clone $queryBase)->where('status', 'advance_paid')->sum('total_price');
-            $dataPending[]   = (clone $queryBase)->where('status', 'pending')->sum('total_price');
-            $dataCancelled[] = (clone $queryBase)->where('status', 'cancelled')->sum('total_price');
+            // Aseguramos conversión a float para Chart.js
+            $dataFullyPaid[] = (float) Reserva::whereDate('created_at', $dateString)->where('status', 'fully_paid')->sum('total_price');
+            $dataAdvance[]   = (float) Reserva::whereDate('created_at', $dateString)->where('status', 'advance_paid')->sum('total_price');
+            $dataPending[]   = (float) Reserva::whereDate('created_at', $dateString)->where('status', 'pending')->sum('total_price');
+            $dataCancelled[] = (float) Reserva::whereDate('created_at', $dateString)->where('status', 'cancelled')->sum('total_price');
         }
 
-        // =========================================================================
         // 4. DATOS USUARIOS
-        // =========================================================================
         $rawRoles = User::select('role', DB::raw('count(*) as count'))->groupBy('role')->pluck('count', 'role')->toArray();
         $usersByRole = [
             'users'  => $rawRoles['user'] ?? 0,
@@ -64,7 +60,7 @@ class AdminDashboardController extends Controller
             'admins' => $rawRoles['admin'] ?? 0,
         ];
 
-        // 5. Tablas (Incluye usuarios eliminados con withTrashed)
+        // 5. Tablas rápidas
         $recentReservas = Reserva::with(['cancha', 'user' => function($q) { 
                 $q->withTrashed(); 
             }])
@@ -81,14 +77,11 @@ class AdminDashboardController extends Controller
             'pendientesCount', 'pendientesMoney',
             'canceladosCount', 'canceladosMoney',
             'usersByRole', 'recentReservas', 'topCanchas',
-            
-            // Variables para el Gráfico Multi-Serie
             'fechas', 'dataFullyPaid', 'dataAdvance', 'dataPending', 'dataCancelled'
         ));
     }
 
-    // --- REPORTES DETALLADOS (LÓGICA REAL) ---
-
+    // --- REPORTES DETALLADOS ---
     public function reportsIngresos()
     {
         $monthlyIncome = Reserva::select(DB::raw('MONTH(start_time) as month'), DB::raw('SUM(total_price) as income'))
@@ -162,7 +155,14 @@ class AdminDashboardController extends Controller
         $reservasByHour = Reserva::select(DB::raw('HOUR(start_time) as hour'), DB::raw('count(*) as count'))->groupBy('hour')->orderBy('hour')->pluck('count', 'hour')->toArray();
         $hourlyLabels = array_map(fn($h) => str_pad($h, 2, '0', STR_PAD_LEFT) . ':00', range(0, 23));
         $hourlyData = array_replace(array_fill(0, 24, 0), $reservasByHour);
-        return view('admin.reports.reservas', compact('reservasStatus', 'hourlyLabels', 'hourlyData'));
+
+        $allReservas = Reserva::with(['cancha', 'user' => function($q) { 
+                $q->withTrashed(); 
+            }])
+            ->latest()
+            ->paginate(15); 
+
+        return view('admin.reports.reservas', compact('reservasStatus', 'hourlyLabels', 'hourlyData', 'allReservas'));
     }
     
     public function reportsUsuarios() {
@@ -177,11 +177,17 @@ class AdminDashboardController extends Controller
 
     public function reportsCanchas() {
         $canchasByDistrict = DB::table('canchas')->join('districts', 'canchas.district_id', '=', 'districts.id')->select('districts.name', DB::raw('count(canchas.id) as count'))->groupBy('districts.name')->pluck('count', 'districts.name')->toArray();
+        
+        $topFavoritas = Cancha::withCount('favorites')->orderBy('favorites_count', 'desc')->take(5)->get();
+        $favLabels = $topFavoritas->pluck('name')->toArray();
+        $favData   = $topFavoritas->pluck('favorites_count')->toArray();
+
         $detailedTopCanchas = Cancha::with('district', 'user')->withCount('reservas')
             ->withSum(['reservas' => function($q) { 
                 $q->where('status', 'fully_paid'); 
             }], 'total_price')
             ->orderByDesc('reservas_count')->get();
-        return view('admin.reports.canchas', compact('canchasByDistrict', 'detailedTopCanchas'));
+
+        return view('admin.reports.canchas', compact('canchasByDistrict', 'detailedTopCanchas', 'favLabels', 'favData'));
     }
 }
