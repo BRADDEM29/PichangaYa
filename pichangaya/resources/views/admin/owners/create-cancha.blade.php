@@ -1,4 +1,5 @@
 <x-app-layout>
+    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\admin\owners\create-cancha.blade.php --}}
     <x-slot name="header">
         <div class="flex items-center gap-3">
             <div class="bg-indigo-600 p-2 rounded-lg text-white">
@@ -154,8 +155,12 @@
 
                             <div class="relative w-full h-96 rounded-2xl overflow-hidden shadow-lg border-2 border-white ring-1 ring-gray-200">
                                 <div id="map" class="w-full h-full"></div>
-                                <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-md shadow text-xs font-bold text-gray-600">
-                                    📍 Arrastra el marcador
+                                {{-- AQUI ESTABA EL EMOJI, REEMPLAZADO POR SVG --}}
+                                <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-md shadow text-xs font-bold text-gray-600 flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                    </svg>
+                                    Arrastra el marcador
                                 </div>
                             </div>
                             <input type="hidden" name="lat" id="lat" value="{{ old('lat') }}">

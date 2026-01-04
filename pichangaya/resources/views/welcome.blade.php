@@ -75,20 +75,24 @@
                             </select>
                         </div>
                         <div class="md:col-span-3">
+                            {{-- Nota: En selects nativos NO se pueden poner iconos dentro de option, solo texto --}}
                             <select name="sport_id" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg">
                                 <option value="">Todos los Deportes</option>
                                 @isset($sports)
                                     @foreach($sports as $sport)
                                         <option value="{{ $sport->id }}" {{ request('sport_id') == $sport->id ? 'selected' : '' }}>
-                                            {{ $sport->icon }} {{ $sport->name }}
+                                            {{ $sport->name }}
                                         </option>
                                     @endforeach
                                 @endisset
                             </select>
                         </div>
                         <div class="md:col-span-2">
-                            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-lg transition duration-200 shadow-md">
-                                🔍 Buscar
+                            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-lg transition duration-200 shadow-md flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                Buscar
                             </button>
                         </div>
                     </form>
@@ -101,7 +105,9 @@
             <div id="featured-section" class="relative pb-28 z-10">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex items-center gap-3 mb-6">
-                        <span class="text-3xl">⭐</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
                         <h3 class="text-2xl font-black text-white uppercase tracking-wide">Mejores Canchas</h3>
                     </div>
                     <x-carousel :items="$featuredCanchas" />
@@ -123,7 +129,9 @@
         <section class="py-10 bg-green-50 dark:bg-green-900/10 border-b border-green-100 dark:border-green-900/30">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center gap-2 mb-6">
-                    <span class="text-3xl animate-pulse">❤️</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                    </svg>
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Tus Canchas Favoritas</h2>
                 </div>
                 
@@ -134,12 +142,21 @@
                                 @if($favCancha->getFirstMediaUrl('canchas'))
                                     <img src="{{ $favCancha->getFirstMediaUrl('canchas') }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                                 @else
-                                    <div class="flex items-center justify-center h-full text-2xl">🏟️</div>
+                                    <div class="flex items-center justify-center h-full">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
                                 @endif
                             </div>
                             <div class="p-4">
                                 <h4 class="font-bold text-gray-800 dark:text-gray-200 group-hover:text-green-600 truncate">{{ $favCancha->name }}</h4>
-                                <p class="text-xs text-gray-500 mt-1">📍 {{ $favCancha->district->name ?? 'Cusco' }}</p>
+                                <p class="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                    </svg>
+                                    {{ $favCancha->district->name ?? 'Cusco' }}
+                                </p>
                             </div>
                         </a>
                     @endforeach
@@ -157,7 +174,10 @@
 
         @if($canchas->isEmpty())
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
-                <p class="text-gray-500 dark:text-gray-400">No encontramos canchas con esos filtros. 😢</p>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-gray-500 dark:text-gray-400">No encontramos canchas con esos filtros.</p>
                 <a href="{{ route('home') }}" class="text-green-600 hover:underline mt-4 inline-block font-bold">Ver todas</a>
             </div>
         @else
@@ -172,12 +192,17 @@
                                      alt="{{ $cancha->name }}"
                                      class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                             @else
-                                <div class="flex items-center justify-center h-full text-4xl">🏟️</div>
+                                <div class="flex items-center justify-center h-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
                             @endif
                             
                             {{-- Precio --}}
-                            <div class="absolute top-4 right-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur px-3 py-1 rounded-lg shadow-sm text-sm font-bold text-green-700">
-                                S/ {{ number_format($cancha->price_per_hour, 2) }}
+                            <div class="absolute top-4 right-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur px-3 py-1 rounded-lg shadow-sm text-sm font-bold text-green-700 flex items-center gap-1">
+                                <span class="text-xs">S/</span>
+                                {{ number_format($cancha->price_per_hour, 2) }}
                             </div>
 
                             {{-- BOTÓN DE FAVORITOS (Alpine.js) --}}
@@ -228,20 +253,32 @@
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">{{ $cancha->name }}</h3>
                             
                             <div class="flex flex-wrap gap-2 mb-3">
-                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[10px] font-bold px-2 py-1 rounded">
-                                    📍 {{ $cancha->district->name ?? 'Cusco' }}
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                    </svg>
+                                    {{ $cancha->district->name ?? 'Cusco' }}
                                 </span>
+                                
+                                {{-- DEPORTES: Usando lógica dinámica de config --}}
                                 @foreach($cancha->sports as $sport)
-                                    <span class="bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded">
-                                        {{ $sport->icon }} {{ $sport->name }}
+                                    <span class="bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1">
+                                        <svg class="w-3 h-3 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            {!! config('icons.sports.' . $sport->icon, config('icons.sports.default')) !!}
+                                        </svg>
+                                        {{ $sport->name }}
                                     </span>
                                 @endforeach
                             </div>
 
                             <div class="flex flex-wrap gap-1 mb-4">
+                                {{-- SERVICIOS: Usando lógica dinámica de config --}}
                                 @foreach ($cancha->services as $service)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/50">
-                                        {{ $service->icon }} {{ $service->name }}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800/50 gap-1">
+                                        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            {!! config('icons.services.' . $service->icon, config('icons.services.default')) !!}
+                                        </svg>
+                                        {{ $service->name }}
                                     </span>
                                 @endforeach
                             </div>
@@ -281,10 +318,20 @@
                     </div>
                     <div class="mt-10 grid grid-cols-2 gap-4">
                         <div class="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300">
-                            <span class="bg-green-100 text-green-600 p-1 rounded-full">✓</span> Reservas al instante
+                            <span class="bg-green-100 text-green-600 p-1 rounded-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </span> 
+                            Reservas al instante
                         </div>
                         <div class="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300">
-                            <span class="bg-green-100 text-green-600 p-1 rounded-full">✓</span> Pagos seguros
+                            <span class="bg-green-100 text-green-600 p-1 rounded-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </span> 
+                            Pagos seguros
                         </div>
                     </div>
                 </div>

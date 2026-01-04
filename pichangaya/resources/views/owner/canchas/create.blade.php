@@ -1,173 +1,225 @@
 <x-app-layout>
-    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\owner\canchas\create.blade.php --}}
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Registrar Nueva Cancha') }}
-        </h2>
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 p-2 rounded-lg text-white shadow-md">
+                {{-- Ícono Header (SVG) --}}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </div>
+            <h2 class="font-bold text-xl text-gray-800 leading-tight">
+                {{ __('Registrar Nueva Cancha') }}
+            </h2>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                <div class="p-6 text-gray-900">
+    <div class="py-12 bg-gray-50">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-2xl border border-gray-100">
+                
+                {{-- Cabecera visual --}}
+                <div class="bg-indigo-50/50 px-6 py-4 border-b border-indigo-100">
+                    <h3 class="text-lg font-medium text-indigo-900">Información General</h3>
+                    <p class="text-sm text-indigo-600/70">Completa los datos para publicar tu cancha.</p>
+                </div>
+
+                <div class="p-8">
                     
                     <form action="{{ route('owner.canchas.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf 
 
-                        {{-- 1. Nombre --}}
-                        <div class="mb-4">
-                            <label for="name" class="block text-sm font-semibold text-gray-700">Nombre de la Cancha</label>
-                            <input type="text" name="name" id="name" value="{{ old('name') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Ej: Estadio Monumental" required>
-                            @error('name') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
+                        {{-- SECCIÓN 1: DATOS PRINCIPALES --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            {{-- 1. Nombre --}}
+                            <div class="col-span-1 md:col-span-2">
+                                <label for="name" class="block text-sm font-bold text-gray-700 mb-1">Nombre de la Cancha</label>
+                                <input type="text" name="name" id="name" value="{{ old('name') }}" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3 transition-all" placeholder="Ej: Estadio Monumental - Campo 1" required>
+                                @error('name') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- 2. Distrito --}}
+                            <div>
+                                <label for="district_id" class="block text-sm font-bold text-gray-700 mb-1">Distrito</label>
+                                <select name="district_id" id="district_id" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3 bg-white" required>
+                                    <option value="">Seleccione ubicación...</option>
+                                    @foreach($districts as $district)
+                                        <option value="{{ $district->id }}" {{ old('district_id') == $district->id ? 'selected' : '' }}>{{ $district->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('district_id') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- 5. Precio --}}
+                            <div>
+                                <label for="price_per_hour" class="block text-sm font-bold text-gray-700 mb-1">Precio por Hora</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500 font-bold">S/</span>
+                                    </div>
+                                    <input type="number" step="0.01" name="price_per_hour" id="price_per_hour" value="{{ old('price_per_hour') }}" class="pl-8 w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3 font-semibold text-gray-700" placeholder="0.00" required>
+                                </div>
+                                @error('price_per_hour') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
+                            </div>
                         </div>
 
-                        {{-- 2. Distrito --}}
-                        <div class="mb-4">
-                            <label for="district_id" class="block text-sm font-semibold text-gray-700">Distrito</label>
-                            <select name="district_id" id="district_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                <option value="">Seleccione...</option>
-                                @foreach($districts as $district)
-                                    <option value="{{ $district->id }}" {{ old('district_id') == $district->id ? 'selected' : '' }}>{{ $district->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('district_id') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
-                        </div>
+                        <hr class="my-8 border-gray-100">
 
-                        {{-- 3. DEPORTES (MÁXIMO 2) --}}
-                        <div class="mb-6">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Deportes Disponibles</label>
-                            <p class="text-xs text-gray-500 mb-3">Selecciona máximo 2 deportes.</p>
+                        {{-- SECCIÓN 2: DEPORTES (Carga desde BD + Config) --}}
+                        <div class="mb-8">
+                            <label class="block text-lg font-bold text-gray-800 mb-1">Deportes Disponibles</label>
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-md">Máximo 2</span>
+                                <p class="text-sm text-gray-500">Selecciona los deportes principales.</p>
+                            </div>
                             
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 items-stretch">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                                 @foreach($sports as $sport)
-                                    @php
-                                        $sportIcon = match(true) {
-                                            str_contains(strtolower($sport->name), 'fútbol 5') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>',
-                                            str_contains(strtolower($sport->name), 'fútbol 7') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>',
-                                            str_contains(strtolower($sport->name), 'fútbol 11') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>',
-                                            str_contains(strtolower($sport->name), 'vóley') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>',
-                                            str_contains(strtolower($sport->name), 'básquet') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>',
-                                            str_contains(strtolower($sport->name), 'tenis') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>',
-                                            str_contains(strtolower($sport->name), 'futsal') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
-                                            default => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h1.5a2.5 2.5 0 012.5 2.5v.665M19 10.5l1 1.5-1.5 1.5a2.5 2.5 0 01-3.5 0L14 12" /></svg>'
-                                        };
-                                    @endphp
-                                    <label class="cursor-pointer group h-full">
+                                    <label class="cursor-pointer group relative">
                                         <input type="checkbox" name="sports[]" value="{{ $sport->id }}" 
                                             class="peer sr-only sport-checkbox"
                                             @if(is_array(old('sports')) && in_array($sport->id, old('sports'))) checked @endif
                                         >
-                                        {{-- Contenedor con altura fija mínima y flex-col para uniformidad --}}
-                                        <div class="h-full min-h-[100px] p-4 bg-white border rounded-xl flex flex-col items-center justify-center gap-2 text-sm font-bold text-gray-600 shadow-sm transition-all peer-checked:bg-indigo-50 peer-checked:border-indigo-500 peer-checked:text-indigo-700 peer-disabled:opacity-40 peer-disabled:grayscale text-center whitespace-normal">
-                                            <span class="shrink-0 text-gray-400 group-hover:scale-110 transition-transform peer-checked:text-indigo-600">
-                                                {!! $sportIcon !!}
-                                            </span> 
-                                            <span class="leading-tight">{{ $sport->name }}</span>
+                                        {{-- TARJETA DE DEPORTE --}}
+                                        <div class="h-full p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-indigo-300 hover:shadow-lg transition-all duration-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 flex flex-col items-center justify-center gap-3 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:grayscale">
+                                            
+                                            {{-- ÍCONO DINÁMICO (Sin Emojis) --}}
+                                            <div class="p-2 rounded-full bg-gray-100 group-hover:bg-indigo-100 peer-checked:bg-indigo-200 text-gray-500 peer-checked:text-indigo-700 transition-colors">
+                                                <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                                    {{-- Usamos la clave guardada en DB ($sport->icon) para buscar el SVG en config --}}
+                                                    {!! config('icons.sports.' . $sport->icon, config('icons.sports.default', '<path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" />')) !!}
+                                                </svg>
+                                            </div>
+                                            
+                                            <span class="font-bold text-sm text-center leading-tight select-none">{{ $sport->name }}</span>
+                                            
+                                            {{-- Check badge (SVG) --}}
+                                            <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-indigo-600 transition-opacity">
+                                                <svg class="w-5 h-5 bg-white rounded-full" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                            </div>
                                         </div>
                                     </label>
                                 @endforeach
                             </div>
-                            @error('sports') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
-                            <p id="sports-error" class="text-red-500 text-xs mt-1 font-bold hidden">Solo puedes seleccionar hasta 2 deportes.</p>
+                            @error('sports') <p class="text-red-500 text-xs mt-2 font-bold">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- 4. SERVICIOS (SIN LÍMITE) --}}
-                        <div class="mb-6 border-t border-gray-100 pt-4">
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">Servicios Adicionales</label>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 items-stretch">
+                        {{-- SECCIÓN 3: SERVICIOS (Carga desde BD + Config) --}}
+                        <div class="mb-8">
+                            <label class="block text-lg font-bold text-gray-800 mb-3">Servicios Adicionales</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                                 @foreach($services as $service)
-                                    @php
-                                        $serviceIcon = match(true) {
-                                            str_contains(strtolower($service->name), 'wi-fi') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071a10.5 10.5 0 0114.142 0M2.121 8.879C7.62 3.38 16.38 3.38 21.879 8.879" /></svg>',
-                                            str_contains(strtolower($service->name), 'estacionamiento') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>',
-                                            str_contains(strtolower($service->name), 'ducha') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>',
-                                            str_contains(strtolower($service->name), 'iluminación') => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>',
-                                            default => '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>'
-                                        };
-                                    @endphp
-                                    <label class="cursor-pointer group h-full">
+                                    <label class="cursor-pointer group relative">
                                         <input type="checkbox" name="services[]" value="{{ $service->id }}" 
                                             class="peer sr-only"
                                             @if(is_array(old('services')) && in_array($service->id, old('services'))) checked @endif
                                         >
-                                        <div class="h-full min-h-[100px] p-4 bg-white border rounded-xl flex flex-col items-center justify-center gap-2 text-sm font-bold text-gray-600 shadow-sm transition-all peer-checked:bg-green-50 peer-checked:border-green-500 peer-checked:text-green-700 text-center whitespace-normal">
-                                            <span class="shrink-0 text-indigo-500 group-hover:scale-110 transition-transform peer-checked:text-green-600">
-                                                {!! $serviceIcon !!}
-                                            </span> 
-                                            <span class="leading-tight">{{ $service->name }}</span>
+                                        {{-- TARJETA DE SERVICIO --}}
+                                        <div class="px-4 py-3 bg-white border border-gray-200 rounded-lg hover:bg-emerald-50 hover:border-emerald-300 transition-all duration-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 flex items-center gap-3 shadow-sm peer-checked:shadow-md">
+                                            <div class="text-gray-400 peer-checked:text-emerald-600">
+                                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                                    {{-- Usamos la clave guardada en DB ($service->icon) para buscar el SVG en config --}}
+                                                    {!! config('icons.services.' . $service->icon, config('icons.services.default', '<path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" />')) !!}
+                                                </svg>
+                                            </div>
+                                            <span class="font-medium text-sm select-none">{{ $service->name }}</span>
                                         </div>
                                     </label>
                                 @endforeach
                             </div>
                         </div>
 
-                        {{-- 5. Precio --}}
-                        <div class="mb-4">
-                            <label for="price_per_hour" class="block text-sm font-semibold text-gray-700">Precio por Hora (S/)</label>
-                            <input type="number" step="0.01" name="price_per_hour" id="price_per_hour" value="{{ old('price_per_hour') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" required>
-                            @error('price_per_hour') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
-                        </div>
+                        <hr class="my-8 border-gray-100">
 
-                        {{-- 6. Horarios --}}
-                        <div class="grid grid-cols-2 gap-4 mb-4">
+                        {{-- SECCIÓN 4: HORARIOS Y CONTACTO --}}
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700">Hora Apertura</label>
-                                <input type="time" name="open_time" value="{{ old('open_time', '08:00') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                @error('open_time') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Hora Apertura</label>
+                                <input type="time" name="open_time" value="{{ old('open_time', '08:00') }}" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5" required>
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700">Hora Cierre</label>
-                                <input type="time" name="close_time" value="{{ old('close_time', '23:00') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                @error('close_time') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Hora Cierre</label>
+                                <input type="time" name="close_time" value="{{ old('close_time', '23:00') }}" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5" required>
+                            </div>
+                            
+                            {{-- 8. Teléfono --}}
+                            <div>
+                                <label for="contact_phone" class="block text-sm font-bold text-gray-700 mb-1">Teléfono (WhatsApp)</label>
+                                <select name="contact_phone" id="contact_phone" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5" required>
+                                    @foreach($phones as $phone)
+                                        <option value="{{ $phone['number'] }}" {{ old('contact_phone') == $phone['number'] ? 'selected' : '' }}>
+                                            {{ $phone['number'] }} - {{ $phone['label'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
-                        {{-- 7. Dirección --}}
-                        <div class="mb-4">
-                            <label for="address" class="block text-sm font-semibold text-gray-700">Dirección Escrita</label>
-                            <input type="text" name="address" id="address" value="{{ old('address') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Av. Siempre Viva 123" required>
-                            @error('address') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
-                        </div>
+                        {{-- SECCIÓN 5: UBICACIÓN --}}
+                        <div class="mb-8">
+                            <label class="block text-lg font-bold text-gray-800 mb-2">Ubicación</label>
+                            
+                            {{-- 7. Dirección --}}
+                            <div class="mb-4">
+                                <label for="address" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Dirección Escrita</label>
+                                <input type="text" name="address" id="address" value="{{ old('address') }}" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5" placeholder="Av. Siempre Viva 123" required>
+                            </div>
 
-                        {{-- 8. Teléfono de Contacto --}}
-                        <div class="mb-4">
-                            <label for="contact_phone" class="block text-sm font-semibold text-gray-700">Teléfono de Contacto (WhatsApp)</label>
-                            <select name="contact_phone" id="contact_phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                                @foreach($phones as $phone)
-                                    <option value="{{ $phone['number'] }}" {{ old('contact_phone') == $phone['number'] ? 'selected' : '' }}>
-                                        {{ $phone['number'] }} - {{ $phone['label'] }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('contact_phone') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
-                        </div>
-
-                        {{-- 9. Mapa --}}
-                        <div class="mt-6 mb-6">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Ubicación en el Mapa</label>
-                            <div id="map" class="w-full h-96 rounded-lg shadow-md border border-gray-300"></div>
+                            {{-- 9. Mapa --}}
+                            <div class="relative w-full h-96 rounded-2xl overflow-hidden shadow-lg border-2 border-white ring-1 ring-gray-200">
+                                <div id="map" class="w-full h-full"></div>
+                                {{-- 🚫 Emoji Eliminado: Usamos SVG Pin --}}
+                                <div class="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-md border border-gray-100 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="text-xs font-bold text-gray-700">Arrastra el marcador</span>
+                                </div>
+                            </div>
                             <input type="hidden" name="lat" id="lat" value="{{ old('lat') }}">
                             <input type="hidden" name="lng" id="lng" value="{{ old('lng') }}">
-                            @error('lat') <p class="text-red-500 text-xs mt-1 font-bold">Selecciona una ubicación en el mapa.</p> @enderror
+                            @error('lat') 
+                                <p class="text-red-500 text-sm mt-2 font-bold flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> 
+                                    Debes marcar la ubicación en el mapa.
+                                </p> 
+                            @enderror
                         </div>
 
-                        {{-- 10. Imágenes --}}
-                        <div class="mb-4">
-                            <label for="images" class="block text-sm font-semibold text-gray-700">Fotos de la Cancha</label>
-                            <input type="file" name="images[]" id="images" multiple accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" required>
-                            <div id="image-preview" class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
-                            @error('images') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
+                        {{-- SECCIÓN 6: IMÁGENES (Zona de Carga - Sin Emojis) --}}
+                        <div class="mb-8 bg-indigo-50 rounded-2xl p-6 border border-indigo-100">
+                            <label class="block text-lg font-bold text-indigo-900 mb-2">Galería de Fotos</label>
+                            
+                            <div class="flex items-center justify-center w-full">
+                                <label for="images" class="flex flex-col items-center justify-center w-full h-32 border-2 border-indigo-300 border-dashed rounded-xl cursor-pointer bg-white hover:bg-indigo-50 transition-colors">
+                                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                        {{-- Icono de subida (Cloud upload) --}}
+                                        <svg class="w-8 h-8 mb-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        <p class="mb-2 text-sm text-indigo-600"><span class="font-bold">Click para subir</span> o arrastra tus fotos</p>
+                                        <p class="text-xs text-indigo-400">PNG, JPG (Máx 2MB)</p>
+                                    </div>
+                                    <input type="file" name="images[]" id="images" multiple accept="image/*" class="hidden" required />
+                                </label>
+                            </div>
+                            
+                            <div id="image-preview" class="mt-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
+                            @error('images') <p class="text-red-500 text-xs mt-2 font-bold">{{ $message }}</p> @enderror
                         </div>
 
                         {{-- 11. Descripción --}}
-                        <div class="mb-4">
-                            <label for="description" class="block text-sm font-semibold text-gray-700">Descripción (Opcional)</label>
-                            <textarea name="description" id="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('description') }}</textarea>
+                        <div class="mb-8">
+                            <label for="description" class="block text-sm font-bold text-gray-700 mb-1">Descripción (Opcional)</label>
+                            <textarea name="description" id="description" rows="3" class="w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Detalles extra como tipo de césped, reglas, etc...">{{ old('description') }}</textarea>
                         </div>
 
-                        <div class="flex justify-end gap-2 mt-6">
-                            <a href="{{ route('owner.canchas.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Cancelar</a>
-                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Guardar Cancha</button>
+                        {{-- Botones --}}
+                        <div class="flex items-center justify-end gap-4 mt-8 pt-6 border-t border-gray-100">
+                            <a href="{{ route('owner.canchas.index') }}" class="text-gray-600 hover:text-gray-900 font-semibold text-sm transition-colors">Cancelar</a>
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                                </svg>
+                                Guardar Cancha
+                            </button>
                         </div>
                     </form>
 
@@ -180,7 +232,7 @@
 <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_key') }}&callback=initMap" async defer></script>
 
 <script>
-    // LÓGICA DE MÁXIMO 2 DEPORTES
+    // --- LÓGICA DE MÁXIMO 2 DEPORTES ---
     const sportCheckboxes = document.querySelectorAll('.sport-checkbox');
     const maxSports = 2;
 
@@ -189,15 +241,22 @@
             const selected = document.querySelectorAll('.sport-checkbox:checked');
             if (selected.length >= maxSports) {
                 sportCheckboxes.forEach(cb => {
-                    if (!cb.checked) cb.disabled = true;
+                    if (!cb.checked) {
+                        cb.disabled = true;
+                        // Estilo visual para deshabilitado
+                        cb.closest('label').classList.add('opacity-50', 'cursor-not-allowed');
+                    }
                 });
             } else {
-                sportCheckboxes.forEach(cb => cb.disabled = false);
+                sportCheckboxes.forEach(cb => {
+                    cb.disabled = false;
+                    cb.closest('label').classList.remove('opacity-50', 'cursor-not-allowed');
+                });
             }
         });
     });
 
-    // VISTA PREVIA DE IMÁGENES
+    // --- VISTA PREVIA DE IMÁGENES MEJORADA ---
     document.getElementById('images').addEventListener('change', function(event) {
         const previewContainer = document.getElementById('image-preview');
         previewContainer.innerHTML = ''; 
@@ -205,17 +264,23 @@
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
+                    // Crear contenedor cuadrado con bordes redondeados
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'relative aspect-square rounded-xl overflow-hidden shadow-md border border-gray-200 group';
+                    
                     const img = document.createElement('img');
                     img.src = e.target.result;
-                    img.className = 'w-20 h-20 object-cover rounded-md shadow inline-block mr-2 mb-2 border-2 border-indigo-200';
-                    previewContainer.appendChild(img);
+                    img.className = 'w-full h-full object-cover group-hover:scale-110 transition-transform duration-500';
+                    
+                    imgContainer.appendChild(img);
+                    previewContainer.appendChild(imgContainer);
                 };
                 reader.readAsDataURL(file);
             }
         }
     });
 
-    // MAPA
+    // --- MAPA ---
     let map, marker;
     function initMap() {
         const defaultCusco = { lat: -13.5167, lng: -71.9788 };
@@ -223,8 +288,20 @@
         const oldLng = "{{ old('lng') }}";
         let startPos = (oldLat && oldLng) ? { lat: parseFloat(oldLat), lng: parseFloat(oldLng) } : defaultCusco;
 
-        map = new google.maps.Map(document.getElementById("map"), { center: startPos, zoom: 15 });
-        marker = new google.maps.Marker({ position: startPos, map: map, draggable: true, animation: google.maps.Animation.DROP });
+        // Estilos limpios para el mapa
+        map = new google.maps.Map(document.getElementById("map"), { 
+            center: startPos, 
+            zoom: 15,
+            mapTypeControl: false,
+            streetViewControl: false
+        });
+        
+        marker = new google.maps.Marker({ 
+            position: startPos, 
+            map: map, 
+            draggable: true, 
+            animation: google.maps.Animation.DROP 
+        });
 
         marker.addListener("dragend", () => {
             const position = marker.getPosition();
@@ -235,7 +312,8 @@
         if (!oldLat && navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
                 const userPos = { lat: position.coords.latitude, lng: position.coords.longitude };
-                map.setCenter(userPos); marker.setPosition(userPos);
+                map.setCenter(userPos); 
+                marker.setPosition(userPos);
                 document.getElementById('lat').value = userPos.lat;
                 document.getElementById('lng').value = userPos.lng;
             });

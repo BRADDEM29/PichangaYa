@@ -132,7 +132,10 @@
                     </div>
                 @else
                     <div class="w-full h-full flex flex-col items-center justify-center text-gray-400">
-                        <span class="text-6xl mb-2">📷</span>
+                        {{-- 🟢 REEMPLAZO: Icono SVG de Cámara en lugar de emoji 📷 --}}
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-2 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
                         <span class="font-medium">Sin Imágenes Disponibles</span>
                     </div>
                 @endif
@@ -232,8 +235,12 @@
                             <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">Deportes Disponibles</p>
                             <div class="flex flex-wrap gap-2">
                                 @foreach($cancha->sports as $sport)
-                                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
-                                        {{ $sport->icon }} {{ $sport->name }}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 gap-1">
+                                        {{-- 🟢 REEMPLAZO: Icono SVG dinámico desde config --}}
+                                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            {!! config('icons.sports.' . $sport->icon, config('icons.sports.default')) !!}
+                                        </svg>
+                                        {{ $sport->name }}
                                     </span>
                                 @endforeach
                             </div>
@@ -253,14 +260,19 @@
 
                         <hr class="border-gray-100 dark:border-gray-700 my-4">
 
-                        {{-- 🟢 SERVICIOS MEJORADOS --}}
+                        {{-- 🟢 SERVICIOS MEJORADOS (SVG) --}}
                         <div>
                             <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-3">Servicios Adicionales</p>
                             @if($cancha->services->count() > 0)
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     @foreach($cancha->services as $service)
                                         <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700">
-                                            <span class="text-xl flex-shrink-0">{{ $service->icon }}</span>
+                                            {{-- 🟢 REEMPLAZO: Icono SVG dinámico --}}
+                                            <span class="text-indigo-500 dark:text-indigo-400">
+                                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    {!! config('icons.services.' . $service->icon, config('icons.services.default')) !!}
+                                                </svg>
+                                            </span>
                                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{{ $service->name }}</span>
                                         </div>
                                     @endforeach
@@ -284,10 +296,14 @@
                             
                             <div class="grid grid-cols-2 gap-3 mb-4">
                                 <a href="http://maps.google.com/maps?q={{ $cancha->lat }},{{ $cancha->lng }}" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 py-2.5 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-200 transition border border-gray-200 dark:border-gray-600">
-                                    🗺️ Google Maps
+                                    {{-- 🟢 REEMPLAZO: Icono Mapa --}}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-map-pin-2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 18.5l-3 -1.5l-6 3v-13l6 -3l6 3l6 -3v7" /><path d="M9 4v13" /><path d="M15 7v5" /><path d="M21.121 20.121a3 3 0 1 0 -4.242 0c.418 .419 1.125 1.045 2.121 1.879c1.051 -.89 1.759 -1.516 2.121 -1.879" /><path d="M19 18v.01" /></svg>
+                                    Google Maps
                                 </a>
                                 <a href="https://waze.com/ul?ll={{ $cancha->lat }},{{ $cancha->lng }}&navigate=yes" target="_blank" class="flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 py-2.5 rounded-lg text-xs font-bold text-blue-700 dark:text-blue-300 transition border border-blue-100 dark:border-blue-800">
-                                    🚙 Waze
+                                    {{-- 🟢 REEMPLAZO: Icono Carro --}}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-waze"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6.66 17.52a7 7 0 0 1 -3.66 -4.52c2 0 3 -1 3 -2.51c0 -3.92 2.25 -7.49 7.38 -7.49c4.62 0 7.62 3.51 7.62 8a8.08 8.08 0 0 1 -3.39 6.62" /><path d="M10 18.69a17.29 17.29 0 0 0 3.33 .3h.54" /><path d="M14 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M6 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M16 9h.01" /><path d="M11 9h.01" /></svg>
+                                    Waze
                                 </a>
                             </div>
                         @else
@@ -329,9 +345,19 @@
             zoom: 15,
             disableDefaultUI: true,
             zoomControl: true,
-            styles: [{"featureType":"all","elementType":"labels.text.fill","stylers":[{"color":"#ffffff"}]}]
+            // 🟢 MAPA LIMPIO: Estilo minimalista
+            styles: [
+                {
+                    "featureType": "poi",
+                    "stylers": [{ "visibility": "off" }]
+                }
+            ]
         });
-        new google.maps.Marker({ position: location, map: map });
+        new google.maps.Marker({ 
+            position: location, 
+            map: map,
+            animation: google.maps.Animation.DROP 
+        });
     }
 </script>
 @endif

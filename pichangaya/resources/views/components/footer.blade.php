@@ -5,8 +5,10 @@
             
             {{-- COLUMNA 1: LOGO Y REDES --}}
             <div class="space-y-4">
-                <h4 class="text-2xl font-black italic text-gray-900 dark:text-white">
-                    ⚽ Pichanga<span class="text-green-500">Ya</span>
+                <h4 class="text-2xl font-black italic text-gray-900 dark:text-white flex items-center gap-2">
+                    {{-- Icono Balón SVG --}}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-ball-football"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45" /><path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45" /></svg>
+                    <span>Pichanga<span class="text-green-500">Ya</span></span>
                 </h4>
                 <p class="text-sm opacity-80">Encuentra y reserva en las mejores canchas de Cusco.</p>
                 
@@ -26,8 +28,24 @@
             <div>
                 <h5 class="text-sm font-bold uppercase tracking-widest text-gray-900 dark:text-white mb-6">Explorar</h5>
                 <ul class="space-y-4 text-sm font-medium">
-                    <li><a href="{{ route('home') }}" class="hover:text-green-500 transition">🔍 Buscar Canchas</a></li>
-                    <li><a href="{{ route('register-pitch') }}" class="text-green-600 dark:text-green-400 font-bold hover:underline">🏟️ Registra tu Cancha</a></li>
+                    <li>
+                        <a href="{{ route('home') }}" class="hover:text-green-500 transition flex items-center gap-2">
+                            {{-- Icono Lupa SVG --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            Buscar Canchas
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('register-pitch') }}" class="text-green-600 dark:text-green-400 font-bold hover:underline flex items-center gap-2">
+                            {{-- Icono Estadio SVG --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            Registra tu Cancha
+                        </a>
+                    </li>
                     <li><a href="{{ route('about') }}" class="hover:text-green-500 transition">¿Quiénes somos?</a></li>
                 </ul>
             </div>
