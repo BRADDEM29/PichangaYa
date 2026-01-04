@@ -1,4 +1,5 @@
 <?php
+// C:\laragon\www\PichangaYa\pichangaya\database\seeders\CanchaSeeder.php
 
 namespace Database\Seeders;
 
@@ -13,32 +14,33 @@ class CanchaSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Obtener Dueño
-        $owner = User::where('role', 'owner')->first();
-        if (!$owner) {
-            $owner = User::create([
+        // 1. Obtener o Crear Dueño
+        $owner = User::firstOrCreate(
+            ['email' => 'dueno@yanakatari.com'],
+            [
                 'name' => 'Juan Dueño',
-                'email' => 'dueno@yanakatari.com',
                 'password' => bcrypt('password'),
                 'role' => 'owner'
-            ]);
-        }
+            ]
+        );
 
-        // 2. Obtener IDs auxiliares (Para no usar números fijos y evitar errores)
-        $wanchaq = District::where('name', 'Wanchaq')->first()->id ?? 1;
-        $cusco   = District::where('name', 'Cusco')->first()->id ?? 1;
+        // 2. Obtener Distritos (con fallback seguro)
+        $wanchaq = District::firstOrCreate(['name' => 'Wanchaq'])->id;
+        $cusco   = District::firstOrCreate(['name' => 'Cusco'])->id;
 
-        // Deportes
-        $futbol7 = Sport::where('name', 'like', '%Fútbol 7%')->first();
-        $futbol5 = Sport::where('name', 'like', '%Fútbol 5%')->first();
-        $voley   = Sport::where('name', 'like', '%Vóley%')->first();
+        // 3. Obtener Deportes (Busqueda exacta para evitar errores)
+        // Usamos los nombres que definimos en SportSeeder
+        $futbol7 = Sport::where('name', 'Fútbol 7')->first();
+        $futbol5 = Sport::where('name', 'Fútbol 5')->first();
+        $voley   = Sport::where('name', 'Vóley')->first();
 
-        // Servicios
-        $wifi    = Service::where('name', 'like', '%Wi-Fi%')->first();
-        $duchas  = Service::where('name', 'like', '%Duchas%')->first();
-        $parking = Service::where('name', 'like', '%Estacionamiento%')->first();
-        $led     = Service::where('name', 'like', '%LED%')->first();
-        $beelup  = Service::where('name', 'like', '%Beelup%')->first();
+        // 4. Obtener Servicios (Busqueda exacta)
+        // Usamos los nombres que definimos en ServiceSeeder
+        $wifi    = Service::where('name', 'Wi-Fi')->first();
+        $duchas  = Service::where('name', 'Duchas')->first(); // O 'Vestuario / Duchas' según tu seeder
+        $parking = Service::where('name', 'Estacionamiento / Garaje')->first();
+        $led     = Service::where('name', 'Iluminación LED')->first();
+        $beelup  = Service::where('name', 'Beelup (Grabación)')->first();
 
         // --- CANCHA 1 (DESTACADA) ---
         $cancha1 = Cancha::create([
@@ -53,15 +55,18 @@ class CanchaSeeder extends Seeder
             'contact_phone'  => '984000111',
             'lat'            => -13.522640,
             'lng'            => -71.967340,
-            'is_featured'    => true, // 🟢 IMPORTANTE: Aparecerá en el carrusel
+            'is_featured'    => true, // Aparecerá en el carrusel
         ]);
         
-        // Asignar Deportes
+        // Asignar Deportes (Verificamos que existan)
         if ($futbol7) $cancha1->sports()->attach([$futbol7->id]);
         
-        // Asignar Servicios (Aquí llenamos los requerimientos automáticamente)
+        // Asignar Servicios
+        // Creamos una colección y filtramos los nulos por si algún servicio no se encontró
         $serviciosCancha1 = collect([$wifi, $parking, $led, $beelup])->filter()->pluck('id');
-        $cancha1->services()->sync($serviciosCancha1);
+        if ($serviciosCancha1->isNotEmpty()) {
+            $cancha1->services()->sync($serviciosCancha1);
+        }
 
 
         // --- CANCHA 2 (NORMAL) ---
@@ -80,12 +85,16 @@ class CanchaSeeder extends Seeder
             'is_featured'    => false,
         ]);
 
-        // Asignar Deportes (Multideporte)
+        // Asignar Deportes
         $deportesCancha2 = collect([$futbol5, $voley])->filter()->pluck('id');
-        $cancha2->sports()->sync($deportesCancha2);
+        if ($deportesCancha2->isNotEmpty()) {
+            $cancha2->sports()->sync($deportesCancha2);
+        }
 
         // Asignar Servicios
         $serviciosCancha2 = collect([$duchas, $parking])->filter()->pluck('id');
-        $cancha2->services()->sync($serviciosCancha2);
+        if ($serviciosCancha2->isNotEmpty()) {
+            $cancha2->services()->sync($serviciosCancha2);
+        }
     }
 }
