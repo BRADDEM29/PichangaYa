@@ -31,16 +31,34 @@ class AdminDashboardController extends Controller
         $canceladosCount = Reserva::where('status', 'cancelled')->count();
 
         // =========================================================================
-        // 3. GRÁFICO TENDENCIA FINANCIERA (ÚLTIMOS 15 DÍAS)
+        // 3. GRÁFICO TENDENCIA FINANCIERA (DINÁMICO POR RANGO)
         // =========================================================================
+        
+        // 🟢 NUEVA LÓGICA DE RANGO DE TIEMPO
+        $range = request('range', '15d'); // Valor por defecto '15d' si no viene nada en la URL
+        
+        $days = match($range) {
+            'day'   => 1,   // Último día (hoy)
+            'week'  => 7,   // Última semana
+            '15d'   => 15,  // Últimos 15 días
+            'month' => 30,  // Último mes
+            'year'  => 365, // Último año
+            default => 15
+        };
+
         $fechas = [];
         $dataFullyPaid = [];
         $dataAdvance = [];
         $dataPending = [];
         $dataCancelled = [];
 
-        for ($i = 14; $i >= 0; $i--) {
+        // Modificar el bucle para usar $days dinámicamente
+        // Si es 'year', podrías optimizar agrupar por meses, pero por ahora día a día funciona.
+        for ($i = $days - 1; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
+            
+            // Formato de etiqueta: Si es rango de 1 día, mostramos horas? Por ahora mantenemos día/mes.
+            // Para 'year', mostrar todos los días puede saturar, pero Chart.js lo maneja (maxTicksLimit).
             $fechas[] = $date->format('d/m'); 
             
             $dateString = $date->toDateString();
@@ -82,23 +100,11 @@ class AdminDashboardController extends Controller
     }
 
     // --- REPORTES DETALLADOS ---
+    
     public function reportsIngresos()
-    {
-        $monthlyIncome = Reserva::select(DB::raw('MONTH(start_time) as month'), DB::raw('SUM(total_price) as income'))
-            ->where('status', 'fully_paid')
-            ->whereYear('start_time', Carbon::now()->year)
-            ->groupBy('month')->pluck('income', 'month')->toArray();
-            
-        $monthlyLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        $monthlyData = array_replace(array_fill(1, 12, 0), $monthlyIncome);
-
-        $incomeByCancha = Cancha::withSum(['reservas' => function($q) { 
-                $q->where('status', 'fully_paid'); 
-            }], 'total_price')
-            ->orderByDesc('reservas_sum_total_price')->get();
-
-        return view('admin.reports.ingresos', compact('monthlyLabels', 'monthlyData', 'incomeByCancha'));
-    }
+{
+    return view('admin.reports.ingresos');
+}
 
     public function reportsAdelantados()
     {
