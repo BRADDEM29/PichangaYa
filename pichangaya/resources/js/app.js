@@ -50,7 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. TUTORIAL: SOLO EN HOME ("/")
     // ============================================================
 
-    // VERIFICACIÓN ESTRICTA DE RUTA: Solo funciona en el inicio
     if (window.location.pathname === '/' || window.location.pathname === '') {
 
         const driverHome = driver({
@@ -59,109 +58,142 @@ document.addEventListener('DOMContentLoaded', () => {
             allowClose: true,
             nextBtnText: 'Siguiente ➡',
             prevBtnText: '⬅ Atrás',
-            doneBtnText: '¡Entendido!',
+            doneBtnText: '¡Listo, a jugar!',
             steps: [
-                // 1. Bienvenida
                 {
                     element: '#hero-title',
                     popover: {
-                        title: '👋 Bienvenido a PichangaYa',
-                        description: 'La plataforma #1 en Cusco para reservar tus partidos al instante.',
+                        title: '👋 ¡Bienvenido a PichangaYa!',
+                        description: 'Tu pichanga está a solo unos clics. Permítenos mostrarte cómo sacarle el máximo provecho a la plataforma.',
                         side: "bottom"
                     }
                 },
-                // 2. Buscador
+                // PASO NUEVO: Modo Oscuro
+                ...(document.getElementById('theme-toggle') ? [{
+                    element: '#theme-toggle',
+                    popover: {
+                        title: '🌙 Modo Noche',
+                        description: '¿Prefieres un estilo oscuro? Cambia el aspecto de la web aquí para mayor comodidad visual.',
+                        side: "bottom"
+                    }
+                }] : []),
                 {
                     element: '#search-form',
                     popover: {
-                        title: '🔍 El Buscador Inteligente',
-                        description: 'Aquí empieza todo. Escribe el nombre de la cancha, o filtra por Distrito (ej. Wanchaq) y Deporte.',
+                        title: '🔍 Buscador Inteligente',
+                        description: 'Busca por nombre de complejo o usa los filtros rápidos.',
                         side: "bottom"
                     }
                 },
-                // 3. Notificaciones (Nuevo paso agregado)
-                // Se agrega condicionalmente solo si el elemento existe (usuario logueado)
+                // PASO NUEVO: Filtros Detallados
+                {
+                    element: '#search-filters',
+                    popover: {
+                        title: '📍 Filtros de Precisión',
+                        description: 'Encuentra canchas en tu distrito favorito (Wanchaq, San Sebastián, etc.) y filtra por el deporte que quieras jugar.',
+                        side: "bottom"
+                    }
+                },
                 ...(document.getElementById('tour-notificaciones') ? [{
                     element: '#tour-notificaciones',
                     popover: {
-                        title: '🔔 Centro de Notificaciones',
-                        description: '¡Atento aquí! Recibirás avisos sobre tus reservas confirmadas, pagos pendientes o cancelaciones.',
+                        title: '🔔 Notificaciones',
+                        description: 'Aquí te avisaremos cuando tu reserva sea confirmada o si hay algún cambio importante.',
                         side: "bottom",
                         align: "end"
                     }
                 }] : []),
-                // 4. Carrusel
                 ...(document.getElementById('featured-section') ? [{
                     element: '#featured-section',
                     popover: {
-                        title: '⭐ Canchas Destacadas',
-                        description: 'Aquí mostramos las canchas mejor valoradas y más populares del momento.',
+                        title: '⭐ Las Mejores Canchas',
+                        description: 'Estas son las canchas destacadas por su excelente servicio y popularidad en Cusco.',
                         side: "top"
                     }
                 }] : []),
-                // 5. Grid de Canchas
                 {
                     element: '#canchas-grid',
                     popover: {
-                        title: '📋 Listado de Canchas',
-                        description: 'Aquí verás todas las canchas disponibles según tu búsqueda.',
+                        title: '📋 Disponibilidad Total',
+                        description: 'Explora nuestra lista completa de locales deportivos.',
                         side: "top"
                     }
                 },
-                // 6. Tarjeta Individual
                 {
                     element: 'article:first-of-type',
                     popover: {
-                        title: 'ℹ️ Información de la Cancha',
-                        description: 'Cada tarjeta te muestra: Foto, Precio por hora, Ubicación y Servicios disponibles.',
+                        title: 'ℹ️ Detalle de la Cancha',
+                        description: 'Mira fotos reales, precios actualizados y los servicios incluidos (Grass, Techo, Wifi).',
                         side: "right"
                     }
                 },
-                // 7. Botón Reservar
+                // PASO NUEVO: Favoritos
+                ...(document.querySelector('.btn-favorito-tour') ? [{
+                    element: '.btn-favorito-tour',
+                    popover: {
+                        title: '❤️ Tus Favoritos',
+                        description: 'Guarda las canchas que más te gustan para encontrarlas más rápido la próxima vez.',
+                        side: "top"
+                    }
+                }] : []),
                 {
                     element: 'article:first-of-type a',
                     popover: {
-                        title: '📅 Ver Disponibilidad',
-                        description: 'Dale clic a este botón verde para ver los horarios libres y reservar tu partido.',
+                        title: '📅 Reserva al Instante',
+                        description: 'Haz clic para ver el calendario de horas libres y separar tu turno de inmediato.',
                         side: "top"
                     }
                 },
-                // 8. Nosotros
+                // PASO NUEVO: Sección Dueños
+                ...(document.getElementById('cta-owner-tour') ? [{
+                    element: '#cta-owner-tour',
+                    popover: {
+                        title: '🏟️ ¿Eres dueño de una cancha?',
+                        description: 'Únete a nuestra red y empieza a recibir reservas automáticas hoy mismo.',
+                        side: "top"
+                    }
+                }] : []),
                 {
                     element: '#about-section',
                     popover: {
-                        title: '🤝 Nosotros',
-                        description: 'Conoce más sobre nuestra misión y por qué somos la opción más segura en Cusco.',
+                        title: '🤝 Seguridad y Confianza',
+                        description: 'Somos una plataforma 100% cusqueña. Trabajamos para que tu única preocupación sea meter goles.',
                         side: "top"
                     }
                 },
-                // 9. Footer
                 {
                     element: 'footer',
                     popover: {
-                        title: '📞 Ayuda y Soporte',
-                        description: '¿Tienes dudas? Aquí abajo encuentras nuestro WhatsApp, Correo y términos legales.',
+                        title: '📞 Soporte 24/7',
+                        description: '¿Necesitas ayuda técnica? Contáctanos por WhatsApp desde el enlace en el pie de página.',
                         side: "top"
+                    }
+                },
+                // PASO FINAL: El mismo botón
+                {
+                    element: '#btn-ayuda-home',
+                    popover: {
+                        title: '❓ Ayuda siempre disponible',
+                        description: 'Si olvidas algo, puedes volver a ver este tutorial haciendo clic en este botón verde.',
+                        side: "left"
                     }
                 }
             ]
         });
 
-        // --- CREACIÓN DEL BOTÓN DE AYUDA FLOTANTE ---
         const crearBotonAyudaHome = () => {
             if (document.getElementById('btn-ayuda-home')) return;
 
             const boton = document.createElement('button');
             boton.id = 'btn-ayuda-home';
-            boton.innerHTML = '❔';
+            boton.innerHTML = '❓';
             boton.title = 'Ver Tutorial';
 
-            // Estilos del botón
             Object.assign(boton.style, {
                 position: 'fixed',
                 bottom: '30px',
                 right: '30px',
-                backgroundColor: '#16a34a', // Verde corporativo
+                backgroundColor: '#16a34a',
                 color: 'white',
                 border: '3px solid white',
                 borderRadius: '50%',
@@ -173,30 +205,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 15px rgba(22, 163, 74, 0.4)', // Sombra verde
+                boxShadow: '0 4px 15px rgba(22, 163, 74, 0.4)',
                 transition: 'all 0.3s ease'
             });
 
-            // Hover
             boton.onmouseover = () => {
                 boton.style.transform = 'scale(1.1) rotate(10deg)';
-                boton.style.backgroundColor = '#15803d'; // Verde más oscuro
+                boton.style.backgroundColor = '#15803d';
             };
             boton.onmouseout = () => {
                 boton.style.transform = 'scale(1) rotate(0deg)';
                 boton.style.backgroundColor = '#16a34a';
             };
 
-            // Click
             boton.onclick = () => driverHome.drive();
 
             document.body.appendChild(boton);
         };
 
-        // Ejecutar creación
         crearBotonAyudaHome();
 
-        // Auto-inicio (Opcional: solo si no lo ha visto)
         if (!localStorage.getItem('tutorial_welcome_completo')) {
             setTimeout(() => {
                 driverHome.drive();
