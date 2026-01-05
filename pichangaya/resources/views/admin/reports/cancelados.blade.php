@@ -4,7 +4,7 @@
     <x-slot name="header">
         <div class="flex items-center gap-4">
             <a href="{{ route('admin.dashboard') }}" class="p-2 rounded-full hover:bg-gray-200 transition text-gray-500">← Volver</a>
-            <h2 class="font-semibold text-xl text-red-700 leading-tight">🚫 Reporte de Reservas Canceladas</h2>
+            <h2 class="font-semibold text-xl text-red-700 leading-tight">Reporte de Reservas Canceladas</h2>
         </div>
     </x-slot>
 
@@ -18,7 +18,7 @@
                         <p class="text-sm font-bold text-red-700 uppercase">Ingreso Perdido Total</p>
                         <p class="text-4xl font-black text-gray-800">S/ {{ number_format($totalPerdido, 2) }}</p>
                     </div>
-                    <span class="text-4xl">📉</span>
+                    <span class="text-4xl"></span>
                 </div>
                 <div class="bg-white shadow rounded-xl p-4">
                     <h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Pérdida por Distrito</h4>

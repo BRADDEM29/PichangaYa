@@ -74,7 +74,7 @@
                                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Correo Electrónico</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span class="text-gray-500">✉️</span>
+                                        <span class="text-gray-500"></span>
                                     </div>
                                     <input type="email" name="email" value="{{ old('email') }}" class="w-full pl-10 rounded-lg border-gray-300 dark:bg-gray-900 dark:text-white dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="correo@ejemplo.com" required>
                                 </div>
@@ -86,7 +86,7 @@
                                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Celular Principal</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span class="text-gray-500">📞</span>
+                                        <span class="text-gray-500"></span>
                                     </div>
                                     <input type="text" name="phone" value="{{ old('phone') }}" class="w-full pl-10 rounded-lg border-gray-300 dark:bg-gray-900 dark:text-white dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="999 999 999" required>
                                 </div>
@@ -179,7 +179,7 @@
                                     </button>
                                 </div>
                                 <template x-if="password !== password_confirmation && password_confirmation.length > 0">
-                                    <span class="text-red-500 text-xs mt-1 block">⚠️ Las contraseñas no coinciden.</span>
+                                    <span class="text-red-500 text-xs mt-1 block">Las contraseñas no coinciden.</span>
                                 </template>
                             </div>
                         </div>

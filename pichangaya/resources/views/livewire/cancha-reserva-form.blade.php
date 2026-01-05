@@ -40,7 +40,7 @@
         <div class="relative w-full overflow-x-auto pb-4 custom-scrollbar">
             @if(empty($timeSlots))
                 <div class="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-gray-400">
-                    <span class="block text-2xl mb-1">😴</span>
+                    <span class="block text-2xl mb-1"></span>
                     No hay horarios para hoy.
                 </div>
             @else
@@ -94,7 +94,7 @@
                         >
                             {{-- Icono pequeño para pendientes --}}
                             @if($isPending)
-                                <span class="absolute top-1 right-1 text-[8px]">⏳</span>
+                                <span class="absolute top-1 right-1 text-[8px]"></span>
                             @endif
 
                             <span class="text-xs font-bold">{{ $slot['value'] }}</span>
@@ -150,7 +150,7 @@
         </div>
     @else
         <div class="text-center py-6 text-gray-400 text-xs bg-gray-50 rounded-xl border border-gray-100">
-            👆 Toca una hora para comenzar la reserva
+             Toca una hora para comenzar la reserva
         </div>
     @endif
 

@@ -19,7 +19,7 @@
             {{-- GRÁFICO GEOGRÁFICO --}}
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                 <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                    <span class="text-xl mr-2">📍</span> Distribución Geográfica
+                    <span class="text-xl mr-2"></span> Distribución Geográfica
                 </h3>
                 <div class="h-80 w-full">
                     <canvas id="chartCanchas"></canvas>
@@ -29,7 +29,7 @@
             {{-- NUEVO: GRÁFICO DE CANCHAS FAVORITAS --}}
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                 <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                    <span class="text-xl mr-2">❤️</span> Canchas con más Favoritos (Top 5)
+                    <span class="text-xl mr-2"></span> Canchas con más Favoritos (Top 5)
                 </h3>
                 <div class="h-80 w-full">
                     <canvas id="chartFavoritos"></canvas>

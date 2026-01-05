@@ -1,6 +1,9 @@
 <nav x-data="{ open: false, darkMode: localStorage.getItem('dark-mode') === 'true' }" class="bg-gray-900/90 backdrop-blur-md border-b border-gray-700 shadow-lg sticky top-0 z-50">
     {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\navigation-menu.blade.php --}}
-    
+    <nav x-data="{ open: false, darkMode: localStorage.getItem('dark-mode') === 'true' }" 
+     class="bg-gray-900/90 backdrop-blur-md border-b border-gray-700 shadow-lg sticky top-0 z-50 
+            /* 🟢 Efecto de brillo verde en los costados */
+            shadow-[inset_60px_0_50px_-50px_rgba(34,197,94,0.3),_inset_-60px_0_50px_-50px_rgba(34,197,94,0.3)]">
     {{-- 🟢 LÓGICA PHP INYECTADA --}}
     @php
         $displayName = '';
@@ -31,7 +34,7 @@
     <style>
         /* Animación y Fuentes */
         @keyframes swing {
-            0%, 100% { transform: rotate(0deg); }
+           0%, 100% { transform: rotate(0deg); }
             20% { transform: rotate(15deg); }
             40% { transform: rotate(-10deg); }
             60% { transform: rotate(5deg); }
@@ -46,6 +49,24 @@
             font-variant-numeric: tabular-nums;
             letter-spacing: 1px;
         }
+       /* ⚪ BLANCO ATÓMICO (Máxima Intensidad) */
+    .logo-glow {
+        filter: 
+            drop-shadow(0 0 5px #ffffff)    /* Núcleo: Brillo sólido en los bordes */
+            drop-shadow(0 0 15px #ffffff)   /* Medio: Resplandor intermedio */
+            drop-shadow(0 0 40px rgba(255, 255, 255, 0.8)); /* Aura: Efecto de luz ambiental */
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Opcional: Hace que el logo mismo sea un poco más brillante */
+        brightness: 1.1; 
+    }
+
+    .logo-glow:hover {
+        filter: 
+            drop-shadow(0 0 8px #ffffff) 
+            drop-shadow(0 0 25px #ffffff) 
+            drop-shadow(0 0 60px #ffffff); /* Expansión máxima al pasar el mouse */
+        transform: scale(1.1) translateY(-2px); /* Pequeño salto hacia arriba */
+    }
     </style>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -55,9 +76,10 @@
             <div class="flex items-center">
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('home') }}" id="tour-logo" class="flex items-center"> 
+                        {{-- 🟢 Aplicamos la clase logo-glow aquí --}}
                         <img src="{{ asset('images/Pichanga-_1_.webp') }}" 
                              alt="PichangaYa Logo" 
-                             class="block h-16 w-auto object-contain transition hover:scale-105 drop-shadow-md">
+                             class="block h-16 w-auto object-contain transition hover:scale-105 logo-glow">
                     </a>
                 </div>
 

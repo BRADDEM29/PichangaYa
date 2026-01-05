@@ -11,7 +11,7 @@
     
     {{-- FECHA --}}
     <div>
-        <label class="block text-sm font-bold text-gray-700 mb-2">📅 Fecha del Partido</label>
+        <label class="block text-sm font-bold text-gray-700 mb-2"> Fecha del Partido</label>
         <input type="date" wire:model.live="date" min="{{ \Carbon\Carbon::today()->toDateString() }}" 
                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg py-2">
     </div>
@@ -19,7 +19,7 @@
     {{-- HORARIO Y DURACIÓN --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-            <label class="block text-sm font-bold text-gray-700 mb-2">⏰ Hora de Inicio</label>
+            <label class="block text-sm font-bold text-gray-700 mb-2"> Hora de Inicio</label>
             <div class="relative">
                 <select wire:model.live="time" 
                         class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg py-2 pl-3 pr-10">
@@ -35,7 +35,7 @@
         </div>
         
         <div>
-            <label class="block text-sm font-bold text-gray-700 mb-2">⏳ Duración</label>
+            <label class="block text-sm font-bold text-gray-700 mb-2">Duración</label>
             <select wire:model.live="duration" 
                     class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg py-2">
                 @for ($i = 1; $i <= 4; $i++)
@@ -60,7 +60,7 @@
     <button type="submit" 
             class="w-full bg-indigo-600 text-white font-bold py-4 rounded-lg hover:bg-indigo-700 transition shadow-lg flex justify-center items-center"
             wire:loading.attr="disabled">
-        <span wire:loading.remove>Guardar Cambios 💾</span>
+        <span wire:loading.remove>Guardar Cambios </span>
         <span wire:loading>Procesando...</span>
     </button>
     

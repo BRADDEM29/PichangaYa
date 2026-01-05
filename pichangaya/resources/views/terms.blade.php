@@ -12,7 +12,7 @@
                 <div class="p-8 sm:p-16">
                     <div class="flex items-center gap-4 mb-8">
                         <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-2xl">
-                            <span class="text-3xl">📜</span>
+                            <span class="text-3xl"></span>
                         </div>
                         <h1 class="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Términos y Condiciones</h1>
                     </div>
@@ -28,7 +28,7 @@
                             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">2. Pagos, Estados y Cancelaciones</h2>
                             <p>El usuario debe cumplir con el pago establecido por el establecimiento. <strong>Si el usuario no realiza su pago (cambio de estado)</strong>, la reserva pasará automáticamente a <strong>cancelación</strong>.</p>
                             <div class="bg-amber-50 dark:bg-amber-900/10 p-6 rounded-2xl border-l-4 border-amber-500 my-4">
-                                <h3 class="font-bold text-amber-800 dark:text-amber-500 mb-2 italic">⏰ Política de Llegadas Tarde y Ausencia</h3>
+                                <h3 class="font-bold text-amber-800 dark:text-amber-500 mb-2 italic">Política de Llegadas Tarde y Ausencia</h3>
                                 <p>Recomendamos llegar <strong>5 minutos antes</strong>. Si superás los <strong>30 minutos de retraso</strong>, el establecimiento puede cancelar tu reserva sin derecho a devolución de adelantos.</p>
                                 <p class="mt-2"><strong>Si el usuario no llega, perderá el adelanto o dinero abonado inmediatamente al cumplirse un lapso de 30 minutos sin ninguna evidencia de asistencia al establecimiento.</strong></p>
                             </div>

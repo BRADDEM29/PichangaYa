@@ -95,7 +95,7 @@
             <div class="mt-4">
                 <x-label for="phone" value="Celular" />
                 <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-sm">📞</span>
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-sm"></span>
                     <x-input id="phone" class="block mt-1 w-full pl-10" type="tel" name="phone" x-model="phone" required autocomplete="tel" placeholder="999 999 999" />
                 </div>
                 <span class="text-red-500 text-xs mt-1" x-show="errors.phone" x-text="errors.phone"></span>

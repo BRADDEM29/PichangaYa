@@ -39,7 +39,10 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {{-- Beneficio 1 --}}
                     <div class="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center text-2xl mb-6">📈</div>
+                        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-6">
+                            {{-- ICONO REEMPLAZADO: iMac Dollar --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-green-600 dark:text-green-400 icon icon-tabler icons-tabler-outline icon-tabler-device-imac-dollar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 17h-9a1 1 0 0 1 -1 -1v-12a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v6.5" /><path d="M3 13h11" /><path d="M8 21h5" /><path d="M10 17l-.5 4" /><path d="M21 15h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5" /><path d="M19 21v1m0 -8v1" /></svg>
+                        </div>
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Aumenta tus ingresos</h3>
                         <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                             Reduce las horas muertas. Tu cancha estará disponible para reservar mientras tú descansas o atiendes a otros clientes.
@@ -48,7 +51,10 @@
 
                     {{-- Beneficio 2 --}}
                     <div class="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-2xl mb-6">📱</div>
+                        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-6">
+                            {{-- ICONO REEMPLAZADO: Mobile --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-blue-600 dark:text-blue-400 icon icon-tabler icons-tabler-outline icon-tabler-device-mobile"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 5a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-14" /><path d="M11 4h2" /><path d="M12 17v.01" /></svg>
+                        </div>
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Adiós al cuaderno</h3>
                         <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                             Gestiona tus horarios desde el celular. Olvida los tachones, las confusiones y las llamadas perdidas.
@@ -57,7 +63,10 @@
 
                     {{-- Beneficio 3 --}}
                     <div class="p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                        <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center text-2xl mb-6">🛡️</div>
+                        <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center mb-6">
+                             {{-- ICONO REEMPLAZADO: Shield --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-yellow-600 dark:text-yellow-400 icon icon-tabler icons-tabler-outline icon-tabler-shield"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3" /></svg>
+                        </div>
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">Pagos Seguros</h3>
                         <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                             Configura adelantos por Yape o Plin y asegura que los equipos realmente asistan a sus partidos programados.

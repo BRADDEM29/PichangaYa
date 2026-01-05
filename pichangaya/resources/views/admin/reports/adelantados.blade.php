@@ -4,7 +4,7 @@
     <x-slot name="header">
         <div class="flex items-center gap-4">
             <a href="{{ route('admin.dashboard') }}" class="p-2 rounded-full hover:bg-gray-200 transition text-gray-500">← Volver</a>
-            <h2 class="font-semibold text-xl text-blue-700 leading-tight">💎 Reporte de Pagos Adelantados</h2>
+            <h2 class="font-semibold text-xl text-blue-700 leading-tight">Reporte de Pagos Adelantados</h2>
         </div>
     </x-slot>
 
@@ -16,7 +16,7 @@
                         <p class="text-sm font-bold text-blue-700 uppercase">Monto en Adelantos</p>
                         <p class="text-4xl font-black text-gray-800">S/ {{ number_format($totalAdelanto, 2) }}</p>
                     </div>
-                    <span class="text-4xl">⚡</span>
+                    <span class="text-4xl"></span>
                 </div>
                 <div class="bg-white shadow rounded-xl p-4">
                     <h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Adelantos por Cancha</h4>
