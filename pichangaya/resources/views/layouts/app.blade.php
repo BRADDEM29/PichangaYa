@@ -99,7 +99,7 @@
     @livewireScripts
 
     <x-urgent-booking-card />
-
+    @stack('scripts')
     <script>
         // Lógica del Preloader
         window.addEventListener('load', function() {
