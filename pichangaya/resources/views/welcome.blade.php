@@ -357,5 +357,6 @@
 
     {{-- Componente de Tarjeta Flotante --}}
     <x-urgent-booking-card />
+    <x-floating-buttons />
 </body>
 </html>
