@@ -143,9 +143,17 @@ class User extends Authenticatable
         return $this->role === 'user';
     }
 
-    public function favorites() {
-    return $this->belongsToMany(Cancha::class, 'favorites', 'user_id', 'cancha_id')->withTimestamps();
-}
+    // app/Models/User.php
+
+    public function favorites()
+    {
+        // Asumiendo que tu tabla pivote se llama 'cancha_user' o similar
+        // Si seguiste convenciones de Laravel para una relación Many-to-Many:
+        return $this->belongsToMany(Cancha::class, 'favorites', 'user_id', 'cancha_id')->withTimestamps();
+        
+        // OJO: Si tu tabla pivote se llama diferente (ej. 'cancha_user'), usa:
+        // return $this->belongsToMany(Cancha::class, 'cancha_user');
+    }
 
     /**
      * Send the password reset notification.
