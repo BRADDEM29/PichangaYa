@@ -273,4 +273,16 @@ class ReservaController extends Controller
 
         return view('reservas.edit', compact('reserva'));
     }
+
+    // -------------------------------------------------------------------------
+    // 🟢 NUEVO MÉTODO PARA POLLING (Tarjeta Flotante)
+    // -------------------------------------------------------------------------
+    public function checkStatus($id)
+    {
+        $reserva = Reserva::find($id);
+        if (!$reserva) {
+            return response()->json(['status' => 'not_found']);
+        }
+        return response()->json(['status' => $reserva->status]);
+    }
 }

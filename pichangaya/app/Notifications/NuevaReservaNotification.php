@@ -27,22 +27,19 @@ class NuevaReservaNotification extends Notification
     public function toArray($notifiable)
     {
         // =====================================================================
-        // 🟢 1. CÁLCULO GLOBAL DEL TEMPORIZADOR (Para Todos: Cliente, Admin, Dueño)
+        // 1. CÁLCULO GLOBAL DEL TEMPORIZADOR
         // =====================================================================
-        // Calculamos esto AQUÍ afuera para que el Admin también reciba el dato 'expiry_ts'
-        // y el controlador pueda proteger la notificación de ser borrada.
         $expiryObj = $this->reserva->created_at->addMinutes(10);
         $expiryTimestamp = $expiryObj->timestamp * 1000; // JS usa milisegundos
         $horaExpiracion = $expiryObj->format('H:i');
 
         // Datos visuales base
         $canchaNombre = $this->reserva->cancha->name;
-        $fechaReserva = $this->reserva->start_time->format('d/m H:i');
         
         // Inicializamos variables
         $titulo = '';
         $mensaje = '';
-        $icono = '';
+        $icono = ''; // Enviaremos una clave de texto (ej: 'clock'), no un emoji
         $color = '';
         $url = '#';
 
@@ -52,24 +49,24 @@ class NuevaReservaNotification extends Notification
         
         // CASO A: Es el CLIENTE (El que debe pagar)
         if ($notifiable->id === $this->reserva->user_id) {
-            $titulo = '⏳ Pago Pendiente (10 min)';
+            // TEXTO LIMPIO (Sin emojis)
+            $titulo = 'Pago Pendiente (10 min)';
             $mensaje = "Tu reserva en $canchaNombre expira a las $horaExpiracion.";
-            $icono = 'hourglass_empty'; 
+            $icono = 'clock'; // Clave para icono de reloj
             $color = 'text-orange-500';
             $url = route('reservas.user.index');
         } 
-        // CASO B: Es ADMIN o DUEÑO (Información + Timer visual)
+        // CASO B: Es ADMIN o DUEÑO
         else {
-            $titulo = '📅 Nueva Reserva (Pendiente)';
-            // Agregamos la hora de expiración al mensaje del admin también para claridad
+            // TEXTO LIMPIO
+            $titulo = 'Nueva Reserva (Pendiente)';
             $mensaje = "Cliente: {$this->reserva->user->name} | $canchaNombre | Expira: $horaExpiracion";
-            $icono = 'currency_exchange';
+            $icono = 'currency_exchange'; // Clave para icono de dinero
             $color = 'text-indigo-600';
 
             // Rutas inteligentes según rol
             if ($notifiable->role === 'admin') {
                 $identificador = $this->reserva->cancha->slug ?? $this->reserva->cancha->id;
-                // El Admin va al panel de esa cancha
                 $url = route('admin.canchas.reservas.index', $identificador);
             } elseif ($notifiable->role === 'owner') {
                 $url = route('owner.reservas.index');
@@ -85,8 +82,7 @@ class NuevaReservaNotification extends Notification
             'url'        => $url,
             'reserva_id' => $this->reserva->id,
             
-            // 🟢 IMPORTANTE: Ahora 'expiry_ts' viaja siempre, 
-            // permitiendo al Admin ver el cronómetro y evitando el borrado accidental.
+            // Dato crítico para el temporizador visual
             'expiry_ts'  => $expiryTimestamp, 
             'created_at' => now(),
         ];

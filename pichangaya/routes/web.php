@@ -120,9 +120,17 @@ Route::middleware([
     // Notificaciones
     Route::get('/notificaciones', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notificaciones/{id}/leer', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::get('/notifications/check-new', [NotificationController::class, 'checkNew'])->name('notifications.checkNew');
     
     // Marcar todas como leídas
     Route::post('/notificaciones/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+
+    // 🟢 NUEVA RUTA AJAX (Insertada aquí)
+    Route::post('/notifications/{id}/mark-read', [NotificationController::class, 'markAsReadAjax'])->name('notifications.markread.ajax');
+
+    // 🟢 NUEVA RUTA: Chequeo de estado individual (Para la tarjeta flotante)
+    Route::get('/reservas/{reserva}/check-status', [\App\Http\Controllers\ReservaController::class, 'checkStatus'])
+        ->name('reservas.checkStatus');
 });
 
 /*
@@ -186,6 +194,9 @@ Route::middleware(['auth', 'role:admin'])
             
             // Rutas para Gestionar Reservas de Cancha
             Route::get('/canchas/{cancha}/reservas', 'canchaReservas')->name('canchas.reservas.index');
+
+            // 🟢 NUEVA RUTA: Recarga de tabla de reservas (Para la vista admin)
+            Route::get('/canchas/{cancha}/reservas-polling', 'canchaReservasPolling')->name('canchas.reservas.polling');
 
             // Rutas para Editar/Eliminar/Destacar
             Route::get('/canchas/{cancha}/edit', 'editCancha')->name('canchas.edit');

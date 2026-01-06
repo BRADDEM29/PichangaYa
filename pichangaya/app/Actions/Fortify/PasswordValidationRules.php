@@ -1,5 +1,5 @@
 <?php
-
+//C:\laragon\www\PichangaYa\pichangaya\app\Actions\Fortify\PasswordValidationRules.php
 namespace App\Actions\Fortify;
 
 use Illuminate\Validation\Rules\Password;
@@ -13,6 +13,6 @@ trait PasswordValidationRules
      */
     protected function passwordRules(): array
     {
-        return ['required', 'string', Password::default()->min(8)->mixedCase()->numbers()->symbols(), 'confirmed'];
+        return ['required', 'string', Password::default()->min(8)->mixedCase()->numbers(), 'confirmed'];
     }
 }

@@ -170,4 +170,17 @@ class AdminOwnerController extends Controller
         $reservas = $cancha->reservas()->with('user')->orderBy('start_time', 'desc')->paginate(10);
         return view('admin.reservas.index', compact('cancha', 'reservas'));
     }
+
+    /**
+     * 🟢 Recarga de tabla de reservas vía AJAX (Polling)
+     */
+    public function canchaReservasPolling(\App\Models\Cancha $cancha)
+    {
+        // Reutilizamos la misma lógica de ordenamiento que tienes en tu vista
+        $reservas = $cancha->reservas()->latest()->paginate(10);
+        
+        // Retornamos SOLO el HTML de la tabla
+        return view('admin.reservas.partials.table-body', compact('reservas'))->render();
+    }
+
 }

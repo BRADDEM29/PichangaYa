@@ -18,27 +18,26 @@
             // Calculamos duración en horas (ej: 1.5 horas)
             $horas  = $fin->diffInMinutes($inicio) / 60; 
 
-            // --- LÓGICA DE PRECIO CORREGIDA (Según tu ReservaController) ---
-            // 1. Intentamos obtener el precio por hora de la cancha (price_per_hour)
+            // --- LÓGICA DE PRECIO CORREGIDA ---
             $precioHora = $reservaPendiente->cancha->price_per_hour ?? 0;
-
-            // 2. Usamos 'total_price' que es como lo guardas en la BD.
-            // Si por alguna razón es 0, lo calculamos manualmente.
             $montoTotal = $reservaPendiente->total_price > 0 
                             ? $reservaPendiente->total_price 
                             : ($precioHora * $horas);
 
+            // 🟢 CÁLCULO DEL 20%
+            $montoAdelanto = $montoTotal * 0.20;
+
             // --- TEXTO DEL MENSAJE (Emoji safe) ---
-            // Usamos 'name' para la cancha según tu CanchaController
             $nombreCancha = $reservaPendiente->cancha->name ?? 'Cancha #'.$reservaPendiente->cancha_id;
             
-            $mensaje  = "Hola, 🚨 *URGENTE* - Envío comprobante para evitar cancelación y STRIKE.\n\n";
-            $mensaje .= "📄 *Reserva:* #" . $reservaPendiente->id . "\n";
-            $mensaje .= "⚽ *Cancha:* " . $nombreCancha . "\n";
-            $mensaje .= "📆 *Fecha:* " . $inicio->format('d/m/Y') . "\n";
-            $mensaje .= "⏰ *Horario:* " . $inicio->format('h:i A') . " - " . $fin->format('h:i A') . " (" . $horas . "h)\n";
-            $mensaje .= "💰 *Total a Pagar:* S/ " . number_format($montoTotal, 2) . "\n";
-            $mensaje .= "👤 *Usuario:* " . Auth::user()->name;
+            $mensaje  = "Hola, URGENTE - Envio comprobante para evitar cancelacion.\n\n";
+            $mensaje .= "Reserva: #" . $reservaPendiente->id . "\n";
+            $mensaje .= "Cancha: " . $nombreCancha . "\n";
+            $mensaje .= "Fecha: " . $inicio->format('d/m/Y') . "\n";
+            $mensaje .= "Horario: " . $inicio->format('h:i A') . " - " . $fin->format('h:i A') . "\n";
+            $mensaje .= "Total: S/ " . number_format($montoTotal, 2) . "\n";
+            $mensaje .= "ADELANTO A PAGAR (20%): S/ " . number_format($montoAdelanto, 2) . "\n";
+            $mensaje .= "Usuario: " . Auth::user()->name;
 
             // --- GENERAR LINK SEGURO ---
             $whatsappUrl = "https://wa.me/51940766968?" . http_build_query(['text' => $mensaje]);
@@ -47,7 +46,7 @@
 
     @if($reservaPendiente)
         {{-- Tarjeta Flotante Saltarina --}}
-        <div id="urgent-card" class="fixed bottom-5 right-5 z-50 max-w-sm w-full animate-[bounce_2s_infinite] hover:animate-none group">
+        <div id="urgent-card" data-reserva-id="{{ $reservaPendiente->id }}" class="fixed bottom-5 right-5 z-50 max-w-sm w-full animate-[bounce_2s_infinite] hover:animate-none group transition-all duration-500">
             
             <div class="bg-white border-l-8 border-red-600 rounded-lg shadow-2xl overflow-hidden relative">
                 
@@ -66,12 +65,12 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-red-700 text-sm uppercase">⚠️ Acción Requerida</h3>
+                            <h3 class="font-bold text-red-700 text-sm uppercase">Accion Requerida</h3>
                             <div class="text-xs text-gray-600 mt-1 leading-relaxed">
                                 Reserva <strong>#{{ $reservaPendiente->id }}</strong> pendiente de pago.
                                 <br>
                                 <span class="text-red-600 font-semibold block mt-1">
-                                    Si el tiempo expira, se cancelará y recibirás una falta (Strike).
+                                    Adelanto (20%): S/ {{ number_format($montoAdelanto, 2) }}
                                 </span>
                             </div>
                         </div>
@@ -95,7 +94,7 @@
                        class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow transition transform hover:scale-105 active:scale-95">
                         <span class="flex items-center justify-center gap-2 text-sm">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                            ENVIAR COMPROBANTE
+                            PAGAR ADELANTO
                         </span>
                     </a>
                 </div>
@@ -103,13 +102,30 @@
             
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
+                    const card = document.getElementById('urgent-card');
+                    if(!card) return;
+
+                    const reservaId = card.getAttribute('data-reserva-id');
                     const createdAt = new Date("{{ $reservaPendiente->created_at }}").getTime();
                     const durationMinutes = 10;
                     const deadline = createdAt + (durationMinutes * 60 * 1000); 
                     
                     const timerElement = document.getElementById('card-timer');
                     const progressBar = document.getElementById('card-progress');
-                    const card = document.getElementById('urgent-card');
+
+                    // 🟢 AUTO-CHECK DE ESTADO (CADA 5 SEGUNDOS)
+                    const statusInterval = setInterval(() => {
+                        fetch(`/reservas/${reservaId}/check-status`)
+                            .then(res => res.json())
+                            .then(data => {
+                                // Si la reserva ya no es 'pending' (fue pagada o cancelada)
+                                if (data.status && data.status !== 'pending') {
+                                    clearInterval(statusInterval); // Parar chequeo
+                                    destroyCard(); // Destruir visualmente
+                                }
+                            })
+                            .catch(err => console.log('Error checking status', err));
+                    }, 5000);
 
                     // Control de animación
                     setTimeout(() => {
@@ -118,6 +134,14 @@
                             card.classList.add('animate-[bounce_3s_infinite]');
                         }
                     }, 3000);
+
+                    function destroyCard() {
+                        if(card) {
+                            card.style.opacity = '0';
+                            card.style.transform = 'translateY(20px)';
+                            setTimeout(() => card.remove(), 500);
+                        }
+                    }
 
                     function updateTimer() {
                         const now = new Date().getTime();
@@ -130,11 +154,7 @@
 
                         if (distance < 0) {
                             if(timerElement) timerElement.innerHTML = "00:00";
-                            if(card) {
-                                card.style.transition = "opacity 0.5s ease-out";
-                                card.style.opacity = '0';
-                                setTimeout(() => card.remove(), 500);
-                            }
+                            destroyCard();
                             return;
                         }
 
