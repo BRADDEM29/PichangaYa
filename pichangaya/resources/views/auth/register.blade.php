@@ -1,7 +1,10 @@
 <x-guest-layout>
     <x-authentication-card>
         <x-slot name="logo">
-            <x-authentication-card-logo />
+            {{-- ✨ LOGO CON HALO DE LUZ (GLOW) BLANCO ✨ --}}
+            <div class="p-4 bg-white rounded-full shadow-[0_0_60px_20px_rgba(255,255,255,1)] flex items-center justify-center">
+                <x-authentication-card-logo />
+            </div>
         </x-slot>
 
         <x-validation-errors class="mb-4" />
@@ -92,11 +95,11 @@
                 <span class="text-red-500 text-xs mt-1" x-show="errors.email" x-text="errors.email"></span>
             </div>
 
+            {{-- CAMPO CELULAR (Corregido: Sin placeholder y alineado a la izquierda) --}}
             <div class="mt-4">
                 <x-label for="phone" value="Celular" />
                 <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-sm"></span>
-                    <x-input id="phone" class="block mt-1 w-full pl-10" type="tel" name="phone" x-model="phone" required autocomplete="tel" placeholder="999 999 999" />
+                    <x-input id="phone" class="block mt-1 w-full" type="tel" name="phone" x-model="phone" required autocomplete="tel" />
                 </div>
                 <span class="text-red-500 text-xs mt-1" x-show="errors.phone" x-text="errors.phone"></span>
             </div>

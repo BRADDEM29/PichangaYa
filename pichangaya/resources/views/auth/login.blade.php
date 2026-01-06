@@ -1,7 +1,10 @@
 <x-guest-layout>
     <x-authentication-card>
         <x-slot name="logo">
-            <x-authentication-card-logo />
+            {{-- ✨ LOGO CON HALO DE LUZ (GLOW) BLANCO ✨ --}}
+            <div class="p-4 bg-white rounded-full shadow-[0_0_60px_20px_rgba(255,255,255,1)] flex items-center justify-center">
+                <x-authentication-card-logo />
+            </div>
         </x-slot>
 
         <x-validation-errors class="mb-4" />

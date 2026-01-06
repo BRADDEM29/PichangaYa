@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 // Importaciones de Eloquent para relaciones
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Notifications\ResetPasswordNotification;
+
 class User extends Authenticatable
 {
     use HasApiTokens;
@@ -25,7 +27,7 @@ class User extends Authenticatable
     use TwoFactorAuthenticatable;
     // 🟢 2. IMPORTANTE: Usamos el Trait dentro de la clase
     use SoftDeletes; 
-
+    
     /**
      * Los atributos que son asignables en masa (Mass Assignable).
      *
@@ -144,4 +146,15 @@ class User extends Authenticatable
     public function favorites() {
     return $this->belongsToMany(Cancha::class, 'favorites', 'user_id', 'cancha_id')->withTimestamps();
 }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
 }
