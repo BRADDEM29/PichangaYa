@@ -11,7 +11,7 @@
     {{-- MENSAJES DE ESTADO --}}
     @if($enviado)
         <div class="mb-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-r shadow-sm animate-pulse flex items-center gap-2">
-            <span class="text-xl">✅</span>
+            <span class="text-xl"></span>
             <div>
                 <p class="font-bold">¡Consulta Enviada!</p>
                 <p class="text-sm">Gracias por tu consulta. Te responderemos en breve.</p>
@@ -21,7 +21,7 @@
 
     @if(!$canSend && Auth::check() && !$enviado)
         <div class="mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-700 rounded-r shadow-sm">
-            <p class="font-bold">⏳ Límite alcanzado</p>
+            <p class="font-bold"> Límite alcanzado</p>
             <p class="text-sm">Solo puedes enviar una consulta cada 24 horas.</p>
         </div>
     @endif

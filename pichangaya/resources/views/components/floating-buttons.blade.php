@@ -1,25 +1,27 @@
 {{-- resources/views/components/floating-buttons.blade.php --}}
-<div x-data="{ open: false }" class="fixed bottom-6 right-6 flex flex-col-reverse items-center gap-4 z-[9999]">
+<div x-data="{ open: false }" 
+     class="fixed bottom-6 right-6 flex flex-col-reverse items-center gap-4" 
+     style="z-index: 999999 !important; position: fixed !important;">
     
-    {{-- Botón Principal (El SVG es el botón) --}}
+    {{-- Botón Principal (Activador del menú) --}}
     <button id="btn-ayuda-home" 
             @click="open = !open" 
             :class="open ? 'text-gray-800 dark:text-gray-200 rotate-180' : 'text-green-600 hover:text-green-500'"
             class="transition-all duration-300 transform hover:scale-110 active:scale-95 focus:outline-none flex items-center justify-center p-0">
         
-        {{-- Icono Desplegable (Chevrons Up) --}}
+        {{-- Icono de Flechas hacia arriba (cuando está cerrado) --}}
         <svg xmlns="http://www.w3.org/2000/svg" :class="open ? 'hidden' : 'block'" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-circle-chevrons-up">
             <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 15l3 -3l3 3" /><path d="M9 11l3 -3l3 3" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
         </svg>
 
-        {{-- Icono de Cerrar (X) cuando está abierto --}}
+        {{-- Icono de Cerrar (X) (cuando está abierto) --}}
         <svg x-show="open" x-cloak xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" />
         </svg>
     </button>
 
     {{-- Botón de WhatsApp --}}
-    <a href="https://wa.me/51900000000" target="_blank"
+    <a href="https://wa.me/51940766968" target="_blank"
        x-show="open"
        x-transition:enter="transition ease-out duration-300"
        x-transition:enter-start="opacity-0 translate-y-4 scale-50"
@@ -34,7 +36,7 @@
         </svg>
     </a>
 
-    {{-- Botón de Ayuda (Tutorial) --}}
+    {{-- Botón de Ayuda (Inicia el Tutorial) --}}
     <button @click="window.driverHome.drive(); open = false"
             x-show="open"
             x-transition:enter="transition ease-out duration-300 delay-[50ms]"

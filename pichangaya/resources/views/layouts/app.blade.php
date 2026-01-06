@@ -98,6 +98,7 @@
     @stack('modals')
     @livewireScripts
 
+
     <x-urgent-booking-card />
     @stack('scripts')
     <script>

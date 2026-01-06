@@ -354,9 +354,11 @@
 
     {{-- COMPONENTE MODULAR DE FOOTER --}}
     <x-footer />
-
-    {{-- Componente de Tarjeta Flotante --}}
-    <x-urgent-booking-card />
+    {{-- El componente DEBE estar aquí, justo antes del final --}}
     <x-floating-buttons />
+
+    <x-urgent-booking-card />
+
+    @livewireScripts
 </body>
 </html>
