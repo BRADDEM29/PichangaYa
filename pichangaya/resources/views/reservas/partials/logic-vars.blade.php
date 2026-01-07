@@ -1,3 +1,4 @@
+{{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\reservas\partials\logic-vars.blade.php --}}
 @php
     // 1. CONFIGURACIÓN DE ESTADOS (Colores y Etiquetas)
     $statusConfig = [
