@@ -1,3 +1,4 @@
+{{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\layouts\guest.blade.php --}}
 <!DOCTYPE html>
 <html lang="es"> {{-- Idioma español --}}
     <head>
@@ -12,8 +13,20 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+        {{-- 🟡 SCRIPT GUARDIÁN (SOLO CLARO) 🟡 --}}
         <script>
+            // 1. Limpiar clase inmediatamente
             document.documentElement.classList.remove('dark');
+
+            // 2. Vigilante para evitar que nada (extensiones o scripts viejos) ponga dark
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.attributeName === 'class' && document.documentElement.classList.contains('dark')) {
+                        document.documentElement.classList.remove('dark');
+                    }
+                });
+            });
+            observer.observe(document.documentElement, { attributes: true });
         </script>
 
         @livewireStyles
@@ -41,7 +54,8 @@
             <p class="mt-4 text-green-600 font-bold text-sm tracking-widest animate-pulse">CARGANDO...</p>
         </div>
 
-        <div class="font-sans text-gray-900 antialiased bg-gray-100">
+        {{-- Forzamos bg-gray-100 siempre --}}
+        <div class="font-sans text-gray-900 antialiased bg-gray-100 min-h-screen">
             {{ $slot }}
         </div>
 
