@@ -53,6 +53,8 @@
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tiempo Restante</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Horario Cancha</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Total</th>
+                                    {{-- NUEVA COLUMNA --}}
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-blue-600 uppercase tracking-wider">Adelanto (20%)</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estado de Pago</th>
                                     <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
                                 </tr>
@@ -102,8 +104,7 @@
 
             // 2. FUNCIÓN PARA RECARGAR DATOS DEL SERVIDOR (AJAX)
             function pollTableData() {
-                // 🛑 CORRECCIÓN AQUÍ: Usamos $cancha directo, no $cancha->id
-                // Esto asegura que si tu sistema usa Slugs, la URL se genere bien.
+                // Usamos $cancha directo
                 fetch("{{ route('admin.canchas.reservas.polling', $cancha) }}")
                     .then(response => {
                         if (!response.ok) { throw new Error('Network response was not ok'); }

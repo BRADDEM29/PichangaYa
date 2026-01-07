@@ -68,9 +68,17 @@
             </div>
         </td>
 
-        {{-- PRECIO --}}
-        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-indigo-600">
+        {{-- PRECIO TOTAL --}}
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-700">
             S/ {{ number_format($reserva->total_price, 2) }}
+        </td>
+
+        {{-- NUEVA COLUMNA: ADELANTO (20%) --}}
+        <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-bold text-blue-600">
+                S/ {{ number_format($reserva->total_price * 0.20, 2) }}
+            </div>
+            <span class="text-[10px] text-blue-400">Requerido</span>
         </td>
 
         {{-- ESTADO DE PAGO --}}
