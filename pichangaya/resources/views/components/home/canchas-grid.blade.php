@@ -22,9 +22,9 @@
                     {{-- IMAGEN + BOTON FAVORITOS + PRECIO --}}
                     <div class="relative h-56 bg-gray-200 dark:bg-gray-700 overflow-hidden">
                         @if($cancha->getFirstMediaUrl('canchas'))
-                            <img src="{{ $cancha->getFirstMediaUrl('canchas') }}" 
-                                 alt="{{ $cancha->name }}"
-                                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                            <img src="{{ $cancha->getFirstMediaUrl('canchas', 'thumb') }}" 
+                                alt="{{ $cancha->name }}"
+                                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                         @else
                             <div class="flex items-center justify-center h-full">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

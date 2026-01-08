@@ -5,14 +5,21 @@
         active: 0, 
         total: {{ $items->count() }},
         autoplay: null,
+        isHovering: false, // 🟢 NUEVO: Estado estricto del mouse
         
         init() {
             this.start();
         },
         start() {
-            // Limpiamos intervalo previo por seguridad antes de iniciar uno nuevo
+            // 🟢 LÓGICA CORREGIDA: Si el mouse está encima, NO iniciamos el timer
+            if (this.isHovering) return;
+
+            // Limpiamos intervalo previo por seguridad
             if(this.autoplay) clearInterval(this.autoplay);
-            this.autoplay = setInterval(() => { this.next(); }, 5000);
+            
+            this.autoplay = setInterval(() => { 
+                this.next(true); // true indica que es cambio automático
+            }, 5000);
         },
         stop() {
             if (this.autoplay) {
@@ -20,16 +27,33 @@
                 this.autoplay = null;
             }
         },
-        next() {
+        // 🟢 Funciones dedicadas para el mouse
+        handleMouseEnter() {
+            this.isHovering = true;
+            this.stop();
+        },
+        handleMouseLeave() {
+            this.isHovering = false;
+            this.start();
+        },
+        next(isAuto = false) {
             this.active = (this.active === this.total - 1) ? 0 : this.active + 1;
+            
+            // Si fue un clic manual, reiniciamos el ciclo PERO respetando el hover
+            if (!isAuto) {
+                this.stop();
+                this.start(); // start() verificará isHovering y no arrancará si el mouse sigue ahí
+            }
         },
         prev() {
             this.active = (this.active === 0) ? this.total - 1 : this.active - 1;
+            this.stop();
+            this.start();
         }
     }"
-    {{-- 🟢 ESTAS DOS LÍNEAS CONTROLAN LA PAUSA AL PASAR EL MOUSE --}}
-    @mouseenter="stop()"
-    @mouseleave="start()"
+    {{-- EVENTOS MOUSE PADRE --}}
+    @mouseenter="handleMouseEnter()"
+    @mouseleave="handleMouseLeave()"
     class="relative w-full h-[500px] bg-gray-900 rounded-2xl shadow-xl overflow-hidden group border border-gray-800">
 
     {{-- SLIDES --}}
@@ -43,17 +67,17 @@
              x-transition:leave-end="opacity-0">
             
             {{-- 1. ENLACE GLOBAL (z-20) --}}
-            {{-- Cubre todo el slide para que sea clickeable --}}
             <a href="{{ route('canchas.show', $item) }}" class="absolute inset-0 z-20 cursor-pointer"></a>
 
             {{-- 2. IMAGEN (z-0) --}}
             <div class="absolute inset-0 z-0">
                 @if($item->getFirstMediaUrl('canchas'))
-                    <img src="{{ $item->getFirstMediaUrl('canchas', 'large') }}" 
+                    {{-- 🟢 CAMBIO APLICADO: Sin 'large', usa el original WebP optimizado --}}
+                    <img src="{{ $item->getFirstMediaUrl('canchas') }}" 
                          class="w-full h-full object-cover" 
                          alt="{{ $item->name }}">
                 @else
-                    {{-- Imagen placeholder elegante --}}
+                    {{-- Placeholder --}}
                     <div class="w-full h-full bg-gray-800 flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -68,10 +92,8 @@
             {{-- 4. INFO TEXTO (z-30) --}}
             <div class="absolute bottom-0 left-0 w-full p-8 z-30 pointer-events-none">
                 
-                {{-- Badges (Etiquetas) --}}
                 @if($item->is_featured)
                     <span class="inline-flex items-center bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded mb-2 shadow-sm transform -skew-x-12 uppercase tracking-wide">
-                        {{-- Icono Estrella SVG --}}
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
@@ -79,7 +101,6 @@
                     </span>
                 @else
                     <span class="inline-flex items-center bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded mb-2 shadow-sm uppercase tracking-wide">
-                        {{-- Icono Check SVG --}}
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                         </svg>
@@ -92,7 +113,6 @@
                 </h2>
                 
                 <p class="text-lg md:text-xl text-gray-200 font-medium flex items-center gap-2">
-                    {{-- Icono Ubicación SVG --}}
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
                     </svg>
@@ -103,12 +123,12 @@
     @endforeach
 
     {{-- 5. FLECHAS DE NAVEGACIÓN (z-40) --}}
-    {{-- Usamos .stop para evitar que el click en la flecha active el enlace de la cancha --}}
-    <button @click.stop="prev(); stop(); start();" class="absolute left-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-black/30 text-white hover:bg-black/60 transition backdrop-blur-sm border border-white/10 cursor-pointer group-hover:bg-black/50">
+    {{-- 🟢 Simplificamos los clicks, la lógica está en JS --}}
+    <button @click.stop="prev()" class="absolute left-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-black/30 text-white hover:bg-black/60 transition backdrop-blur-sm border border-white/10 cursor-pointer group-hover:bg-black/50">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
     </button>
     
-    <button @click.stop="next(); stop(); start();" class="absolute right-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-black/30 text-white hover:bg-black/60 transition backdrop-blur-sm border border-white/10 cursor-pointer group-hover:bg-black/50">
+    <button @click.stop="next()" class="absolute right-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-black/30 text-white hover:bg-black/60 transition backdrop-blur-sm border border-white/10 cursor-pointer group-hover:bg-black/50">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
     </button>
 

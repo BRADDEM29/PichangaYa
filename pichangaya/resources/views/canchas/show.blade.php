@@ -66,7 +66,7 @@
             <div class="mb-8 rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700 bg-gray-900 h-[300px] md:h-[450px] relative group">
                 @php
                     $photos = $cancha->getMedia('canchas');
-                    $photoUrls = $photos->map(fn($media) => $media->getUrl('large'))->toArray();
+                    $photoUrls = $photos->map(fn($media) => $media->getUrl())->toArray();
                     $totalPhotos = count($photoUrls);
                 @endphp
 

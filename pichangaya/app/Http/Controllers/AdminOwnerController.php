@@ -1,5 +1,5 @@
 <?php
-//C:\laragon\www\PichangaYa\pichangaya\app\Http\Controllers\AdminOwnerController.php
+
 namespace App\Http\Controllers;
 
 use App\Models\User;
@@ -7,8 +7,11 @@ use App\Models\Cancha;
 use App\Models\District;
 use App\Models\Sport;
 use App\Models\Service;
-use App\Models\Media; // Importante para subir imágenes
+use App\Models\Media; 
 use Illuminate\Http\Request;
+// 🟢 NUEVOS IMPORTS NECESARIOS
+use Intervention\Image\Facades\Image; 
+use Illuminate\Support\Str;
 
 class AdminOwnerController extends Controller
 {
@@ -19,7 +22,7 @@ class AdminOwnerController extends Controller
         return view('admin.owners.index', compact('owners'));
     }
 
-    // 🟢 VER LAS CANCHAS DE UN DUEÑO (Esta es la que daba error)
+    // Ver las canchas de un dueño
     public function courts(User $user)
     {
         if ($user->role !== 'owner') {
@@ -67,7 +70,8 @@ class AdminOwnerController extends Controller
             'description' => 'nullable|string',
             'sports' => 'array',
             'services' => 'array',
-            'images.*' => 'image|max:5120'
+            // 🟢 VALIDACIÓN ESTRICTA: Solo jpg, png, jpeg, webp
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120'
         ]);
 
         $cancha = Cancha::create([
@@ -91,9 +95,25 @@ class AdminOwnerController extends Controller
             $cancha->services()->sync($request->services);
         }
 
+        // 🟢 PROCESAMIENTO Y CONVERSIÓN A WEBP
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $cancha->addMedia($image)->toMediaCollection('canchas');
+                // 1. Generar nombre único .webp
+                $filename = Str::slug(pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME)) . '-' . uniqid() . '.webp';
+                $tempPath = sys_get_temp_dir() . '/' . $filename;
+
+                // 2. Optimizar: Redimensionar (max 1920px) y Convertir
+                Image::make($image)
+                    ->resize(1920, null, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    })
+                    ->encode('webp', 85) // Calidad 85%
+                    ->save($tempPath);
+
+                // 3. Guardar en Spatie (El "original" ahora es WebP ligero)
+                $cancha->addMedia($tempPath)
+                       ->toMediaCollection('canchas');
             }
         }
 
@@ -127,7 +147,8 @@ class AdminOwnerController extends Controller
             'description' => 'nullable|string',
             'sports' => 'array',
             'services' => 'array',
-            'images.*' => 'image|max:5120',
+            // 🟢 VALIDACIÓN ESTRICTA
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120',
             'delete_images' => 'array'
         ]);
 
@@ -147,9 +168,22 @@ class AdminOwnerController extends Controller
             }
         }
 
+        // 🟢 PROCESAMIENTO Y CONVERSIÓN A WEBP
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $cancha->addMedia($image)->toMediaCollection('canchas');
+                $filename = Str::slug(pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME)) . '-' . uniqid() . '.webp';
+                $tempPath = sys_get_temp_dir() . '/' . $filename;
+
+                Image::make($image)
+                    ->resize(1920, null, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    })
+                    ->encode('webp', 85)
+                    ->save($tempPath);
+
+                $cancha->addMedia($tempPath)
+                       ->toMediaCollection('canchas');
             }
         }
 
@@ -171,16 +205,9 @@ class AdminOwnerController extends Controller
         return view('admin.reservas.index', compact('cancha', 'reservas'));
     }
 
-    /**
-     * 🟢 Recarga de tabla de reservas vía AJAX (Polling)
-     */
     public function canchaReservasPolling(\App\Models\Cancha $cancha)
     {
-        // Reutilizamos la misma lógica de ordenamiento que tienes en tu vista
         $reservas = $cancha->reservas()->latest()->paginate(10);
-        
-        // Retornamos SOLO el HTML de la tabla
         return view('admin.reservas.partials.table-body', compact('reservas'))->render();
     }
-
 }

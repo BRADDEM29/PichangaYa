@@ -1,23 +1,23 @@
 <?php
-// C:\laragon\www\PichangaYa\pichangaya\app\Http\Controllers\CanchaController.php
+
 namespace App\Http\Controllers;
 
 use App\Models\Cancha;
 use App\Models\Sport;
 use App\Models\District;
 use App\Models\Service;
-use App\Models\Reserva; // ✅ IMPORTANTE: Necesario para consultar el bloqueo de fechas
+use App\Models\Reserva; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+// 🟢 NUEVOS IMPORTS NECESARIOS
+use Intervention\Image\Facades\Image; 
+use Illuminate\Support\Str;
 
 class CanchaController extends Controller
 {
     use AuthorizesRequests;
 
-    /**
-     * Muestra el listado de canchas del dueño.
-     */
     public function index()
     {
         $this->authorize('viewAny', Cancha::class);
@@ -30,36 +30,25 @@ class CanchaController extends Controller
         return view('owner.canchas.index', compact('canchas'));
     }
 
-    /**
-     * 🟢 NUEVO/MODIFICADO: Muestra la cancha públicamente y calcula los bloqueos.
-     * Esta es la vista donde el cliente elige el horario.
-     */
     public function show(Cancha $cancha)
     {
-        // 1. Buscamos reservas que deban BLOQUEAR el calendario.
-        // Incluimos 'pending' para que apenas se crea la reserva, la cancha aparezca ocupada.
         $reservas = Reserva::where('cancha_id', $cancha->id)
             ->whereIn('status', ['pending', 'advance_paid', 'fully_paid']) 
-            ->get(['start_time', 'end_time']); // Solo traemos las horas para optimizar
+            ->get(['start_time', 'end_time']); 
 
-        // 2. Formateamos los eventos para FullCalendar (o tu sistema JS)
         $eventos = $reservas->map(function ($reserva) {
             return [
                 'title'   => 'Ocupado',
                 'start'   => $reserva->start_time,
                 'end'     => $reserva->end_time,
-                'color'   => '#ef4444', // Rojo para indicar ocupado
-                'display' => 'background', // Opción visual de FullCalendar (bloque de fondo)
-                // 'overlap' => false // Si usas FullCalendar, esto impide solapar eventos
+                'color'   => '#ef4444', 
+                'display' => 'background', 
             ];
         });
 
         return view('canchas.show', compact('cancha', 'eventos'));
     }
 
-    /**
-     * Formulario para crear.
-     */
     public function create()
     {
         $this->authorize('create', Cancha::class);
@@ -82,9 +71,6 @@ class CanchaController extends Controller
         return view('owner.canchas.create', compact('sports', 'districts', 'phones', 'services'));
     }
 
-    /**
-     * Guarda la nueva cancha.
-     */
     public function store(Request $request)
     {
         $this->authorize('create', Cancha::class);
@@ -100,12 +86,13 @@ class CanchaController extends Controller
             'open_time'      => 'required|date_format:H:i',
             'close_time'     => 'required|date_format:H:i|after:open_time',
             'contact_phone'  => 'required|string|max:20', 
-            'images'         => 'required|array|min:1|max:10', 
-            'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:20480',
             'sports'         => 'required|array|min:1',
             'sports.*'       => 'exists:sports,id',
             'services'       => 'nullable|array',
             'services.*'     => 'exists:services,id',
+            // 🟢 VALIDACIÓN ESTRICTA: Solo estos formatos
+            'images'         => 'required|array|min:1|max:10', 
+            'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:20480',
         ]);
 
         // 1. Crear Cancha
@@ -117,19 +104,30 @@ class CanchaController extends Controller
         // 3. Guardar Servicios
         $cancha->services()->sync($request->input('services', []));
 
-        // 4. Guardar Imágenes
+        // 4. Guardar Imágenes (OPTIMIZADAS)
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $cancha->addMedia($image)->toMediaCollection('canchas');
+                // 1. Nombre único .webp
+                $filename = Str::slug(pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME)) . '-' . uniqid() . '.webp';
+                $tempPath = sys_get_temp_dir() . '/' . $filename;
+
+                // 2. Optimización Intervention Image
+                Image::make($image)
+                    ->resize(1920, null, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    })
+                    ->encode('webp', 85)
+                    ->save($tempPath);
+
+                // 3. Pasar a Spatie (WebP ligero)
+                $cancha->addMedia($tempPath)->toMediaCollection('canchas');
             }
         }
 
         return redirect()->route('owner.canchas.index')->with('success', 'Cancha creada exitosamente.');
     }
     
-    /**
-     * Formulario de edición.
-     */
     public function edit(Cancha $cancha)
     {
         $this->authorize('update', $cancha);
@@ -152,9 +150,6 @@ class CanchaController extends Controller
         return view('owner.canchas.edit', compact('cancha', 'sports', 'districts', 'phones', 'services'));
     }
 
-    /**
-     * Actualiza la cancha.
-     */
     public function update(Request $request, Cancha $cancha)
     {
         $this->authorize('update', $cancha);
@@ -175,6 +170,7 @@ class CanchaController extends Controller
             'services'       => 'nullable|array',
             'services.*'     => 'exists:services,id',
             
+            // 🟢 VALIDACIÓN ESTRICTA
             'images'         => 'nullable|array|max:10', 
             'images.*'       => 'image|mimes:jpeg,png,jpg,webp|max:20480',
             'delete_images'  => 'nullable|array',
@@ -197,19 +193,30 @@ class CanchaController extends Controller
             }
         }
 
-        // 6. Agregar NUEVAS Imágenes
+        // 6. Agregar NUEVAS Imágenes (OPTIMIZADAS)
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $cancha->addMedia($image)->toMediaCollection('canchas');
+                // 1. Nombre único .webp
+                $filename = Str::slug(pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME)) . '-' . uniqid() . '.webp';
+                $tempPath = sys_get_temp_dir() . '/' . $filename;
+
+                // 2. Optimización Intervention Image
+                Image::make($image)
+                    ->resize(1920, null, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    })
+                    ->encode('webp', 85)
+                    ->save($tempPath);
+
+                // 3. Pasar a Spatie (WebP ligero)
+                $cancha->addMedia($tempPath)->toMediaCollection('canchas');
             }
         }
 
         return redirect()->route('owner.canchas.index')->with('success', 'Cancha actualizada correctamente.');
     }
     
-    /**
-     * Eliminar cancha.
-     */
     public function destroy(Cancha $cancha)
     {
         $this->authorize('delete', $cancha);
@@ -218,21 +225,15 @@ class CanchaController extends Controller
         return redirect()->route('owner.canchas.index')->with('success', 'Cancha eliminada.');
     }
 
-    /**
-     * Muestra el historial financiero agrupado por meses.
-     */
     public function history(Cancha $cancha)
     {
-        // 1. Seguridad: Solo el dueño puede ver esto
         $this->authorize('update', $cancha);
 
-        // 2. Obtener reservas ordenadas por fecha (más recientes primero)
         $reservas = $cancha->reservas()
                            ->with('user')
                            ->orderBy('start_time', 'desc')
                            ->get();
 
-        // 3. Agrupar por "Mes Año" (Ej: "Diciembre 2025")
         $reservasPorMes = $reservas->groupBy(function($reserva) {
             return \Carbon\Carbon::parse($reserva->start_time)
                     ->locale('es')
@@ -243,7 +244,7 @@ class CanchaController extends Controller
     }
 
     public function toggleFavorite(Cancha $cancha) {
-    auth()->user()->favorites()->toggle($cancha->id);
-    return response()->json(['status' => 'success']);
+        auth()->user()->favorites()->toggle($cancha->id);
+        return response()->json(['status' => 'success']);
     }
 }
