@@ -161,7 +161,7 @@
                                         <div class="flex gap-2">
                                             <x-input type="text" x-model="phone" class="w-full md:w-1/2" placeholder="987654321" />
                                             <x-button @click="sendCode()" ::disabled="loading">
-                                                <span x-show="!loading">Enviar SMS (Simulado)</span>
+                                                <span x-show="!loading">Enviar SMS</span>
                                                 <span x-show="loading">...</span>
                                             </x-button>
                                         </div>

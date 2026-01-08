@@ -20,15 +20,6 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             
-<<<<<<< HEAD
-            {{-- GRÁFICO GEOGRÁFICO --}}
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                    <span class="text-xl mr-2"></span> Distribución Geográfica
-                </h3>
-                <div class="h-80 w-full">
-                    <canvas id="chartCanchas"></canvas>
-=======
             {{-- GRID DE GRÁFICOS (2 Columnas) --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 
@@ -47,18 +38,8 @@
                     <div style="position: relative; height: 300px; width: 100%;">
                         <canvas id="chartCanchas"></canvas>
                     </div>
->>>>>>> e1292eb26a868daadef5581f52dd506c19d198df
                 </div>
 
-<<<<<<< HEAD
-            {{-- NUEVO: GRÁFICO DE CANCHAS FAVORITAS --}}
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                    <span class="text-xl mr-2"></span> Canchas con más Favoritos (Top 5)
-                </h3>
-                <div class="h-80 w-full">
-                    <canvas id="chartFavoritos"></canvas>
-=======
                 {{-- GRÁFICO 2: FAVORITOS --}}
                 <div class="p-6 bg-white border border-gray-100 shadow-lg sm:rounded-2xl">
                     <h3 class="flex items-center mb-6 text-lg font-bold text-gray-800">
@@ -73,7 +54,6 @@
                     <div style="position: relative; height: 300px; width: 100%;">
                         <canvas id="chartFavoritos"></canvas>
                     </div>
->>>>>>> e1292eb26a868daadef5581f52dd506c19d198df
                 </div>
             </div>
 

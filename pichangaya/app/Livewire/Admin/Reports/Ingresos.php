@@ -1,5 +1,5 @@
 <?php
-
+//C:\laragon\www\PichangaYa\pichangaya\app\Livewire\Admin\Reports\Ingresos.php
 namespace App\Livewire\Admin\Reports;
 
 use Livewire\Component;

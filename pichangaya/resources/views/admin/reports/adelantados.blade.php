@@ -2,15 +2,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <x-slot name="header">
         <div class="flex items-center gap-4">
-<<<<<<< HEAD
             <a href="{{ route('admin.dashboard') }}" class="p-2 rounded-full hover:bg-gray-200 transition text-gray-500">← Volver</a>
             <h2 class="font-semibold text-xl text-blue-700 leading-tight">Reporte de Pagos Adelantados</h2>
-=======
-            <a href="{{ route('admin.dashboard') }}" class="p-2 text-gray-400 transition rounded-full hover:bg-gray-100 hover:text-gray-600">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
-            </a>
-            <h2 class="text-xl font-semibold leading-tight text-blue-700">💎 Reporte de Pagos Adelantados</h2>
->>>>>>> e1292eb26a868daadef5581f52dd506c19d198df
         </div>
     </x-slot>
 
@@ -22,13 +15,9 @@
                         <p class="text-sm font-bold text-blue-700 uppercase">Monto en Adelantos</p>
                         <p class="text-4xl font-black text-gray-800">S/ {{ number_format($totalAdelanto, 2) }}</p>
                     </div>
-<<<<<<< HEAD
-                    <span class="text-4xl"></span>
-=======
                     <div class="p-4 bg-white rounded-full shadow-sm text-blue-600">
                          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                     </div>
->>>>>>> e1292eb26a868daadef5581f52dd506c19d198df
                 </div>
                 <div class="bg-white shadow rounded-xl p-4" x-data="{ init() { new Chart(document.getElementById('chartAdvance'), { type: 'bar', data: { labels: @js(array_keys($advanceByCancha)), datasets: [{ label: 'Adelantos (S/)', data: @js(array_values($advanceByCancha)), backgroundColor: '#3B82F6', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: {display:false} }, x: { display: false } } } }); } }">
                     <h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Adelantos por Cancha</h4>

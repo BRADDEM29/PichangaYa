@@ -1,3 +1,4 @@
+{{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\livewire\admin\financial-chart.blade.php --}}
 <div 
     class="w-full p-6 bg-white border border-gray-100 shadow-lg dark:bg-gray-800 rounded-2xl dark:border-gray-700"
     x-data="{
