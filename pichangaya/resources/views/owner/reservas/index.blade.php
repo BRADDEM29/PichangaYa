@@ -3,8 +3,12 @@
     <x-slot name="header">
         <div class="flex items-center gap-3">
             <div class="bg-emerald-600 p-2 rounded-lg text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 3.666V14m-1.29 4.715a3.75 3.75 0 11-5.418-4.715 3.5 3.5 0 115.418 4.715zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                {{-- NUEVO ICONO: Pig Money --}}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M15 11v.01" />
+                    <path d="M5.173 8.378a3 3 0 1 1 4.656 -1.377" />
+                    <path d="M16 4v3.803a6.019 6.019 0 0 1 2.658 3.197h1.341a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-1.342c-.336 .95 -.907 1.8 -1.658 2.473v2.027a1.5 1.5 0 0 1 -3 0v-.583a6.04 6.04 0 0 1 -1 .083h-4a6.04 6.04 0 0 1 -1 -.083v.583a1.5 1.5 0 0 1 -3 0v-2l0 -.027a6 6 0 0 1 4 -10.473h2.5l4.5 -3" />
                 </svg>
             </div>
             <h2 class="font-bold text-xl text-gray-800 leading-tight">

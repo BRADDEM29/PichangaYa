@@ -1,3 +1,4 @@
+<div> {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\navigation-menu.blade.php --}}
 @php
     // 1. DEFINIMOS LA VARIABLE ANTES DE USARLA EN EL HTML
     $forceLightMode = request()->routeIs([
@@ -388,3 +389,5 @@
         </div>
     </div>
 </nav>
+<div class="h-20 w-full bg-transparent"></div>
+</div>
