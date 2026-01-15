@@ -220,4 +220,18 @@ class User extends Authenticatable
     {
         return $this->hasOne(LobbySlot::class, 'user_id');
     }
+
+    /**
+     * Obtener iniciales para el Avatar (Flux UI / Sidebar)
+     * Ejemplo: "Juan Perez" -> "JP"
+     */
+    public function initials(): string
+    {
+        return \Illuminate\Support\Str::of($this->name)
+            ->explode(' ')
+            ->map(fn ($part) => \Illuminate\Support\Str::substr($part, 0, 1))
+            ->take(2)
+            ->implode('');
+    }
+    
 }

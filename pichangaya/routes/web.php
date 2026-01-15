@@ -20,6 +20,8 @@ use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\VerificationController; 
 use App\Http\Controllers\ArenaController; // 🟢 NUEVO: Controlador de Arena
+use App\Http\Controllers\LobbyController;
+use App\Livewire\Arena\LobbyRoom; 
 
 // Modelos
 use App\Models\Cancha;   
@@ -238,13 +240,17 @@ Route::middleware([
     // Vista Principal (Buscador + Torneos)
     Route::get('/campeonatos', [ArenaController::class, 'index'])->name('arena.index');
     
-    // Aquí irán las futuras rutas para:
-    // - Crear Equipo
-    // - Unirse a Lobby
-    // - Chat de Amigos
+    // 🟢 RUTA DE LA SALA DE ESPERA (LOBBY)
+    // El '{lobby}' indica que la URL será algo como /lobby/1, /lobby/5, etc.
+    Route::get('/lobby/{lobby}', [LobbyController::class, 'show'])->name('lobby.show');
+    Route::get('/lobby/{lobby}', LobbyRoom::class)->name('lobby.show');
 });
 
 
 Route::get('/test-gd', function () {
     return extension_loaded('gd') ? "✅ Librería GD ACTIVADA" : "❌ Librería GD APAGADA";
 });
+
+Route::get('/user/profile-edit-redirect', function () {
+    return redirect()->route('profile.show');
+})->name('profile.edit');
