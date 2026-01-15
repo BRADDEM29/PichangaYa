@@ -154,16 +154,23 @@
 
                 {{-- LINKS PRINCIPALES --}}
                 <div class="hidden sm:flex items-center gap-4">
-                    <a href="{{ route('home') }}" 
-                       class="nav-neon-link px-1 py-1 text-sm {{ request()->routeIs('home') ? 'text-green-400 active' : 'text-gray-300 hover:text-white' }}">
-                        {{ __('INICIO') }}
-                    </a>
 
-                    @auth
-                        <a href="{{ route('reservas.user.index') }}" id="tour-mis-reservas" 
-                           class="nav-neon-link px-1 py-1 text-sm {{ request()->routeIs('reservas.user.*') ? 'text-green-400 active' : 'text-gray-300 hover:text-white' }}">
-                            {{ __('MIS RESERVAS') }}
-                        </a>
+    <a href="{{ route('home') }}" 
+       class="nav-neon-link px-1 py-1 text-sm {{ request()->routeIs('home') ? 'text-green-400 active' : 'text-gray-300 hover:text-white' }}">
+        {{ __('INICIO') }}
+    </a>
+
+    {{-- 🏆 CAMPEONATOS --}}
+    <a href="{{ route('arena.index') }}"
+       class="nav-neon-link px-1 py-1 text-sm {{ request()->routeIs('arena.*') ? 'text-green-400 active' : 'text-gray-300 hover:text-white' }}">
+        {{ __('CAMPEONATOS') }}
+    </a>
+
+    @auth
+        <a href="{{ route('reservas.user.index') }}" id="tour-mis-reservas" 
+           class="nav-neon-link px-1 py-1 text-sm {{ request()->routeIs('reservas.user.*') ? 'text-green-400 active' : 'text-gray-300 hover:text-white' }}">
+            {{ __('MIS RESERVAS') }}
+        </a>
 
                         {{-- SEPARADOR VERTICAL --}}
                         <div class="h-6 w-px bg-white/10 mx-2"></div>

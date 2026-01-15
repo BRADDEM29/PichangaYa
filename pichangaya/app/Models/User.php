@@ -165,4 +165,59 @@ class User extends Authenticatable
     {
         $this->notify(new ResetPasswordNotification($token));
     }
+    /*
+    |--------------------------------------------------------------------------
+    | MÓDULO PICHANGAYA ARENA (RELACIONES)
+    |--------------------------------------------------------------------------
+    */
+
+    // 1. El equipo del que soy Capitán (Dueño)
+    public function captainTeam()
+    {
+        return $this->hasOne(Team::class, 'captain_id');
+    }
+
+    // 2. El equipo al que pertenezco (Miembro)
+    public function teamMember()
+    {
+        return $this->hasOne(TeamMember::class, 'user_id');
+    }
+
+    // Helper: Obtener mi equipo actual (ya sea como capitán o miembro)
+    public function currentTeamArena()
+    {
+        if ($this->captainTeam) {
+            return $this->captainTeam;
+        }
+        if ($this->teamMember) {
+            return $this->teamMember->team;
+        }
+        return null;
+    }
+
+    // 3. Sistema de Amigos (Enviados y Recibidos)
+    public function sentFriendships()
+    {
+        return $this->hasMany(Friendship::class, 'user_id');
+    }
+
+    public function receivedFriendships()
+    {
+        return $this->hasMany(Friendship::class, 'friend_id');
+    }
+
+    // Helper: Obtener lista de amigos aceptados
+    public function getFriendsAttribute()
+    {
+        $sent = $this->sentFriendships()->where('status', 'accepted')->with('friend')->get()->pluck('friend');
+        $received = $this->receivedFriendships()->where('status', 'accepted')->with('user')->get()->pluck('user');
+        
+        return $sent->merge($received);
+    }
+
+    // 4. Lobby (Sala de espera actual)
+    public function currentLobbySlot()
+    {
+        return $this->hasOne(LobbySlot::class, 'user_id');
+    }
 }

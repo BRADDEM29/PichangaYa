@@ -18,7 +18,8 @@ use App\Http\Controllers\CanchaController;
 use App\Http\Controllers\DashboardController; 
 use App\Http\Controllers\ReservaController; 
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\VerificationController; // 🟢 NUEVO CONTROLADOR
+use App\Http\Controllers\VerificationController; 
+use App\Http\Controllers\ArenaController; // 🟢 NUEVO: Controlador de Arena
 
 // Modelos
 use App\Models\Cancha;   
@@ -223,6 +224,26 @@ Route::middleware(['auth', 'role:owner'])
         Route::get('/reservas', [ReservaController::class, 'ownerReservasIndex'])->name('reservas.index');
         Route::put('/reservas/{reserva}/update-status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
     });
+
+/*
+|--------------------------------------------------------------------------
+| 5. ZONA ARENA (CAMPEONATOS & MATCHMAKING)
+|--------------------------------------------------------------------------
+*/
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+])->group(function () {
+    // Vista Principal (Buscador + Torneos)
+    Route::get('/campeonatos', [ArenaController::class, 'index'])->name('arena.index');
+    
+    // Aquí irán las futuras rutas para:
+    // - Crear Equipo
+    // - Unirse a Lobby
+    // - Chat de Amigos
+});
+
 
 Route::get('/test-gd', function () {
     return extension_loaded('gd') ? "✅ Librería GD ACTIVADA" : "❌ Librería GD APAGADA";
