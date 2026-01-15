@@ -246,6 +246,12 @@ Route::middleware([
     Route::get('/lobby/{lobby}', LobbyRoom::class)->name('lobby.show');
 });
 
+/*
+|--------------------------------------------------------------------------
+| 6. RUTA DEL MAPA GENERAL
+|--------------------------------------------------------------------------
+*/
+Route::get('/mapa-general', [CanchaController::class, 'mapaGeneral'])->name('mapa.index');
 
 Route::get('/test-gd', function () {
     return extension_loaded('gd') ? "✅ Librería GD ACTIVADA" : "❌ Librería GD APAGADA";

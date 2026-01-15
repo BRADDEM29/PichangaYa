@@ -247,4 +247,31 @@ class CanchaController extends Controller
         auth()->user()->favorites()->toggle($cancha->id);
         return response()->json(['status' => 'success']);
     }
+
+    public function mapaGeneral()
+    {
+        // Solo traemos canchas activas y que tengan latitud/longitud configurada
+        $canchas = Cancha::where('is_active', true)
+            ->whereNotNull('lat')
+            ->whereNotNull('lng')
+            ->with(['media', 'district']) // Traemos relación para la info del popup
+            ->get()
+            ->map(function ($cancha) {
+                // Formateamos la data para que JS la entienda fácil
+                return [
+                    'id' => $cancha->id,
+                    'name' => $cancha->name,
+                    'lat' => (float) $cancha->lat,
+                    'lng' => (float) $cancha->lng,
+                    'price' => $cancha->price_per_hour,
+                    'district' => $cancha->district->name ?? '',
+                    'image' => $cancha->getFirstMediaUrl('canchas', 'thumb'), // O la original si no hay thumb
+                    'url' => route('canchas.show', $cancha)
+                ];
+            });
+
+        $apiKey = env('GOOGLE_MAPS_API_KEY');
+
+        return view('mapa.general', compact('canchas', 'apiKey'));
+    }
 }
