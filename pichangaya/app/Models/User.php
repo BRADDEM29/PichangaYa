@@ -195,24 +195,48 @@ class User extends Authenticatable
         return null;
     }
 
-    // 3. Sistema de Amigos (Enviados y Recibidos)
-    public function sentFriendships()
+    /* |--------------------------------------------------------------------------
+    | SISTEMA SOCIAL (Amigos y Party) - NUEVO CÓDIGO
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Amistades que YO envié (user_id soy yo).
+     */
+    public function friendsOfMine()
     {
-        return $this->hasMany(Friendship::class, 'user_id');
+        return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')
+                    ->withPivot('status')
+                    ->withTimestamps();
     }
 
-    public function receivedFriendships()
+    /**
+     * Amistades que ME enviaron (friend_id soy yo).
+     */
+    public function friendOf()
     {
-        return $this->hasMany(Friendship::class, 'friend_id');
+        return $this->belongsToMany(User::class, 'friendships', 'friend_id', 'user_id')
+                    ->withPivot('status')
+                    ->withTimestamps();
     }
 
-    // Helper: Obtener lista de amigos aceptados
+    /**
+     * Obtener TODOS los amigos (Enviados + Recibidos) que estén aceptados.
+     * Esta función ayuda a mezclar las dos relaciones anteriores.
+     */
     public function getFriendsAttribute()
     {
-        $sent = $this->sentFriendships()->where('status', 'accepted')->with('friend')->get()->pluck('friend');
-        $received = $this->receivedFriendships()->where('status', 'accepted')->with('user')->get()->pluck('user');
-        
-        return $sent->merge($received);
+        // 🟢 FIX: Usamos las nuevas relaciones para evitar el error
+        return $this->friendsOfMine->where('pivot.status', 'accepted')
+            ->merge($this->friendOf->where('pivot.status', 'accepted'));
+    }
+
+    /**
+     * Relación con el Grupo (Party).
+     */
+    public function party()
+    {
+        return $this->belongsTo(\App\Models\Party::class);
     }
 
     // 4. Lobby (Sala de espera actual)

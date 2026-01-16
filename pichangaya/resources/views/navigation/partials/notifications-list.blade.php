@@ -1,6 +1,67 @@
 {{-- resources/views/navigation/partials/notifications-list.blade.php --}}
 
-{{-- ALERTAS FIJAS (Solo se muestran si las variables existen y son true) --}}
+{{-- 🟢 1. ESTADO DE MATCHMAKING (NUEVO: Se muestra primero si existe partida activa) --}}
+@php
+    // Obtenemos el lobby directamente para no depender de variables externas
+    $activeSlot = auth()->user()->currentLobbySlot;
+    $lobby = $activeSlot ? $activeSlot->lobby : null;
+@endphp
+
+@if($lobby && in_array($lobby->status, ['searching', 'confirming']))
+    <a href="{{ route('lobby.show', $lobby->id) }}" class="block border-b border-gray-100 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition group relative overflow-hidden">
+        {{-- Barra lateral de estado --}}
+        <div class="absolute left-0 top-0 bottom-0 w-1 {{ $lobby->status === 'searching' ? 'bg-blue-500' : 'bg-yellow-500' }}"></div>
+        
+        <div class="px-4 py-3 flex items-start gap-3">
+            {{-- ÍCONO ANIMADO --}}
+            <div class="flex-shrink-0 pt-1">
+                @if($lobby->status === 'searching')
+                    <div class="relative flex items-center justify-center">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <svg class="relative w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                @else
+                    <svg class="w-6 h-6 text-yellow-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                @endif
+            </div>
+
+            <div class="flex-1 min-w-0">
+                <div class="flex justify-between items-start">
+                    <p class="text-sm font-black text-gray-900 dark:text-white leading-none">
+                        {{ $lobby->status === 'searching' ? 'Buscando Partida...' : '¡Confirmar Asistencia!' }}
+                    </p>
+                    <span class="text-[10px] font-mono bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 rounded">
+                        #{{ $lobby->id }}
+                    </span>
+                </div>
+                
+                <div class="mt-2 flex items-center gap-3">
+                    {{-- Contador Jugadores --}}
+                    <div class="flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <span>{{ $lobby->slots->count() }}/14</span>
+                    </div>
+
+                    {{-- Tiempo Restante --}}
+                    <div class="flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>{{ \Carbon\Carbon::parse($lobby->expires_at)->diffForHumans(null, true, true) }} rest.</span>
+                    </div>
+                </div>
+                
+                <p class="text-[10px] text-blue-600 dark:text-blue-400 mt-1 font-bold group-hover:underline">
+                    Click para volver al Lobby &rarr;
+                </p>
+            </div>
+        </div>
+    </a>
+@endif
+
+{{-- 🟢 2. ALERTAS FIJAS (EXISTENTES) --}}
 @if(isset($alertEmail) && $alertEmail)
     <a href="{{ route('profile.show') }}#verification-section" class="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/20 border-l-4 border-red-500 transition border-b border-gray-100 dark:border-gray-700">
         <div class="font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
@@ -21,7 +82,7 @@
     </a>
 @endif
 
-{{-- LOOP DE NOTIFICACIONES (Usamos la colección FILTRADA que nos pase el controlador) --}}
+{{-- 🟢 3. LOOP DE NOTIFICACIONES (EXISTENTE) --}}
 @forelse($filteredNotifications as $notification)
     <div x-data="{ visible: true }" x-show="visible" x-transition.duration.300ms>
         <a href="#" 
