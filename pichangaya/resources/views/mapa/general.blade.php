@@ -2,9 +2,9 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-bold text-xl text-gray-800 leading-tight flex items-center gap-2">
-            {{-- Icono Mapa SVG (Reemplaza al emoji 📍) --}}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-indigo-600">
+        <h2 class="font-bold text-xl text-gray-800 dark:text-white leading-tight flex items-center gap-2 transition-colors duration-300">
+            {{-- Icono Mapa SVG --}}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-indigo-600 dark:text-indigo-400">
                 <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
             </svg>
             Mapa de Canchas Disponibles
@@ -13,11 +13,11 @@
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg relative">
-                
-                {{-- Contenedor del Mapa --}}
-                <div id="map" class="w-full h-[600px] rounded-lg z-0"></div>
-
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-2xl sm:rounded-xl border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+                <div class="p-4 sm:p-6">
+                    {{-- Contenedor del Mapa --}}
+                    <div id="map" class="w-full h-[500px] sm:h-[650px] rounded-lg shadow-inner z-0 border border-gray-200 dark:border-gray-600"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -26,72 +26,128 @@
     <script src="https://maps.googleapis.com/maps/api/js?key={{ $apiKey }}&callback=initMap" async defer></script>
 
     <script>
-        function initMap() {
-            // 1. Configuración inicial
+        // Función asíncrona para poder cargar y modificar el SVG
+        async function initMap() {
             const cusco = { lat: -13.5319, lng: -71.9675 };
             const canchas = @json($canchas); 
+            const isDarkMode = document.documentElement.classList.contains('dark');
 
-            // Verificar en consola si llegan los datos
-            console.log("Canchas cargadas:", canchas);
+            // 1. ESTILOS DEL MAPA (Night Mode vs Light Mode)
+            const darkMapStyle = [
+                { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+                { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+                { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+                { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+                { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
+                { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+                { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
+                { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#6b9a76" }] },
+                { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
+                { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
+                { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
+                { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#746855" }] },
+                { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2835" }] },
+                { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#f3d19c" }] },
+                { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+                { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#515c6d" }] },
+                { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] }
+            ];
 
+            const lightMapStyle = [
+                { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }
+            ];
+
+            // 2. INICIALIZAR EL MAPA
             const map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 13,
-                center: canchas.length > 0 ? { lat: canchas[0].lat, lng: canchas[0].lng } : cusco,
-                styles: [ 
-                    {
-                        featureType: "poi",
-                        elementType: "labels",
-                        stylers: [{ visibility: "off" }]
-                    }
-                ]
+                center: canchas.length > 0 ? { lat: parseFloat(canchas[0].lat), lng: parseFloat(canchas[0].lng) } : cusco,
+                styles: isDarkMode ? darkMapStyle : lightMapStyle,
+                mapTypeControl: false,
+                streetViewControl: true,
+                fullscreenControl: true,
+                // 'greedy': permite mover con 1 dedo en móvil. 'cooperative': requiere 2 dedos.
+                // Usamos 'cooperative' para respetar el scroll de la página si el mapa es muy grande.
+                gestureHandling: 'cooperative', 
             });
 
-            // 2. CONFIGURACIÓN DEL PIN PERSONALIZADO
-            // Asegúrate de que tu archivo esté en: public/images/pin.svg
+            // 3. PROCESAMIENTO DEL PIN SVG (Blanco en Dark Mode)
             const pinUrl = "{{ asset('images/pin.svg') }}";
-            console.log("Buscando pin en:", pinUrl); // Mira la consola para ver si la ruta es correcta
+            let finalIconUrl = pinUrl;
+
+            if (isDarkMode) {
+                try {
+                    // Fetch del SVG original
+                    const response = await fetch(pinUrl);
+                    let svgText = await response.text();
+
+                    // TRUCO DE MAGIA: Inyectamos un filtro CSS dentro del SVG
+                    // brightness(0) -> Lo vuelve negro
+                    // invert(1) -> Lo vuelve blanco
+                    if (svgText.includes('<svg')) {
+                        // Insertamos el estilo justo después de la etiqueta <svg ... >
+                        // Esto fuerza a que TODO el contenido del SVG sea blanco
+                        const styleInjection = ` style="filter: brightness(0) invert(1);" `;
+                        svgText = svgText.replace('<svg', '<svg' + styleInjection);
+                        
+                        // Convertimos el texto SVG modificado a Base64 para que Google Maps lo entienda
+                        finalIconUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgText);
+                    }
+                } catch (error) {
+                    console.error("Error transformando el PIN:", error);
+                    // Si falla, usa el original
+                }
+            }
 
             const customIcon = {
-                url: pinUrl, 
-                scaledSize: new google.maps.Size(40, 40), // Ajusta el tamaño aquí si tu SVG es muy grande
+                url: finalIconUrl, 
+                scaledSize: new google.maps.Size(42, 42),
                 origin: new google.maps.Point(0, 0),
-                anchor: new google.maps.Point(20, 40) // Punta del pin (Centro, Abajo)
+                anchor: new google.maps.Point(21, 42)
             };
 
             const infoWindow = new google.maps.InfoWindow();
 
-            // 3. Crear Marcadores
+            // 4. CREAR MARCADORES
             canchas.forEach((cancha) => {
-                // Validación extra para evitar errores si falta lat/lng
                 if(!cancha.lat || !cancha.lng) return;
 
                 const marker = new google.maps.Marker({
                     position: { lat: parseFloat(cancha.lat), lng: parseFloat(cancha.lng) },
                     map: map,
                     title: cancha.name,
-                    icon: customIcon, // Aquí aplicamos tu SVG
+                    icon: customIcon,
                     animation: google.maps.Animation.DROP
                 });
 
-                // 4. Contenido del Popup (Sin Emojis, con SVG incrustado)
-                // Usamos un SVG pequeño de ubicación gris dentro del string HTML
-                const locationIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 inline-block mr-1"><path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd" /></svg>`;
+                // Icono SVG para la dirección
+                const locationIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 inline-block mr-1 text-gray-400"><path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd" /></svg>`;
 
+                // Contenido del Popup (Diseño mejorado)
                 const contentString = `
-                    <div class="p-2 max-w-xs text-center">
-                        <img src="${cancha.image}" class="w-full h-24 object-cover rounded-md mb-2 shadow-sm" alt="${cancha.name}">
-                        <h3 class="font-bold text-md text-gray-800 leading-tight">${cancha.name}</h3>
-                        <p class="text-sm text-gray-500 mb-2 flex items-center justify-center mt-1">
+                    <div class="p-1 max-w-[240px] text-center font-sans">
+                        <div class="relative w-full h-28 mb-2 overflow-hidden rounded-lg shadow-md group">
+                            <img src="${cancha.image}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${cancha.name}">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            <div class="absolute bottom-1 left-2 text-white text-xs font-bold text-left drop-shadow-md">
+                                ${cancha.name}
+                            </div>
+                        </div>
+                        
+                        <p class="text-xs text-gray-500 mb-2 flex items-center justify-center">
                             ${locationIcon} ${cancha.district}
                         </p>
-                        <p class="text-green-600 font-bold text-lg mb-3">S/ ${cancha.price} <span class="text-xs text-gray-400 font-normal">/hora</span></p>
-                        <a href="${cancha.url}" class="block w-full bg-indigo-600 text-white text-xs font-bold py-2 px-4 rounded shadow hover:bg-indigo-700 transition uppercase tracking-wide">
-                            Ver Detalles
+                        
+                        <div class="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 mb-2 border border-gray-100">
+                             <span class="text-xs text-gray-400 font-bold uppercase">Tarifa</span>
+                             <p class="text-indigo-600 font-extrabold text-sm">S/ ${cancha.price}</p>
+                        </div>
+
+                        <a href="${cancha.url}" class="block w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-[11px] font-bold py-2 px-4 rounded-md transition-all shadow-md transform hover:-translate-y-0.5 uppercase tracking-wider">
+                            Reservar Ahora
                         </a>
                     </div>
                 `;
 
-                // Evento Click en el marcador
                 marker.addListener("click", () => {
                     infoWindow.setContent(contentString);
                     infoWindow.open({

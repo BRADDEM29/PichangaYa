@@ -48,7 +48,8 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent"></div>
             </div>
 
-            <header class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8 text-center z-10">
+            {{-- 🟢 AJUSTE: lg:px-[34px] para alinearse con el menú --}}
+            <header class="relative w-full px-4 sm:px-6 lg:px-[34px] pt-24 pb-8 text-center z-10">
                 <h1 id="hero-title" class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 drop-shadow-xl">
                     Encuentra tu cancha en <span class="text-green-400">Cusco</span>
                 </h1>
@@ -56,7 +57,7 @@
                     Fútbol, Vóley, Básquet y más. Reserva al instante.
                 </p>
 
-                <div id="search-form" class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-2xl max-w-4xl mx-auto text-gray-900 dark:text-gray-100">
+                <div id="search-form" class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-2xl max-w-5xl mx-auto text-gray-900 dark:text-gray-100">
                     <form method="GET" action="{{ route('home') }}" class="grid grid-cols-1 md:grid-cols-12 gap-3">
                         <div class="md:col-span-4">
                             <input type="text" name="search" value="{{ request('search') }}" placeholder="Nombre de la cancha..." 
@@ -102,7 +103,8 @@
         {{-- 2. CARRUSEL DESTACADOS --}}
         @if(isset($featuredCanchas) && $featuredCanchas->isNotEmpty() && !request('search'))
             <div id="featured-section" class="relative pb-28 z-10">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {{-- 🟢 AJUSTE: lg:px-[34px] --}}
+                <div class="w-full px-4 sm:px-6 lg:px-[54px]">
                     <div class="flex items-center gap-3 mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -122,18 +124,24 @@
         </div>
     </div>
 
-    {{-- 2.5. SECCIÓN NUEVA: MIS FAVORITOS (Extraído) --}}
+    {{-- 2.5. SECCIÓN NUEVA: MIS FAVORITOS --}}
     @auth
-    @livewire('home.favorites-list')
+        {{-- 🟢 AJUSTE: lg:px-[34px] --}}
+        <div class="w-full px-4 sm:px-6 lg:px-[34px]">
+            @livewire('home.favorites-list')
+        </div>
     @endauth
 
-    {{-- 3. LISTADO DE CANCHAS (Extraído) --}}
-    {{-- IMPORTANTE: Pasamos la variable $canchas al componente --}}
-    <x-home.canchas-grid :canchas="$canchas" />
+    {{-- 3. LISTADO DE CANCHAS --}}
+    {{-- 🟢 AJUSTE: lg:px-[34px] --}}
+    <div class="w-full px-4 sm:px-6 lg:px-[34px] py-8">
+        <x-home.canchas-grid :canchas="$canchas" />
+    </div>
 
     {{-- 4. SECCIÓN ¿QUIÉNES SOMOS? --}}
     <section id="about-section" class="py-20 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 overflow-hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {{-- 🟢 AJUSTE: lg:px-[34px] --}}
+        <div class="w-full px-4 sm:px-6 lg:px-[64px]">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 
                 <div class="relative">
@@ -183,11 +191,8 @@
         </div>
     </section>
 
-    {{-- COMPONENTE MODULAR DE FOOTER --}}
     <x-footer />
-    {{-- El componente DEBE estar aquí, justo antes del final --}}
     <x-floating-buttons />
-
     <x-urgent-booking-card />
 
     @livewireScripts
