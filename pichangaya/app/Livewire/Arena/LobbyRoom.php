@@ -28,7 +28,7 @@ class LobbyRoom extends Component
             return redirect()->route('arena.index');
         }
 
-        // Keep Alive
+        // Keep Alive: Renovar expiración si entra alguien
         if ($this->lobby->status === 'searching') {
             $this->lobby->update(['expires_at' => now()->addHours(48)]);
         }
@@ -72,24 +72,75 @@ class LobbyRoom extends Component
         $this->lobby->refresh();
     }
 
-    // 🟢 NUEVA FUNCIÓN: SALIR REALMENTE DE LA SALA
+    // 🟢 NUEVO: CAMBIAR DE EQUIPO (A <-> B)
+    public function switchTeam()
+    {
+        // Refrescamos la relación para tener datos frescos
+        $this->userSlot->refresh();
+
+        $currentSide = $this->userSlot->team_side;
+        $targetSide = ($currentSide === 'A') ? 'B' : 'A';
+
+        // 1. Verificar si el equipo destino está lleno (Máx 7)
+        $countTarget = $this->lobby->slots()->where('team_side', $targetSide)->count();
+        
+        if ($countTarget >= 7) {
+            // Podrías usar un dispatch browser event para una alerta JS, o session flash
+            return; 
+        }
+
+        // 2. Realizar el cambio
+        $this->userSlot->update([
+            'team_side' => $targetSide,
+            'is_captain' => false, // Pierde capitanía al cambiarse
+        ]);
+        
+        $this->lobby->refresh();
+    }
+
+    // 🟢 NUEVO: SER LÍDER / DEJAR DE SERLO
+    public function toggleCaptain()
+    {
+        $this->userSlot->refresh();
+
+        // Si ya soy capitán, renuncio
+        if ($this->userSlot->is_captain) {
+            $this->userSlot->update(['is_captain' => false]);
+            $this->lobby->refresh();
+            return;
+        }
+
+        // Si quiero ser capitán, verifico que no haya otro en mi equipo
+        $existingCaptain = $this->lobby->slots()
+            ->where('team_side', $this->userSlot->team_side)
+            ->where('is_captain', true)
+            ->exists();
+
+        if (!$existingCaptain) {
+            $this->userSlot->update(['is_captain' => true]);
+        }
+        
+        $this->lobby->refresh();
+    }
+
     public function exitLobby()
     {
         if ($this->userSlot) {
-            $this->userSlot->delete(); // Borra el registro
+            $this->userSlot->delete(); 
             
-            // Si el lobby queda vacío, lo borramos (opcional, para limpieza)
             if ($this->lobby->slots()->count() === 0) {
                 $this->lobby->delete();
             }
         }
         
-        // Redirigir al buscador (ahora aparecerá limpio)
         return redirect()->route('arena.index');
     }
 
     public function render()
     {
+        // Refrescamos datos antes de renderizar para el polling
+        $this->lobby->refresh();
+        
         $playerCount = $this->lobby->slots()->count();
         $maxPlayers = 14; 
 

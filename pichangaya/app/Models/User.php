@@ -257,5 +257,26 @@ class User extends Authenticatable
             ->take(2)
             ->implode('');
     }
-    
+    public function friendshipStatus($targetUserId)
+    {
+        // 1. Revisar si YO le envié solicitud
+        $sent = $this->friendsOfMine()
+                     ->where('friend_id', $targetUserId)
+                     ->first();
+        
+        if ($sent) {
+            return $sent->pivot->status === 'accepted' ? 'friends' : 'sent';
+        }
+
+        // 2. Revisar si ÉL me envió solicitud
+        $received = $this->friendOf()
+                         ->where('user_id', $targetUserId)
+                         ->first();
+
+        if ($received) {
+            return $received->pivot->status === 'accepted' ? 'friends' : 'received';
+        }
+
+        return 'none';
+    }
 }
