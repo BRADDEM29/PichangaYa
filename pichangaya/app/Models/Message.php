@@ -9,7 +9,6 @@ class Message extends Model
 {
     use HasFactory;
 
-    // 🟢 ACTUALIZADO: Agregamos los campos nuevos al fillable
     protected $fillable = [
         'sender_id', 
         'receiver_id', 
@@ -20,17 +19,27 @@ class Message extends Model
         'read_at'
     ];
 
-    // Relación: Quién envió
+    // --- RELACIONES DE USUARIOS ---
+
+    // El usuario que envía el mensaje
     public function sender() {
         return $this->belongsTo(User::class, 'sender_id');
     }
 
-    // Relación: Contexto Party
+    // El usuario que recibe (Solo para Chat Privado 1 a 1)
+    // Importante tenerlo para que no falle el historial de chats privados
+    public function receiver() {
+        return $this->belongsTo(User::class, 'receiver_id');
+    }
+
+    // --- RELACIONES DE CONTEXTO (Nuevas) ---
+
+    // Si el mensaje pertenece a un Grupo (Party)
     public function party() {
         return $this->belongsTo(Party::class);
     }
 
-    // Relación: Contexto Lobby
+    // Si el mensaje pertenece a una Sala de Espera (Lobby)
     public function lobby() {
         return $this->belongsTo(Lobby::class);
     }

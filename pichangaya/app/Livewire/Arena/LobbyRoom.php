@@ -14,11 +14,13 @@ class LobbyRoom extends Component
     public $lobby;
     public $userSlot;
     
-    // Chat de Sala
-    public $lobbyMessages = [];
+    // --- CHAT VARIABLES ---
+    public $chatTab = 'general'; // 'general' o 'party'
+    public $lobbyMessages = [];  // Mensajes Generales (A + B)
+    public $partyMessages = [];  // Mensajes de tu Grupo
     public $newMessage = '';
 
-    // UI Elements (Fase 1: Entretenimiento)
+    // --- UI ELEMENTS ---
     public $carouselItems;
     public $suggestedLobbies;
 
@@ -27,12 +29,12 @@ class LobbyRoom extends Component
         $this->lobby = $lobby;
         $this->userSlot = $this->lobby->slots()->where('user_id', Auth::id())->first();
         
-        // Si el usuario no tiene un slot en esta sala, redirigir a la arena
+        // Si no tiene slot, fuera
         if (!$this->userSlot) {
             return redirect()->route('arena.index');
         }
 
-        // 🟢 Regla Keep Alive: Reiniciar timer a 48h al entrar/actualizar 
+        // Keep Alive: Reiniciar timer a 48h
         if ($this->lobby->status === 'searching') {
             $this->lobby->update(['expires_at' => now()->addHours(48)]);
         }
@@ -41,43 +43,87 @@ class LobbyRoom extends Component
         $this->loadChat(); 
     }
 
-    // --- 💬 LÓGICA DE CHAT DE SALA (Punto 1.2.4) --- 
+    // 🟢 1. LÓGICA BOTÓN "LISTO" (READY)
+    public function toggleReady()
+    {
+        if (!$this->userSlot) return;
+
+        // Alternar entre Listo (confirmed_at = hora) y No Listo (confirmed_at = null)
+        if ($this->userSlot->confirmed_at) {
+            $this->userSlot->update(['confirmed_at' => null]);
+        } else {
+            $this->userSlot->update(['confirmed_at' => now()]);
+        }
+        
+        $this->lobby->refresh();
+    }
+
+    // 🟢 2. LÓGICA CHAT DUAL (PESTAÑAS)
+    public function setChatTab($tab)
+    {
+        $this->chatTab = $tab;
+        $this->loadChat();
+        $this->dispatch('scroll-lobby-chat'); // Bajar scroll al cambiar pestaña
+    }
+
     public function loadChat()
     {
+        // A. Cargar Chat General (Excluyendo mensajes de party privados)
         $this->lobbyMessages = Message::where('lobby_id', $this->lobby->id)
+            ->whereNull('party_id') // Importante: Solo mensajes públicos
             ->with('sender')
             ->orderBy('created_at', 'asc')
             ->get();
+
+        // B. Cargar Chat de Grupo (Solo si el usuario tiene Party)
+        $user = Auth::user();
+        if ($user->party_id) {
+            $this->partyMessages = Message::where('party_id', $user->party_id)
+                ->with('sender')
+                ->orderBy('created_at', 'asc')
+                ->get();
+        } else {
+            $this->partyMessages = [];
+        }
     }
 
     public function sendMessage()
     {
         $this->validate(['newMessage' => 'required|string|max:200']);
+        $user = Auth::user();
 
-        Message::create([
-            'sender_id' => Auth::id(),
-            'lobby_id' => $this->lobby->id, 
-            'content' => $this->newMessage,
-            'type' => 'text'
-        ]);
+        if ($this->chatTab === 'party' && $user->party_id) {
+            // ENVIAR A MI GRUPO
+            Message::create([
+                'sender_id' => $user->id,
+                'party_id' => $user->party_id, // Se vincula al grupo
+                // No ponemos lobby_id para que no salga en el general
+                'content' => $this->newMessage,
+                'type' => 'text'
+            ]);
+        } else {
+            // ENVIAR A TODOS (GENERAL)
+            Message::create([
+                'sender_id' => $user->id,
+                'lobby_id' => $this->lobby->id, // Se vincula a la sala
+                'content' => $this->newMessage,
+                'type' => 'text'
+            ]);
+        }
 
         $this->newMessage = '';
         $this->loadChat();
         $this->dispatch('scroll-lobby-chat'); 
     }
 
-    // --- 🏟️ FASE 1: ENTRETENIMIENTO (UI) --- [cite: 37, 38, 39]
+    // --- 🏟️ UI & ENTRETENIMIENTO ---
     public function loadEntertainment()
     {
-        // Carrusel de Canchas compatibles [cite: 38]
         $this->carouselItems = Cancha::where('district_id', $this->lobby->district_id)
             ->where('is_active', true)
             ->with(['media', 'district'])
-            ->inRandomOrder()
-            ->take(5)
-            ->get();
+            ->inRandomOrder()->take(5)->get();
             
-        // Lobby Hopper: Otros lobbys recomendados [cite: 39]
         $this->suggestedLobbies = Lobby::where('id', '!=', $this->lobby->id)
             ->where('sport_id', $this->lobby->sport_id)
             ->where('status', 'searching')
@@ -86,34 +132,12 @@ class LobbyRoom extends Component
             ->get();
     }
 
-    // --- 🤝 FASE 3: CONFIRMACIÓN "UNO POR TODOS" --- [cite: 49, 51]
-    public function confirmAssistance()
-    {
-        if (!$this->userSlot) return;
-
-        $user = Auth::user();
-
-        // Si el usuario está en una Party, confirmar a todos automáticamente 
-        if ($user->party_id) {
-            $memberIds = $user->party->members->pluck('id');
-            $this->lobby->slots()
-                ->whereIn('user_id', $memberIds)
-                ->update(['confirmed_at' => now()]);
-        } else {
-            // Confirmación individual
-            $this->userSlot->update(['confirmed_at' => now()]);
-        }
-
-        $this->lobby->refresh();
-    }
-
-    // --- 🏃 LÓGICA DE EQUIPOS Y SALIDA ---
+    // --- 🏃 EQUIPOS Y SALIDA ---
     public function switchTeam()
     {
         $this->userSlot->refresh();
         $newTeam = ($this->userSlot->team_side === 'A') ? 'B' : 'A';
         
-        // Límite de 7 jugadores por equipo (Fútbol 7) [cite: 32]
         if ($this->lobby->slots()->where('team_side', $newTeam)->count() >= 7) return;
         
         $this->userSlot->update(['team_side' => $newTeam, 'is_captain' => false]);
@@ -135,21 +159,18 @@ class LobbyRoom extends Component
         $this->lobby->refresh();
     }
 
-    // 🟢 SALIDA GRUPAL (SISTEMA DOTA/PARTY) [cite: 18, 54]
     public function exitLobby()
     {
         $user = Auth::user();
 
-        // Regla: Si el líder sale, saca a todo su grupo del lobby 
+        // Regla Dota: Líder saca a toda la party
         if ($user->party_id && $user->party->leader_id === $user->id) {
             $memberIds = $user->party->members->pluck('id');
             $this->lobby->slots()->whereIn('user_id', $memberIds)->delete();
         } else {
-            // Salida individual
             if ($this->userSlot) $this->userSlot->delete();
         }
         
-        // Limpieza: Si la sala se queda vacía, se elimina
         if ($this->lobby->slots()->count() === 0) {
             $this->lobby->delete();
         }
@@ -160,12 +181,13 @@ class LobbyRoom extends Component
     public function render()
     {
         $this->lobby->refresh();
+        
+        // Polling constante del chat (se ejecuta cada vez que el front hace ping)
         $this->loadChat(); 
 
         $playerCount = $this->lobby->slots()->count();
         $maxPlayers = 14; 
 
-        // Fase 2: Al llegar a 14/14, pasar a Confirmación [cite: 41, 43]
         if ($playerCount >= $maxPlayers && $this->lobby->status === 'searching') {
             $this->lobby->update(['status' => 'confirming']);
         }

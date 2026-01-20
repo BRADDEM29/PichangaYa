@@ -78,7 +78,6 @@
                                 {{-- 🟢 BOTONES DE CONTROL (SOLO PARA MI USUARIO) --}}
                                 @if($slot->user_id === Auth::id())
                                     <div class="flex items-center gap-2">
-                                        {{-- Botón Ser Líder --}}
                                         <button wire:click="toggleCaptain" 
                                                 class="p-1.5 rounded-lg transition {{ $slot->is_captain ? 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/40' : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white' }}"
                                                 title="Liderazgo">
@@ -88,7 +87,6 @@
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                             @endif
                                         </button>
-                                        {{-- Botón Cambiar Equipo --}}
                                         <button wire:click="switchTeam" class="p-1.5 bg-gray-700 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition" title="Cambiar a Equipo B">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                                         </button>
@@ -118,10 +116,9 @@
                                     </div>
                                 </div>
 
-                                {{-- 🟢 BOTONES DE CONTROL (SOLO PARA MI USUARIO) --}}
+                                {{-- 🟢 BOTONES DE CONTROL --}}
                                 @if($slot->user_id === Auth::id())
                                     <div class="flex items-center gap-2">
-                                        {{-- Botón Ser Líder --}}
                                         <button wire:click="toggleCaptain" 
                                                 class="p-1.5 rounded-lg transition {{ $slot->is_captain ? 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/40' : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white' }}"
                                                 title="Liderazgo">
@@ -131,7 +128,6 @@
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                             @endif
                                         </button>
-                                        {{-- Botón Cambiar Equipo --}}
                                         <button wire:click="switchTeam" class="p-1.5 bg-gray-700 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition transform rotate-180" title="Cambiar a Equipo A">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                                         </button>
@@ -161,45 +157,86 @@
                 @endif
             </div>
 
-            {{-- 💬 CHAT DE LA SALA --}}
-            <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden flex flex-col h-80 shadow-lg"
+            {{-- 💬 CHAT SYSTEM (CON PESTAÑAS) --}}
+            <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden flex flex-col h-[400px] shadow-lg"
                  x-data="{ 
                     scroll() { this.$refs.chatBox.scrollTop = this.$refs.chatBox.scrollHeight } 
                  }"
                  x-init="scroll()"
                  @scroll-lobby-chat.window="setTimeout(() => scroll(), 100)"
             >
-                {{-- Cabecera Chat --}}
-                <div class="bg-gray-900/50 p-3 border-b border-gray-700 flex justify-between items-center">
-                    <span class="text-xs font-bold uppercase tracking-widest text-gray-400">💬 Chat de Sala</span>
-                    <span class="text-[9px] bg-blue-900 text-blue-200 px-2 py-0.5 rounded">General</span>
+                
+                {{-- 1. PESTAÑAS --}}
+                <div class="flex border-b border-gray-700 bg-gray-900/50">
+                    {{-- Tab General --}}
+                    <button wire:click="setChatTab('general')" 
+                        class="flex-1 py-3 text-xs font-bold uppercase tracking-widest text-center transition-colors
+                        {{ $chatTab === 'general' ? 'bg-gray-800 text-green-400 border-b-2 border-green-500' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800' }}">
+                        General
+                    </button>
+
+                    {{-- Tab Grupo --}}
+                    @if(auth()->user()->party_id)
+                        <button wire:click="setChatTab('party')" 
+                            class="flex-1 py-3 text-xs font-bold uppercase tracking-widest text-center transition-colors flex items-center justify-center gap-2
+                            {{ $chatTab === 'party' ? 'bg-gray-800 text-blue-400 border-b-2 border-blue-500' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800' }}">
+                            Grupo
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                        </button>
+                    @else
+                        <div class="flex-1 py-3 text-xs font-bold uppercase tracking-widest text-center text-gray-700 cursor-not-allowed bg-gray-900/20" title="No estás en un grupo">
+                            Sin Grupo
+                        </div>
+                    @endif
                 </div>
 
-                {{-- Mensajes --}}
+                {{-- 2. MENSAJES --}}
                 <div x-ref="chatBox" class="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-900/30">
-                    @forelse($lobbyMessages as $msg)
-                        <div class="flex flex-col">
-                            <div class="flex items-baseline gap-2">
-                                <span class="text-xs font-bold {{ $msg->sender_id === auth()->id() ? 'text-green-400' : 'text-blue-400' }}">
-                                    {{ $msg->sender->name }}:
-                                </span>
-                                <span class="text-xs text-gray-300 break-words">{{ $msg->content }}</span>
+                    
+                    @php
+                        // Determinamos qué mensajes mostrar según la pestaña
+                        $msgs = ($chatTab === 'general') ? $lobbyMessages : $partyMessages;
+                        
+                        // Color del "Yo" según la sala
+                        $myColor = ($chatTab === 'party') ? 'bg-blue-600' : 'bg-green-600';
+                    @endphp
+
+                    @forelse($msgs as $msg)
+                        <div class="flex flex-col {{ $msg->sender_id === auth()->id() ? 'items-end' : 'items-start' }}">
+                            {{-- Nombre --}}
+                            <span class="text-[10px] text-gray-500 mb-0.5 px-1">
+                                {{ $msg->sender->name }}
+                            </span>
+                            
+                            {{-- Burbuja --}}
+                            <div class="max-w-[85%] px-3 py-2 rounded-lg text-sm break-words shadow-sm
+                                {{ $msg->sender_id === auth()->id() 
+                                    ? $myColor . ' text-white' 
+                                    : 'bg-gray-700 text-gray-200' 
+                                }}">
+                                {{ $msg->content }}
                             </div>
                         </div>
                     @empty
-                        <div class="text-center py-10 opacity-50">
-                            <p class="text-[10px] text-gray-500">La sala está en silencio...</p>
+                        <div class="h-full flex flex-col items-center justify-center opacity-40">
+                            <svg class="w-8 h-8 text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            <p class="text-[10px] text-gray-400 uppercase tracking-widest">
+                                {{ $chatTab === 'general' ? 'Sala Silenciosa' : 'Grupo Silencioso' }}
+                            </p>
                         </div>
                     @endforelse
                 </div>
 
-                {{-- Input --}}
+                {{-- 3. INPUT --}}
                 <form wire:submit.prevent="sendMessage" class="p-2 bg-gray-800 border-t border-gray-700">
                     <div class="flex gap-2">
-                        <input type="text" wire:model="newMessage" placeholder="Escribe a todos..." 
-                               class="flex-1 bg-gray-900 border-gray-600 rounded text-xs text-white focus:ring-1 focus:ring-blue-500 px-3 py-2">
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded transition">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                        <input type="text" wire:model="newMessage" 
+                               placeholder="{{ $chatTab === 'party' ? 'Mensaje al grupo...' : 'Mensaje a la sala...' }}" 
+                               class="flex-1 bg-gray-900 border-gray-600 rounded text-xs text-white focus:ring-1 focus:ring-blue-500 px-3 py-2 placeholder-gray-500">
+                        
+                        <button type="submit" class="p-2 rounded text-white transition shadow-lg flex items-center justify-center
+                                {{ $chatTab === 'party' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-green-600 hover:bg-green-500' }}">
+                            <svg class="w-4 h-4 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                         </button>
                     </div>
                 </form>
@@ -209,7 +246,7 @@
             <div class="text-center pt-4">
                 <button wire:click="exitLobby" 
                         wire:confirm="¿Seguro que quieres abandonar la sala?"
-                        class="text-sm text-red-400 hover:text-red-300 underline font-bold cursor-pointer">
+                        class="text-sm text-red-400 hover:text-red-300 underline font-bold cursor-pointer transition">
                     ❌ SALIR DE LA SALA DEFINITIVAMENTE
                 </button>
             </div>

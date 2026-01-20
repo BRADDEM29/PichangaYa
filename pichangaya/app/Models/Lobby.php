@@ -38,4 +38,8 @@ class Lobby extends Model
     {
         return $this->slots()->count();
     }
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
 }
