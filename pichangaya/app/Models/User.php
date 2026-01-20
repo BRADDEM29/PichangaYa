@@ -42,6 +42,7 @@ class User extends Authenticatable
         'phone',
         'consecutive_cancellations', 
         'is_blocked',
+        'party_id',
     ];
 
     /**
@@ -236,7 +237,7 @@ class User extends Authenticatable
      */
     public function party()
     {
-        return $this->belongsTo(\App\Models\Party::class);
+        return $this->belongsTo(\App\Models\Party::class, 'party_id');
     }
 
     // 4. Lobby (Sala de espera actual)
@@ -278,5 +279,9 @@ class User extends Authenticatable
         }
 
         return 'none';
+    }
+    public function isPartyLeader()
+    {
+        return $this->party && $this->party->leader_id === $this->id;
     }
 }

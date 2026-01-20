@@ -161,6 +161,50 @@
                 @endif
             </div>
 
+            {{-- 💬 CHAT DE LA SALA --}}
+            <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden flex flex-col h-80 shadow-lg"
+                 x-data="{ 
+                    scroll() { this.$refs.chatBox.scrollTop = this.$refs.chatBox.scrollHeight } 
+                 }"
+                 x-init="scroll()"
+                 @scroll-lobby-chat.window="setTimeout(() => scroll(), 100)"
+            >
+                {{-- Cabecera Chat --}}
+                <div class="bg-gray-900/50 p-3 border-b border-gray-700 flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase tracking-widest text-gray-400">💬 Chat de Sala</span>
+                    <span class="text-[9px] bg-blue-900 text-blue-200 px-2 py-0.5 rounded">General</span>
+                </div>
+
+                {{-- Mensajes --}}
+                <div x-ref="chatBox" class="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-900/30">
+                    @forelse($lobbyMessages as $msg)
+                        <div class="flex flex-col">
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-xs font-bold {{ $msg->sender_id === auth()->id() ? 'text-green-400' : 'text-blue-400' }}">
+                                    {{ $msg->sender->name }}:
+                                </span>
+                                <span class="text-xs text-gray-300 break-words">{{ $msg->content }}</span>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center py-10 opacity-50">
+                            <p class="text-[10px] text-gray-500">La sala está en silencio...</p>
+                        </div>
+                    @endforelse
+                </div>
+
+                {{-- Input --}}
+                <form wire:submit.prevent="sendMessage" class="p-2 bg-gray-800 border-t border-gray-700">
+                    <div class="flex gap-2">
+                        <input type="text" wire:model="newMessage" placeholder="Escribe a todos..." 
+                               class="flex-1 bg-gray-900 border-gray-600 rounded text-xs text-white focus:ring-1 focus:ring-blue-500 px-3 py-2">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded transition">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             {{-- BOTÓN SALIR --}}
             <div class="text-center pt-4">
                 <button wire:click="exitLobby" 
