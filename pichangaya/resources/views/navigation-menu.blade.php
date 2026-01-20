@@ -66,7 +66,7 @@
             .btn-pill-3d:active { transform: translateY(1px); box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3); }
         </style>
 
-        {{-- 🟢 AQUÍ ESTÁ EL CAMBIO: lg:px-[34px] (Exactamente 34px a los lados) --}}
+        {{-- W-FULL CON PADDING AJUSTADO A 34PX --}}
         <div class="w-full px-4 sm:px-6 lg:px-[34px]">
             <div class="flex justify-between h-20 items-center"> 
                 
@@ -80,9 +80,12 @@
                     @include('navigation.partials.public-links')
                 </div>
 
-                {{-- 3. CENTRO-DERECHA: GESTIÓN --}}
+                {{-- 3. CENTRO-DERECHA: GESTIÓN (SOLUCIÓN DEL ERROR AQUÍ) --}}
                 <div class="hidden lg:flex items-center gap-3 ml-auto mr-4">
-                    @include('navigation.partials.management-links')
+                    {{-- 🟢 SOLO INCLUIMOS ESTE ARCHIVO SI ESTÁ LOGUEADO --}}
+                    @auth
+                        @include('navigation.partials.management-links')
+                    @endauth
                 </div>
 
                 {{-- 4. DERECHA EXTREMA: PERFIL --}}
