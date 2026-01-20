@@ -45,7 +45,7 @@
     </div>
 @else
     <div class="flex items-center gap-3">
-        <a href="{{ route('login') }}" class="text-sm font-bold text-gray-300 hover:text-white transition uppercase">Login</a>
+        <a href="{{ route('login') }}" class="text-sm font-bold text-gray-300 hover:text-white transition uppercase">Iniciar Sesión</a>
         <a href="{{ route('register') }}" class="px-5 py-2 text-sm font-bold text-white bg-green-600 hover:bg-green-500 rounded-full shadow-lg transition">Registro</a>
     </div>
 @endauth

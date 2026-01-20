@@ -28,4 +28,16 @@ class ArenaController extends Controller
         // Retornamos ambas variables a la vista
         return view('arena.index', compact('championships', 'activeLobbies'));
     }
+    public function show($id)
+{
+    // Cargamos el torneo con sus partidos y los equipos de cada partido
+    $tournament = \App\Models\Tournament::with(['matches.team1', 'matches.team2', 'matches.winner'])->findOrFail($id);
+    
+    // Reutilizamos la vista del bracket (o puedes crear una copia en arena/bracket.blade.php)
+    // Asumiré que quieres usar la vista que ya tienes diseñada.
+    return view('admin.tournaments.bracket', [
+        'tournament' => $tournament,
+        'matches' => $tournament->matches
+    ]);
+}
 }

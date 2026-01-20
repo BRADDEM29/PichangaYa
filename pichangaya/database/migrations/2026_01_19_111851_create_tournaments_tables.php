@@ -8,40 +8,51 @@ return new class extends Migration
 {
     public function up()
     {
-        // Tabla de Torneos
+        // 1. Tabla de Torneos (Le agregué prize_description que usas en el controlador)
         Schema::create('tournaments', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->text('prize_description')->nullable(); // Agregado para evitar errores
+            $table->string('slug')->nullable(); // Agregado para las rutas amigables
             $table->enum('status', ['open', 'active', 'finished'])->default('open');
-            $table->foreignId('created_by')->constrained('users'); // Admin o Dueño
+            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('cancha_id')->nullable()->constrained('canchas'); // Relación con Cancha
+            $table->dateTime('start_date')->nullable();
             $table->timestamps();
         });
 
-        // Tabla de Equipos en el Torneo
+        // 2. Tabla de Equipos
         Schema::create('tournament_teams', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tournament_id')->constrained()->onDelete('cascade');
-            $table->string('team_name'); // Nombre del equipo (Ej: "Los Tigres")
-            // Podrías relacionarlo con 'parties' si quisieras, pero para simplificar usamos nombres
+            $table->string('team_name');
             $table->string('logo_path')->nullable(); 
             $table->timestamps();
         });
 
-        // Tabla de Partidos (Bracket)
+        // 3. Tabla de Partidos (Bracket) - ¡AQUÍ ESTÁ EL CAMBIO IMPORTANTE!
         Schema::create('matches', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tournament_id')->constrained()->onDelete('cascade');
-            $table->enum('phase', ['quarter_final', 'semi_final', 'final']);
-            $table->integer('match_number'); // 1 a 4 para cuartos, 1-2 semis, 1 final
+            
+            // --- NUEVO: Columna ROUND (Vital para el orden visual) ---
+            $table->integer('round')->default(1); 
+            
+            // CAMBIO: Cambiamos 'enum' por 'string' para permitir cualquier fase
+            $table->string('phase')->nullable(); 
+            
+            $table->integer('match_number'); 
             
             $table->foreignId('team1_id')->nullable()->constrained('tournament_teams');
             $table->foreignId('team2_id')->nullable()->constrained('tournament_teams');
             
-            $table->integer('score1')->nullable();
-            $table->integer('score2')->nullable();
+            $table->integer('score1')->default(0); // Default 0 ayuda a evitar nulos
+            $table->integer('score2')->default(0);
             
             $table->foreignId('winner_id')->nullable()->constrained('tournament_teams');
-            $table->foreignId('next_match_id')->nullable()->constrained('matches'); // Para avanzar automáticamente
+            
+            // Relación recursiva para saber a qué partido va el ganador
+            $table->foreignId('next_match_id')->nullable()->constrained('matches')->nullOnDelete(); 
             
             $table->timestamps();
         });

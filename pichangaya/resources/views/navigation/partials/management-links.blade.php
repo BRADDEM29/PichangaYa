@@ -24,10 +24,13 @@
                 <x-dropdown-link href="{{ route('admin.sports.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Deportes') }}</x-dropdown-link>
                 <x-dropdown-link href="{{ route('admin.services.index') }}" class="dark:text-white dark:hover:bg-gray-700">{{ __('Servicios') }}</x-dropdown-link>
                 
-                {{-- 🏆 AQUÍ ESTÁ EL NUEVO BOTÓN DE CAMPEONATOS QUE PEDISTE --}}
+                {{-- 🟢 GESTIÓN DE TORNEOS (Con Icono SVG en vez de Emoji) --}}
                 <div class="border-t border-gray-100 dark:border-gray-700"></div>
-                <x-dropdown-link href="{{ route('admin.tournaments.create') }}" class="text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-900/20">
-                    {{ __('+ Crear Torneo') }}
+                <x-dropdown-link href="{{ route('admin.tournaments.index') }}" class="text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-900/20 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                    </svg>
+                    {{ __('Gestión Torneos') }}
                 </x-dropdown-link>
             </x-slot>
         </x-dropdown>

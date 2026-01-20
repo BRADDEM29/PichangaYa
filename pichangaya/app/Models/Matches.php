@@ -11,8 +11,9 @@ class Matches extends Model
 
     protected $fillable = [
         'tournament_id',
-        'phase',        // quarter_final, semi_final, final
-        'match_number', // 1, 2, 3... para ordenar el bracket
+        'round',
+        'phase',       
+        'match_number',
         'team1_id',
         'team2_id',
         'score1',

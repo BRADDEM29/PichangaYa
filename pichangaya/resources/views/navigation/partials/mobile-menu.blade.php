@@ -15,7 +15,10 @@
                     <div class="text-xs text-red-400 font-bold uppercase mb-1 px-4">Admin</div>
                     <x-responsive-nav-link href="{{ route('admin.dashboard') }}" class="text-gray-300 pl-4">Resumen</x-responsive-nav-link>
                     <x-responsive-nav-link href="{{ route('admin.owners.index') }}" class="text-gray-300 pl-4">Dueños</x-responsive-nav-link>
-                    <x-responsive-nav-link href="{{ route('admin.tournaments.create') }}" class="text-green-400 pl-4 font-bold">+ Crear Torneo</x-responsive-nav-link>
+                    {{-- CAMBIO AQUÍ: Ahora lleva al INDEX de torneos --}}
+                    <x-responsive-nav-link href="{{ route('admin.tournaments.index') }}" :active="request()->routeIs('admin.tournaments.*')" class="text-green-400 pl-4 font-bold">
+                        ⚡ Gestión Torneos
+                    </x-responsive-nav-link>
                 </div>
             @endif
 

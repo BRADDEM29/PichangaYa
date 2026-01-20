@@ -22,7 +22,7 @@ use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\ArenaController; // 🟢 NUEVO: Controlador de Arena
 use App\Http\Controllers\LobbyController;
 use App\Livewire\Arena\LobbyRoom; 
-use App\Http\Controllers\TournamentController;
+use App\Http\Controllers\TournamentController; // Controlador de Torneos
 
 // Modelos
 use App\Models\Cancha;   
@@ -211,10 +211,15 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::put('/reservas/{reserva}/status', [ReservaController::class, 'updateStatus'])->name('reservas.updateStatus');
 
-        // 🟢 GESTIÓN DE TORNEOS (NUEVO)
+        // 🟢 GESTIÓN DE TORNEOS (ACTUALIZADO)
+        Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index'); 
         Route::get('/tournaments/create', [TournamentController::class, 'create'])->name('tournaments.create');
         Route::post('/tournaments', [TournamentController::class, 'store'])->name('tournaments.store');
-        // Ruta para actualizar marcador (AJAX o Form)
+        
+        // 🟢 NUEVA RUTA: VISTA DE GESTIÓN (EDITAR BRACKET)
+        Route::get('/tournaments/{tournament}/manage', [TournamentController::class, 'manage'])->name('tournaments.manage');
+        
+        // RUTA PARA GUARDAR EL RESULTADO
         Route::post('/matches/{match}/update', [TournamentController::class, 'updateMatch'])->name('matches.update');
     });
 
@@ -247,9 +252,10 @@ Route::middleware([
     // Vista Principal (Buscador + Torneos)
     Route::get('/campeonatos', [ArenaController::class, 'index'])->name('arena.index');
     
-    Route::get('/torneo/{tournament}', [TournamentController::class, 'show'])->name('tournaments.show');
+    // Vista Pública del Bracket (Copa Vector Pro)
+    Route::get('/campeonatos/{tournament}', [TournamentController::class, 'show'])->name('arena.show'); 
+    
     // 🟢 RUTA DE LA SALA DE ESPERA (LOBBY)
-    // El '{lobby}' indica que la URL será algo como /lobby/1, /lobby/5, etc.
     Route::get('/lobby/{lobby}', [LobbyController::class, 'show'])->name('lobby.show');
     Route::get('/lobby/{lobby}', LobbyRoom::class)->name('lobby.show');
 
