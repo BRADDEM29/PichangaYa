@@ -1,19 +1,15 @@
 {{-- resources/views/navigation/partials/notifications-list.blade.php --}}
 
-{{-- 🟢 1. ESTADO DE MATCHMAKING (NUEVO: Se muestra primero si existe partida activa) --}}
 @php
-    // Obtenemos el lobby directamente para no depender de variables externas
     $activeSlot = auth()->user()->currentLobbySlot;
     $lobby = $activeSlot ? $activeSlot->lobby : null;
 @endphp
 
 @if($lobby && in_array($lobby->status, ['searching', 'confirming']))
     <a href="{{ route('lobby.show', $lobby->id) }}" class="block border-b border-gray-100 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition group relative overflow-hidden">
-        {{-- Barra lateral de estado --}}
         <div class="absolute left-0 top-0 bottom-0 w-1 {{ $lobby->status === 'searching' ? 'bg-blue-500' : 'bg-yellow-500' }}"></div>
         
         <div class="px-4 py-3 flex items-start gap-3">
-            {{-- ÍCONO ANIMADO --}}
             <div class="flex-shrink-0 pt-1">
                 @if($lobby->status === 'searching')
                     <div class="relative flex items-center justify-center">
@@ -40,13 +36,11 @@
                 </div>
                 
                 <div class="mt-2 flex items-center gap-3">
-                    {{-- Contador Jugadores --}}
                     <div class="flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
                         <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         <span>{{ $lobby->slots->count() }}/14</span>
                     </div>
 
-                    {{-- Tiempo Restante --}}
                     <div class="flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-gray-300">
                         <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span>{{ \Carbon\Carbon::parse($lobby->expires_at)->diffForHumans(null, true, true) }} rest.</span>
@@ -61,7 +55,6 @@
     </a>
 @endif
 
-{{-- 🟢 2. ALERTAS FIJAS (EXISTENTES) --}}
 @if(isset($alertEmail) && $alertEmail)
     <a href="{{ route('profile.show') }}#verification-section" class="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/20 border-l-4 border-red-500 transition border-b border-gray-100 dark:border-gray-700">
         <div class="font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
@@ -82,14 +75,12 @@
     </a>
 @endif
 
-{{-- 🟢 3. LOOP DE NOTIFICACIONES (EXISTENTE) --}}
 @forelse($filteredNotifications as $notification)
     <div x-data="{ visible: true }" x-show="visible" x-transition.duration.300ms>
         <a href="#" 
            @click.prevent="visible = false; markAndRedirect('{{ $notification->id }}', '{{ $notification->data['url'] ?? '#' }}', $el)"
            class="block hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-700 relative overflow-hidden group cursor-pointer">
             
-            {{-- CASO 1: TEMPORIZADOR ACTIVO --}}
             @if(isset($notification->data['expiry_ts']))
                 <div class="p-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 border-l-4 border-green-500">
                     <div class="flex flex-col gap-2">
@@ -126,7 +117,7 @@
                             <div class="z-10 flex items-center gap-2">
                                 <svg class="w-3 h-3 text-green-500 animate-pulse fill-current" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
                                 <span class="font-digital text-xl font-bold text-green-400 notif-timer tracking-widest drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]" 
-                                        data-expiry="{{ $notification->data['expiry_ts'] }}">
+                                      data-expiry="{{ $notification->data['expiry_ts'] }}">
                                     --:--
                                 </span>
                             </div>
@@ -134,7 +125,6 @@
                     </div>
                 </div>
 
-            {{-- CASO 2: CANCELACIÓN --}}
             @elseif(($notification->data['icono'] ?? '') == 'cancel')
                 <div class="p-4 bg-red-50 dark:bg-red-900/10 border-l-4 border-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition">
                     <div class="flex items-start gap-3">
@@ -155,7 +145,6 @@
                     </div>
                 </div>
 
-            {{-- CASO 3: ESTÁNDAR --}}
             @else
                 <div class="px-4 py-3 flex items-start">
                     <div class="flex-shrink-0 pt-0.5">
@@ -185,7 +174,6 @@
         </a>
     </div>
 @empty
-    {{-- ESTADO VACÍO --}}
     <div class="px-4 py-12 text-center flex flex-col items-center justify-center opacity-60">
         <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-full mb-3 text-gray-400 dark:text-gray-300">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
