@@ -1,47 +1,57 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-gray-800 dark:text-gray-200">
+        {{-- HGROUP: Agrupa el icono y el título como una unidad de encabezado --}}
+        <hgroup class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-gray-800 dark:text-gray-200" aria-hidden="true">
                 <path fill-rule="evenodd" d="M12.97 3.97a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 1 1-1.06-1.06l6.22-6.22H3a.75.75 0 0 1 0-1.5h16.19l-6.22-6.22a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
             </svg>
             <h2 class="font-bold text-xl text-gray-800 dark:text-gray-200 leading-tight uppercase tracking-wide">
                 {{ __('PichangaYa Arena') }}
             </h2>
-        </div>
+        </hgroup>
     </x-slot>
 
-    <div class="py-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    {{-- MAIN: Contenedor principal de la página --}}
+    <main class="py-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             
-            {{-- 1. BUSCADOR --}}
-            @livewire('arena.match-finder')
+            {{-- SECTION 1: BUSCADOR --}}
+            <section aria-label="Buscador de Partidas">
+                @livewire('arena.match-finder')
+            </section>
 
-            {{-- 2. SECCIÓN DE CAMPEONATOS --}}
-            <div>
-                <div class="flex items-center gap-3 mb-6 border-l-4 border-indigo-600 pl-4">
-                    <h3 class="text-2xl font-black text-gray-800 dark:text-white uppercase tracking-tight">
+            {{-- SECTION 2: CAMPEONATOS --}}
+            <section aria-labelledby="active-tournaments-heading">
+                
+                {{-- HEADER DE SECCIÓN --}}
+                <header class="flex items-center gap-3 mb-6 border-l-4 border-indigo-600 pl-4">
+                    <h3 id="active-tournaments-heading" class="text-2xl font-black text-gray-800 dark:text-white uppercase tracking-tight">
                         Torneos Activos
                     </h3>
-                </div>
+                </header>
                 
                 @if($championships->isEmpty())
-                    <div class="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700 shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-gray-300">
+                    {{-- ARTICLE: Estado vacío (Mensaje independiente) --}}
+                    <article class="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-gray-300" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0V5.625a2.25 2.25 0 11-4.5 0v3.375m7.5 0v2.25m-7.5 0v2.25" />
                         </svg>
                         <p class="text-gray-500 font-medium">No hay campeonatos activos en este momento.</p>
-                    </div>
+                    </article>
                 @else
+                    {{-- GRID: Contenedor de diseño (div está bien aquí, o podría ser ul/li) --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         @foreach($championships as $torneo)
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 group flex flex-col h-full transform hover:-translate-y-1">
+                            
+                            {{-- ARTICLE: Tarjeta de Torneo --}}
+                            <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-gray-700 group flex flex-col h-full transform hover:-translate-y-1">
                                 
-                                {{-- Header de la Tarjeta --}}
-                                <div class="h-36 bg-gray-900 relative flex items-center justify-center overflow-hidden">
+                                {{-- HEADER DEL ARTÍCULO: Imagen y Título --}}
+                                <header class="h-36 bg-gray-900 relative flex items-center justify-center overflow-hidden">
                                     <div class="absolute inset-0 bg-gradient-to-br from-indigo-900 to-gray-900 opacity-90"></div>
                                     
-                                    {{-- Patrón de fondo --}}
-                                    <svg class="absolute inset-0 w-full h-full opacity-10" width="100%" height="100%">
+                                    {{-- Patrón de fondo (Decorativo) --}}
+                                    <svg class="absolute inset-0 w-full h-full opacity-10" width="100%" height="100%" aria-hidden="true">
                                         <pattern id="pattern-{{$torneo->id}}" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
                                             <circle cx="2" cy="2" r="1" class="text-white" fill="currentColor" />
                                         </pattern>
@@ -51,8 +61,9 @@
                                     <h4 class="text-2xl font-black text-white uppercase tracking-widest z-10 text-center px-6 leading-tight drop-shadow-lg">
                                         {{ $torneo->name }}
                                     </h4>
-                                </div>
+                                </header>
                                 
+                                {{-- CUERPO DEL ARTÍCULO --}}
                                 <div class="p-6 flex-1 flex flex-col justify-between">
                                     <div>
                                         <div class="flex justify-between items-center mb-5">
@@ -64,14 +75,14 @@
                                                 {{ $torneo->status }}
                                             </span>
 
-                                            {{-- Fecha --}}
-                                            <span class="text-gray-400 text-xs font-bold flex items-center gap-1.5 uppercase tracking-wide">
+                                            {{-- Fecha (TIME Tag) --}}
+                                            <time datetime="{{ $torneo->start_date }}" class="text-gray-400 text-xs font-bold flex items-center gap-1.5 uppercase tracking-wide">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3">
                                                     <path d="M12.75 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM7.5 15.75a.75.75 0 1 0 0-1.5 .75.75 0 0 0 0 1.5ZM8.25 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM9.75 15.75a.75.75 0 1 0 0-1.5 .75.75 0 0 0 0 1.5ZM10.5 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 15.75a.75.75 0 1 0 0-1.5 .75.75 0 0 0 0 1.5ZM12.75 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM14.25 15.75a.75.75 0 1 0 0-1.5 .75.75 0 0 0 0 1.5ZM15 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 15.75a.75.75 0 1 0 0-1.5 .75.75 0 0 0 0 1.5ZM15 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM16.5 13.5a.75.75 0 1 0 0-1.5 .75.75 0 0 0 0 1.5Z" />
                                                     <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z" clip-rule="evenodd" />
                                                 </svg>
                                                 {{ \Carbon\Carbon::parse($torneo->start_date)->format('d M, Y') }}
-                                            </span>
+                                            </time>
                                         </div>
                                         
                                         @if($torneo->prize_description)
@@ -86,19 +97,22 @@
                                         @endif
                                     </div>
 
-                                    <a href="{{ route('arena.show', $torneo->id) }}" class="w-full bg-gray-900 dark:bg-black text-white py-3 rounded-lg font-black text-xs uppercase tracking-widest hover:bg-indigo-600 dark:hover:bg-indigo-600 transition-colors duration-300 flex items-center justify-center gap-2 group-hover:gap-4 shadow-lg">
-                                        Ver Bracket
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 transition-all">
-                                            <path fill-rule="evenodd" d="M16.72 7.72a.75.75 0 0 1 1.06 0l3.75 3.75a.75.75 0 0 1 0 1.06l-3.75 3.75a.75.75 0 1 1-1.06-1.06l2.47-2.47H3a.75.75 0 0 1 0-1.5h16.19l-2.47-2.47a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-                                        </svg>
-                                    </a>
+                                    {{-- FOOTER DEL ARTÍCULO: Acciones --}}
+                                    <footer class="mt-auto">
+                                        <a href="{{ route('arena.show', $torneo->id) }}" class="w-full bg-gray-900 dark:bg-black text-white py-3 rounded-lg font-black text-xs uppercase tracking-widest hover:bg-indigo-600 dark:hover:bg-indigo-600 transition-colors duration-300 flex items-center justify-center gap-2 group-hover:gap-4 shadow-lg">
+                                            Ver Bracket
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 transition-all" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M16.72 7.72a.75.75 0 0 1 1.06 0l3.75 3.75a.75.75 0 0 1 0 1.06l-3.75 3.75a.75.75 0 1 1-1.06-1.06l2.47-2.47H3a.75.75 0 0 1 0-1.5h16.19l-2.47-2.47a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                                            </svg>
+                                        </a>
+                                    </footer>
                                 </div>
-                            </div>
+                            </article>
                         @endforeach
                     </div>
                 @endif
-            </div>
+            </section>
 
         </div>
-    </div>
+    </main>
 </x-app-layout>

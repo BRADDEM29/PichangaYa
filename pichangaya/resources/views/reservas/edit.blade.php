@@ -1,61 +1,67 @@
 {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\reservas\edit.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-extrabold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-gray-800 to-gray-600 dark:from-white dark:to-gray-300 leading-tight">
+        {{-- HEADER: Título y Navegación --}}
+        <header class="flex items-center justify-between">
+            <h1 class="font-extrabold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-gray-800 to-gray-600 dark:from-white dark:to-gray-300 leading-tight">
                 {{ __('Modificar Reserva') }}
-            </h2>
+            </h1>
             
-            {{-- Botón VOLVER --}}
-            <a href="{{ route('reservas.user.index') }}" class="group flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 group-hover:-translate-x-1 transition-transform">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                </svg>
-                Volver
-            </a>
-        </div>
+            {{-- NAV: Botón Volver --}}
+            <nav>
+                <a href="{{ route('reservas.user.index') }}" class="group flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 group-hover:-translate-x-1 transition-transform" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                    </svg>
+                    Volver
+                </a>
+            </nav>
+        </header>
     </x-slot>
 
-    <div class="py-12 bg-gray-50 dark:bg-[#0f172a] min-h-screen transition-colors duration-300">
+    {{-- MAIN: Contenido Principal --}}
+    <main class="py-12 bg-gray-50 dark:bg-[#0f172a] min-h-screen transition-colors duration-300">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             
-            {{-- CONTENEDOR PRINCIPAL --}}
-            <div class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-xl shadow-2xl sm:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {{-- ARTICLE: Tarjeta contenedora de la edición --}}
+            <article class="bg-white/80 dark:bg-gray-800/90 backdrop-blur-xl shadow-2xl sm:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 
-                {{-- CABECERA DECORATIVA: Resumen de lo que se edita --}}
-                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-900 dark:to-purple-900 p-6 sm:p-8 text-white relative overflow-hidden">
-                    {{-- Decoración de fondo --}}
-                    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-                    <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-20 h-20 bg-black/10 rounded-full blur-xl"></div>
+                {{-- HEADER DEL ARTÍCULO: Resumen decorativo --}}
+                <header class="bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-900 dark:to-purple-900 p-6 sm:p-8 text-white relative overflow-hidden">
+                    {{-- Decoración de fondo (Aria-hidden porque es decorativo) --}}
+                    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-xl" aria-hidden="true"></div>
+                    <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-20 h-20 bg-black/10 rounded-full blur-xl" aria-hidden="true"></div>
 
                     <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
+                        <hgroup>
                             <div class="flex items-center gap-2 opacity-80 mb-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                                 </svg>
-                                <span class="text-xs font-bold uppercase tracking-wider">Editando Reserva #{{ $reserva->id }}</span>
+                                <h2 class="text-xs font-bold uppercase tracking-wider">Editando Reserva #{{ $reserva->id }}</h2>
                             </div>
                             <h3 class="text-2xl font-bold text-white">{{ $reserva->cancha->name }}</h3>
-                            <p class="text-indigo-100 text-sm flex items-center gap-2 mt-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            
+                            {{-- TIME: Fecha semántica --}}
+                            <time datetime="{{ $reserva->start_time }}" class="text-indigo-100 text-sm flex items-center gap-2 mt-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                                 </svg>
                                 Fecha actual: {{ $reserva->start_time->format('d M, Y') }}
-                            </p>
-                        </div>
+                            </time>
+                        </hgroup>
                         
                         <div class="bg-white/20 backdrop-blur-md rounded-lg p-3 text-center border border-white/30">
                             <span class="block text-xs text-indigo-50 uppercase font-bold">Total Actual</span>
                             <span class="block text-xl font-extrabold text-white">S/ {{ number_format($reserva->total_price, 2) }}</span>
                         </div>
                     </div>
-                </div>
+                </header>
 
                 {{-- CUERPO DEL FORMULARIO --}}
                 <div class="p-6 sm:p-8">
-                    {{-- Aviso informativo --}}
-                    <div class="mb-6 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                    {{-- ASIDE: Aviso informativo --}}
+                    <aside role="alert" class="mb-6 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
                         <div class="flex">
                             <div class="flex-shrink-0">
                                 <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -68,21 +74,21 @@
                                 </p>
                             </div>
                         </div>
-                    </div>
+                    </aside>
 
-                    {{-- LIVEWIRE COMPONENT --}}
-                    <div class="text-gray-900 dark:text-gray-100">
+                    {{-- SECTION: Componente Livewire --}}
+                    <section class="text-gray-900 dark:text-gray-100" aria-label="Formulario de modificación">
                         @livewire('edit-reserva-form', ['reserva' => $reserva])
-                    </div>
+                    </section>
                 </div>
 
-            </div>
+            </article>
         </div>
-    </div>
+    </main>
     
-    {{-- Footer opcional --}}
-    <div class="relative z-10">
+    {{-- FOOTER --}}
+    <footer class="relative z-10">
         <x-footer />
-    </div>
+    </footer>
 
 </x-app-layout>

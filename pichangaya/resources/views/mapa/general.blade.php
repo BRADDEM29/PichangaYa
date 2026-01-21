@@ -2,25 +2,33 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-bold text-xl text-gray-800 dark:text-white leading-tight flex items-center gap-2 transition-colors duration-300">
+        <hgroup class="flex items-center gap-2 transition-colors duration-300">
             {{-- Icono Mapa SVG --}}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-indigo-600 dark:text-indigo-400">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-indigo-600 dark:text-indigo-400" aria-hidden="true">
                 <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
             </svg>
-            Mapa de Canchas Disponibles
-        </h2>
+            <h2 class="font-bold text-xl text-gray-800 dark:text-white leading-tight">
+                Mapa de Canchas Disponibles
+            </h2>
+        </hgroup>
     </x-slot>
 
-    <div class="py-6">
+    {{-- MAIN: Contenido Principal --}}
+    <main class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-2xl sm:rounded-xl border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+            {{-- SECTION: Tarjeta contenedora --}}
+            <section class="bg-white dark:bg-gray-800 overflow-hidden shadow-2xl sm:rounded-xl border border-gray-100 dark:border-gray-700 transition-colors duration-300">
                 <div class="p-4 sm:p-6">
-                    {{-- Contenedor del Mapa --}}
-                    <div id="map" class="w-full h-[500px] sm:h-[650px] rounded-lg shadow-inner z-0 border border-gray-200 dark:border-gray-600"></div>
+                    {{-- FIGURE: Semántica para el Mapa --}}
+                    <figure aria-label="Mapa interactivo de ubicación de canchas">
+                        {{-- IMPORTANTE: #map debe ser un DIV para que Google Maps funcione correctamente --}}
+                        <div id="map" class="w-full h-[500px] sm:h-[650px] rounded-lg shadow-inner z-0 border border-gray-200 dark:border-gray-600"></div>
+                        <figcaption class="sr-only">Mapa mostrando marcadores de todas las canchas registradas en el sistema.</figcaption>
+                    </figure>
                 </div>
-            </div>
+            </section>
         </div>
-    </div>
+    </main>
 
     {{-- Script de Google Maps --}}
     <script src="https://maps.googleapis.com/maps/api/js?key={{ $apiKey }}&callback=initMap" async defer></script>
@@ -65,8 +73,6 @@
                 mapTypeControl: false,
                 streetViewControl: true,
                 fullscreenControl: true,
-                // 'greedy': permite mover con 1 dedo en móvil. 'cooperative': requiere 2 dedos.
-                // Usamos 'cooperative' para respetar el scroll de la página si el mapa es muy grande.
                 gestureHandling: 'cooperative', 
             });
 
@@ -76,25 +82,16 @@
 
             if (isDarkMode) {
                 try {
-                    // Fetch del SVG original
                     const response = await fetch(pinUrl);
                     let svgText = await response.text();
 
-                    // TRUCO DE MAGIA: Inyectamos un filtro CSS dentro del SVG
-                    // brightness(0) -> Lo vuelve negro
-                    // invert(1) -> Lo vuelve blanco
                     if (svgText.includes('<svg')) {
-                        // Insertamos el estilo justo después de la etiqueta <svg ... >
-                        // Esto fuerza a que TODO el contenido del SVG sea blanco
                         const styleInjection = ` style="filter: brightness(0) invert(1);" `;
                         svgText = svgText.replace('<svg', '<svg' + styleInjection);
-                        
-                        // Convertimos el texto SVG modificado a Base64 para que Google Maps lo entienda
                         finalIconUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgText);
                     }
                 } catch (error) {
                     console.error("Error transformando el PIN:", error);
-                    // Si falla, usa el original
                 }
             }
 
@@ -119,19 +116,18 @@
                     animation: google.maps.Animation.DROP
                 });
 
-                // Icono SVG para la dirección
                 const locationIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 inline-block mr-1 text-gray-400"><path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd" /></svg>`;
 
-                // Contenido del Popup (Diseño mejorado)
+                // HTML SEMÁNTICO dentro del Popup
                 const contentString = `
-                    <div class="p-1 max-w-[240px] text-center font-sans">
-                        <div class="relative w-full h-28 mb-2 overflow-hidden rounded-lg shadow-md group">
+                    <article class="p-1 max-w-[240px] text-center font-sans">
+                        <figure class="relative w-full h-28 mb-2 overflow-hidden rounded-lg shadow-md group">
                             <img src="${cancha.image}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${cancha.name}">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                            <div class="absolute bottom-1 left-2 text-white text-xs font-bold text-left drop-shadow-md">
+                            <figcaption class="absolute bottom-1 left-2 text-white text-xs font-bold text-left drop-shadow-md">
                                 ${cancha.name}
-                            </div>
-                        </div>
+                            </figcaption>
+                        </figure>
                         
                         <p class="text-xs text-gray-500 mb-2 flex items-center justify-center">
                             ${locationIcon} ${cancha.district}
@@ -142,10 +138,12 @@
                              <p class="text-indigo-600 font-extrabold text-sm">S/ ${cancha.price}</p>
                         </div>
 
-                        <a href="${cancha.url}" class="block w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-[11px] font-bold py-2 px-4 rounded-md transition-all shadow-md transform hover:-translate-y-0.5 uppercase tracking-wider">
-                            Reservar Ahora
-                        </a>
-                    </div>
+                        <footer class="mt-2">
+                            <a href="${cancha.url}" class="block w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-[11px] font-bold py-2 px-4 rounded-md transition-all shadow-md transform hover:-translate-y-0.5 uppercase tracking-wider">
+                                Reservar Ahora
+                            </a>
+                        </footer>
+                    </article>
                 `;
 
                 marker.addListener("click", () => {

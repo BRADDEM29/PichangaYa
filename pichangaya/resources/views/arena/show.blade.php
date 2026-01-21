@@ -1,66 +1,58 @@
 <x-app-layout>
     {{-- 
-       ESTILOS CRÍTICOS PARA LAS LÍNEAS 
-       Estos estilos garantizan que no importa si hay 3, 5 o 100 equipos,
-       las líneas siempre estarán centradas.
+       ESTILOS CRÍTICOS (Sin cambios, funcionan con clases)
     --}}
     <style>
         .bracket-wrapper {
             display: flex;
             padding: 40px;
-            overflow-x: auto; /* Scroll horizontal si es muy grande */
+            overflow-x: auto;
         }
         
-        /* COLUMNA DE LA RONDA */
         .round-column {
             display: flex;
             flex-direction: column;
-            justify-content: space-around; /* LA MAGIA: Distribuye verticalmente */
-            width: 260px; /* Ancho tarjeta */
+            justify-content: space-around;
+            width: 260px;
             flex-shrink: 0;
         }
 
-        /* CONECTOR ENTRE RONDAS */
         .connector-column {
             display: flex;
             flex-direction: column;
             justify-content: space-around;
-            width: 50px; /* Ancho de las líneas */
+            width: 50px;
             flex-shrink: 0;
         }
 
-        /* BLOQUE DE LÍNEAS (Para cada par de partidos) */
         .connector-block {
-            flex-grow: 1; /* Ocupa todo el espacio disponible */
+            flex-grow: 1;
             position: relative;
             display: flex;
-            align-items: center; /* Centra la línea horizontal de salida */
+            align-items: center;
         }
         
-        /* DIBUJO DE LA LÍNEA (Forma de Llave ]) */
         .bracket-line {
             position: absolute;
             right: 0;
-            top: 25%; /* Empieza al 25% de la altura del bloque (centro del partido 1) */
-            bottom: 25%; /* Termina al 25% desde abajo (centro del partido 2) */
+            top: 25%;
+            bottom: 25%;
             width: 100%;
-            border-right: 2px solid #6366f1; /* Color Indigo */
+            border-right: 2px solid #6366f1;
             border-top: 2px solid #6366f1;
             border-bottom: 2px solid #6366f1;
-            border-top-right-radius: 12px; /* Curva moderna */
+            border-top-right-radius: 12px;
             border-bottom-right-radius: 12px;
         }
 
-        /* LÍNEA RECTA DE SALIDA (Hacia la siguiente ronda) */
         .connector-bridge {
             position: absolute;
-            right: -25px; /* Sale hacia la derecha */
+            right: -25px;
             width: 25px;
             height: 2px;
             background-color: #6366f1;
         }
 
-        /* Tarjeta del Partido */
         .match-card {
             background: white;
             border: 1px solid #e5e7eb;
@@ -74,7 +66,6 @@
         .match-card:hover { transform: scale(1.02); box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2); border-color: #818cf8; }
         .dark .match-card { background: #1f2937; border-color: #374151; color: white; }
 
-        /* Estilo especial para BYES (Pase directo) */
         .match-card.is-bye {
             opacity: 0.5;
             border-style: dashed;
@@ -84,8 +75,9 @@
     </style>
 
     <x-slot name="header">
-        <div class="flex flex-col md:flex-row justify-between items-center py-2">
-            <div>
+        {{-- HEADER: Encabezado semántico --}}
+        <header class="flex flex-col md:flex-row justify-between items-center py-2">
+            <hgroup>
                 <h2 class="font-black text-3xl text-gray-800 dark:text-white uppercase tracking-tighter">
                     {{ $tournament->name }}
                 </h2>
@@ -98,54 +90,52 @@
                         </span>
                     </div>
                 @endif
-            </div>
+            </hgroup>
             
-            @if($tournament->status == 'active')
-                <span class="px-4 py-1 bg-green-100 text-green-700 border border-green-300 rounded-full text-xs font-bold uppercase tracking-widest animate-pulse">
-                    ● En Curso
-                </span>
-            @else
-                <span class="px-4 py-1 bg-gray-800 text-white rounded-full text-xs font-bold uppercase tracking-widest">
-                    Finalizado
-                </span>
-            @endif
-        </div>
+            <div>
+                @if($tournament->status == 'active')
+                    <span class="px-4 py-1 bg-green-100 text-green-700 border border-green-300 rounded-full text-xs font-bold uppercase tracking-widest animate-pulse">
+                        ● En Curso
+                    </span>
+                @else
+                    <span class="px-4 py-1 bg-gray-800 text-white rounded-full text-xs font-bold uppercase tracking-widest">
+                        Finalizado
+                    </span>
+                @endif
+            </div>
+        </header>
     </x-slot>
 
-    <div class="bg-gray-100 dark:bg-gray-900 min-h-screen overflow-hidden">
+    {{-- MAIN: Contenido principal --}}
+    <main class="bg-gray-100 dark:bg-gray-900 min-h-screen overflow-hidden">
         
-        {{-- ÁREA DEL BRACKET --}}
-        <div class="bracket-wrapper" id="bracket-container">
+        {{-- SECTION: Contenedor del Bracket --}}
+        <section class="bracket-wrapper" id="bracket-container" aria-label="Diagrama del Torneo">
             
-            {{-- 
-                LÓGICA DE RENDERIZADO POR RONDAS 
-                $rounds debe ser un array de arrays conteniendo los partidos.
-                Ej: $rounds[1] = [Match1, Match2...], $rounds[2] = [Semi1, Semi2]
-            --}}
-
             @foreach($rounds as $roundIndex => $matches)
                 
-                {{-- 1. Columna de Partidos --}}
-                <div class="round-column">
-                    {{-- Etiqueta de la Ronda --}}
-                    <div class="text-center mb-4">
-                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                {{-- SECTION: Columna de Ronda --}}
+                <section class="round-column" aria-label="Ronda {{ $loop->iteration }}">
+                    
+                    {{-- HEADER: Título de la Ronda --}}
+                    <header class="text-center mb-4">
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
                             @if($loop->last) 👑 GRAN FINAL
                             @elseif($loop->iteration == $loop->count - 1) SEMIFINAL
                             @else RONDA {{ $loop->iteration }}
                             @endif
-                        </span>
-                    </div>
+                        </h3>
+                    </header>
 
                     @foreach($matches as $match)
-                        <div class="py-3 px-1 w-full">
-                            {{-- INICIO TARJETA PARTIDO --}}
+                        <div class="py-3 px-1 w-full"> {{-- Wrapper de layout para espaciado --}}
+                            
                             @php
-                                // Detectar si es un BYE (Equipo pasa solo)
                                 $isBye = ($match->team1_id && !$match->team2_id) || (!$match->team1_id && $match->team2_id);
                             @endphp
 
-                            <div class="match-card {{ $isBye ? 'is-bye' : '' }}">
+                            {{-- ARTICLE: Tarjeta del Partido Independiente --}}
+                            <article class="match-card {{ $isBye ? 'is-bye' : '' }}">
                                 {{-- Equipo 1 --}}
                                 <div class="flex justify-between items-center px-3 py-2 border-b border-gray-100 dark:border-gray-700/50 {{ $match->winner_id == $match->team1_id ? 'bg-indigo-50 dark:bg-indigo-900/20' : '' }}">
                                     <span class="text-sm font-bold truncate {{ $match->winner_id == $match->team1_id ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300' }}">
@@ -169,21 +159,14 @@
                                         </span>
                                     @endif
                                 </div>
-                            </div>
-                            {{-- FIN TARJETA PARTIDO --}}
+                            </article>
                         </div>
                     @endforeach
-                </div>
+                </section>
 
-                {{-- 2. Columna de Conectores (Líneas) --}}
-                {{-- Solo dibujamos conectores si NO es la última ronda (Final) --}}
+                {{-- CONECTORES (Decorativos, aria-hidden) --}}
                 @if(!$loop->last)
-                    <div class="connector-column">
-                        {{-- 
-                           Calculamos cuántos "bloques de conexión" necesitamos.
-                           Si hay 4 partidos en esta ronda, hay 2 bloques de conexión hacia la siguiente.
-                           Si hay 3 partidos (caso raro impar), el CSS Flex lo maneja, pero idealmente el backend normaliza a pares.
-                        --}}
+                    <div class="connector-column" aria-hidden="true">
                         @php
                             $nextRoundCount = count($matches) / 2;
                         @endphp
@@ -199,10 +182,10 @@
 
             @endforeach
             
-            {{-- BLOQUE CAMPEÓN (Opcional, a la derecha de la final) --}}
+            {{-- ASIDE: Bloque Campeón --}}
             @php $finalMatch = end($rounds)[0] ?? null; @endphp
             @if($finalMatch && $finalMatch->winner)
-                <div class="flex flex-col justify-center ml-8 animate-fade-in-up">
+                <aside class="flex flex-col justify-center ml-8 animate-fade-in-up" aria-label="Ganador del Torneo">
                     <div class="text-center">
                         <div class="inline-block p-4 bg-yellow-100 rounded-full mb-2 shadow-lg border-2 border-yellow-400">
                             🏆
@@ -212,14 +195,14 @@
                             {{ $finalMatch->winner->team_name }}
                         </h1>
                     </div>
-                </div>
+                </aside>
             @endif
 
-        </div>
-    </div>
+        </section>
+    </main>
 
     <script>
-        // Auto-refresh simple para ver resultados en tiempo real
+        // Auto-refresh simple
         setInterval(() => {
             fetch(window.location.href)
                 .then(r => r.text())
@@ -232,6 +215,6 @@
                         currentBracket.innerHTML = newBracket.innerHTML;
                     }
                 });
-        }, 10000); // 10 segundos
+        }, 10000); 
     </script>
 </x-app-layout>

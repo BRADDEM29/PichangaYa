@@ -15,12 +15,13 @@
         </div>
     </x-slot>
 
-    <div class="py-12 bg-gray-50 dark:bg-[#0f172a] min-h-screen transition-colors duration-300">
+    {{-- MAIN: Contenido Principal --}}
+    <main class="py-12 bg-gray-50 dark:bg-[#0f172a] min-h-screen transition-colors duration-300">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             {{-- MENSAJES FLASH --}}
             @if(session('success'))
-                <div x-data="{ show: true }" x-show="show" class="mb-6 mx-4 sm:mx-0 p-4 bg-green-500/10 border border-green-500/50 text-green-700 dark:text-green-400 rounded-xl flex items-center justify-between shadow-lg backdrop-blur-sm">
+                <div x-data="{ show: true }" x-show="show" role="alert" class="mb-6 mx-4 sm:mx-0 p-4 bg-green-500/10 border border-green-500/50 text-green-700 dark:text-green-400 rounded-xl flex items-center justify-between shadow-lg backdrop-blur-sm">
                     <div class="flex items-center gap-3">
                         <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span class="font-semibold">{{ session('success') }}</span>
@@ -30,7 +31,7 @@
             @endif
 
             @if(session('error'))
-                <div x-data="{ show: true }" x-show="show" class="mb-6 mx-4 sm:mx-0 p-4 bg-red-500/10 border border-red-500/50 text-red-700 dark:text-red-400 rounded-xl flex items-center justify-between shadow-lg backdrop-blur-sm">
+                <div x-data="{ show: true }" x-show="show" role="alert" class="mb-6 mx-4 sm:mx-0 p-4 bg-red-500/10 border border-red-500/50 text-red-700 dark:text-red-400 rounded-xl flex items-center justify-between shadow-lg backdrop-blur-sm">
                     <div class="flex items-center gap-3">
                         <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span class="font-semibold">{{ session('error') }}</span>
@@ -39,13 +40,13 @@
                 </div>
             @endif
 
-            {{-- CONTENEDOR PRINCIPAL --}}
-            <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-2xl sm:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {{-- SECTION: CONTENEDOR PRINCIPAL DE RESERVAS --}}
+            <section aria-labelledby="reservas-title" class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-2xl sm:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 
-                {{-- CABECERA DE LA TARJETA --}}
-                <div class="px-6 py-6 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/50">
+                {{-- HEADER DE LA SECCIÓN --}}
+                <header class="px-6 py-6 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/50">
                     <div class="text-center sm:text-left">
-                        <h3 class="text-xl font-bold text-gray-800 dark:text-white flex items-center justify-center sm:justify-start gap-2">
+                        <h3 id="reservas-title" class="text-xl font-bold text-gray-800 dark:text-white flex items-center justify-center sm:justify-start gap-2">
                             <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             Mis Partidos Programados
                         </h3>
@@ -58,7 +59,7 @@
                             <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                         </span>
                     </a>
-                </div>
+                </header>
 
                 @if ($reservas->isEmpty())
                     {{-- ESTADO VACÍO --}}
@@ -72,7 +73,7 @@
                              Ir al buscador de canchas 
                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                            </svg>
+                             </svg>
                         </a>
                     </div>
                 @else
@@ -108,13 +109,10 @@
                                         $dotColor      = $config['dot'];
 
                                         // LÓGICA DE ACCIONES (CORE LOGIC)
-                                        // Regla: Solo se puede editar/cancelar si es PENDING y fecha futura.
-                                        // Si tiene CUALQUIER otro estado (pagado parcial, completo, cancelado), se bloquea.
                                         $isPending = $reserva->status === 'pending';
                                         $isPast    = $reserva->start_time <= now();
 
                                         $canAction = $isPending && !$isPast;
-                                        
                                         $canEdit   = $canAction;
                                         $canCancel = $canAction;
                                     @endphp
@@ -128,14 +126,14 @@
                                                 </div>
                                                 <div class="ml-4">
                                                     <div class="text-sm font-bold text-gray-900 dark:text-white">{{ $reserva->cancha->name }}</div>
-                                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ $reserva->cancha->sport ?? 'Fútbol' }}</div>
+                                                    <address class="text-xs text-gray-500 dark:text-gray-400 not-italic">{{ $reserva->cancha->sport ?? 'Fútbol' }}</address>
                                                 </div>
                                             </div>
                                         </td>
 
                                         {{-- SOLICITADO EL --}}
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex flex-col">
+                                            <time datetime="{{ $reserva->created_at }}" class="flex flex-col">
                                                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-400">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
@@ -145,12 +143,12 @@
                                                 <span class="text-xs text-gray-500 dark:text-gray-500 pl-5">
                                                     {{ $reserva->created_at->format('h:i A') }}
                                                 </span>
-                                            </div>
+                                            </time>
                                         </td>
 
                                         {{-- FECHA PARTIDO --}}
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex flex-col">
+                                            <time datetime="{{ $reserva->start_time }}" class="flex flex-col">
                                                 <span class="text-sm text-gray-900 dark:text-gray-200 font-bold flex items-center gap-1">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-indigo-500">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
@@ -160,7 +158,7 @@
                                                 <span class="text-xs text-gray-500 dark:text-gray-400 pl-5">
                                                     {{ $reserva->start_time->format('h:i A') }} - {{ $reserva->end_time->format('h:i A') }}
                                                 </span>
-                                            </div>
+                                            </time>
                                         </td>
 
                                         {{-- TOTAL --}}
@@ -211,8 +209,8 @@
                         </table>
                     </div>
 
-                    {{-- 🟢 VISTA MÓVIL (CARDS) --}}
-                    <div class="md:hidden grid grid-cols-1 gap-4 p-4 bg-gray-50 dark:bg-black/20">
+                    {{-- 🟢 VISTA MÓVIL (GRID DE ARTICLES) --}}
+                    <section aria-label="Lista de reservas móvil" class="md:hidden grid grid-cols-1 gap-4 p-4 bg-gray-50 dark:bg-black/20">
                         @foreach ($reservas as $reserva)
                             @php
                                 $statusConfigMobile = [
@@ -233,19 +231,19 @@
                                 $canAction = $isPending && !$isPast;
                             @endphp
 
-                            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-5 relative overflow-hidden">
+                            <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-5 relative overflow-hidden">
                                 {{-- Borde lateral indicador --}}
                                 <div class="absolute top-0 left-0 h-full w-1.5 {{ $statusColorBg }}"></div>
                                 
-                                <div class="flex justify-between items-start mb-3 pl-2">
+                                <header class="flex justify-between items-start mb-3 pl-2">
                                     <div>
                                         <h4 class="font-bold text-gray-900 dark:text-white text-lg">{{ $reserva->cancha->name }}</h4>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
+                                        <time datetime="{{ $reserva->start_time }}" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                                             </svg>
                                             {{ $reserva->start_time->format('d M, Y') }}
-                                        </p>
+                                        </time>
                                     </div>
                                     <div class="text-right flex flex-col items-end">
                                         <span class="block font-extrabold text-emerald-600 dark:text-emerald-400 text-lg">S/ {{ number_format($reserva->total_price, 2) }}</span>
@@ -253,12 +251,12 @@
                                             {{ $statusLabel }}
                                         </span>
                                     </div>
-                                </div>
+                                </header>
 
-                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-2 pl-2">
+                                <time datetime="{{ $reserva->start_time }}" class="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-2 pl-2">
                                     <svg class="w-4 h-4 mr-2 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     {{ $reserva->start_time->format('h:i A') }} - {{ $reserva->end_time->format('h:i A') }}
-                                </div>
+                                </time>
 
                                 <div class="flex items-center text-xs text-gray-400 dark:text-gray-500 mb-4 pl-2 border-t border-gray-100 dark:border-gray-700 pt-2 border-dashed">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3 mr-1.5">
@@ -267,9 +265,9 @@
                                     Solicitado: {{ $reserva->created_at->format('d/m/Y h:i A') }}
                                 </div>
 
-                                {{-- Botones Móvil (Solo si canAction es true) --}}
+                                {{-- Botones Móvil (FOOTER) --}}
                                 @if($canAction)
-                                    <div class="flex gap-2 pl-2">
+                                    <footer class="flex gap-2 pl-2">
                                         <a href="{{ route('reservas.edit', $reserva) }}" class="flex-1 text-center py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-bold hover:bg-indigo-100 transition flex items-center justify-center gap-1">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                                   <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
@@ -287,29 +285,29 @@
                                                 Cancelar
                                             </button>
                                         </form>
-                                    </div>
+                                    </footer>
                                 @else
                                     {{-- Mensaje de bloqueo en móvil --}}
                                     <div class="mt-2 text-center text-xs text-gray-400 italic bg-gray-50 dark:bg-gray-700/30 py-2 rounded">
                                         No se pueden realizar cambios
                                     </div>
                                 @endif
-                            </div>
+                            </article>
                         @endforeach
-                    </div>
+                    </section>
 
-                    {{-- PAGINACIÓN --}}
-                    <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                    {{-- PAGINACIÓN (NAV) --}}
+                    <nav aria-label="Navegación de páginas" class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
                         {{ $reservas->links() }}
-                    </div>
+                    </nav>
                 @endif
-            </div>
+            </section>
         </div>
-    </div>
+    </main>
 
     {{-- FOOTER --}}
-    <div class="relative z-10">
+    <footer class="relative z-10">
         <x-footer />
-    </div>
+    </footer>
 
 </x-app-layout>
