@@ -173,24 +173,56 @@
                 </div>
             </div>
 
-            <button wire:click="save" 
-                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold py-3.5 px-6 rounded-xl transition duration-200 shadow-lg shadow-indigo-200 flex justify-center items-center gap-2 transform active:scale-[0.98]"
-                wire:loading.attr="disabled">
-                
-                <div wire:loading.remove class="flex items-center gap-2">
-                    <span>{{ $this->reservaEdicion ? 'Actualizar Reserva' : 'Confirmar Reserva' }}</span>
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                </div>
-                
-                <div wire:loading.flex class="items-center gap-2">
-                    <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span class="whitespace-nowrap">Procesando...</span>
-                </div>
-            </button>
+            @auth
+                @if(auth()->user()->isVerifiedForBooking())
+                    {{-- BOTÓN HABILITADO --}}
+                    <button wire:click="save" 
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold py-3.5 px-6 rounded-xl transition duration-200 shadow-lg shadow-indigo-200 flex justify-center items-center gap-2 transform active:scale-[0.98]"
+                        wire:loading.attr="disabled">
+                        
+                        <div wire:loading.remove class="flex items-center gap-2">
+                            <span>{{ $this->reservaEdicion ? 'Actualizar Reserva' : 'Confirmar Reserva' }}</span>
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </div>
+                        
+                        <div wire:loading.flex class="items-center gap-2">
+                            <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span class="whitespace-nowrap">Procesando...</span>
+                        </div>
+                    </button>
+                @else
+                    {{-- BOTÓN BLOQUEADO CON MENSAJE --}}
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <div>
+                                <p class="text-sm font-bold text-amber-800">¡Faltan datos de contacto!</p>
+                                <p class="text-xs text-amber-700 mt-1">
+                                    Para reservar, necesitamos que confirmes tu 
+                                    <span class="font-bold">email</span> y registres tu <span class="font-bold">celular</span>.
+                                </p>
+                                <a href="{{ route('profile.show') }}" class="inline-block mt-2 text-xs font-black text-indigo-600 underline">
+                                    Completar mi perfil →
+                                </a>
+                            </div>
+                        </div>
+                        <button disabled class="w-full mt-3 bg-gray-300 text-gray-500 text-lg font-bold py-3 px-6 rounded-xl cursor-not-allowed">
+                            Confirmar Reserva
+                        </button>
+                    </div>
+                @endif
+            @else
+                {{-- SI NO ESTÁ LOGUEADO --}}
+                <a href="{{ route('login') }}" class="w-full bg-gray-800 text-white text-center text-lg font-bold py-3.5 px-6 rounded-xl block">
+                    Inicia sesión para reservar
+                </a>
+            @endauth
         </div>
     @else
         <div class="text-center py-6 text-gray-400 text-xs bg-gray-50 rounded-xl border border-gray-100">
-             Toca una hora para comenzar la reserva
+            Toca una hora para comenzar la reserva
         </div>
     @endif
 </div>

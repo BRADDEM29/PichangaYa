@@ -284,4 +284,12 @@ class User extends Authenticatable
     {
         return $this->party && $this->party->leader_id === $this->id;
     }
+        /**
+     * Verifica si el usuario tiene sus datos básicos confirmados para reservar.
+     */
+    public function isVerifiedForBooking(): bool
+    {
+        // Verifica: 1. Email verificado, 2. Tiene teléfono principal
+        return !is_null($this->email_verified_at) && !empty($this->phone);
+    }
 }
