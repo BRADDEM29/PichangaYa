@@ -133,9 +133,9 @@
 
         {{-- 2.5. MIS FAVORITOS (Livewire) --}}
         @auth
-            <aside class="w-full px-4 sm:px-6 lg:px-[34px]">
+            <section class="w-full">
                 @livewire('home.favorites-list')
-            </aside>
+            </section>
         @endauth
 
         {{-- 3. LISTADO DE CANCHAS --}}
