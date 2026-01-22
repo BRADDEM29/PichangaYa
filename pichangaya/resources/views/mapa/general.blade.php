@@ -2,33 +2,45 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <hgroup class="flex items-center gap-2 transition-colors duration-300">
-            {{-- Icono Mapa SVG (Logo conservado) --}}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-indigo-600 dark:text-indigo-400" aria-hidden="true">
+        <hgroup class="flex items-center gap-3 transition-colors duration-300">
+            {{-- Icono Mapa SVG --}}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-indigo-600 dark:text-indigo-400" aria-hidden="true">
                 <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
             </svg>
-            <h1 class="font-bold text-xl text-gray-800 dark:text-white leading-tight">
-                Mapa de Canchas Disponibles
+            <h1 class="font-extrabold text-xl md:text-2xl text-gray-800 dark:text-white leading-tight tracking-tight">
+                Mapa de Canchas
             </h1>
         </hgroup>
     </x-slot>
 
     {{-- MAIN: Contenido Principal --}}
-    <main class="py-6">
-        <section class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    {{-- Agregamos pb-10 para asegurar espacio final para el scroll --}}
+    <main class="py-4 sm:py-6 lg:py-8 pb-12 bg-gray-50 dark:bg-gray-900">
+        <section class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+            
             {{-- ARTICLE: Tarjeta contenedora --}}
-            <article class="bg-white dark:bg-gray-800 overflow-hidden shadow-2xl sm:rounded-xl border border-gray-100 dark:border-gray-700 transition-colors duration-300">
-                <section class="p-4 sm:p-6">
+            {{-- Agregamos mb-8 para empujar el footer hacia abajo visualmente --}}
+            <article class="bg-white dark:bg-gray-800 overflow-hidden shadow-2xl rounded-xl sm:rounded-2xl border border-gray-100 dark:border-gray-700 transition-colors duration-300 mb-8">
+                <section class="p-2 sm:p-4 md:p-6">
+                    
                     {{-- FIGURE: Semántica para el Mapa --}}
-                    <figure aria-label="Mapa interactivo de ubicación de canchas" class="relative">
-                        {{-- MAPA: Usamos SECTION con ID para el canvas de Google Maps (Reemplaza al div) --}}
-                        <section id="map" class="w-full h-[500px] sm:h-[650px] rounded-lg shadow-inner z-0 border border-gray-200 dark:border-gray-600 block"></section>
+                    <figure aria-label="Mapa interactivo de ubicación de canchas" class="relative w-full">
+                        
+                        {{-- MAPA: Altura ajustada a 55vh en móvil para que no sea tan invasiva --}}
+                        <section id="map" class="w-full h-[55vh] sm:h-[65vh] md:h-[75vh] rounded-lg sm:rounded-xl shadow-inner z-0 border border-gray-200 dark:border-gray-600 block"></section>
+                        
                         <figcaption class="sr-only">Mapa mostrando marcadores de todas las canchas registradas en el sistema.</figcaption>
                     </figure>
+
                 </section>
             </article>
         </section>
     </main>
+
+    {{-- FOOTER --}}
+    <footer class="relative z-50 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 w-full block">
+        <x-footer />
+    </footer>
 
     {{-- Script de Google Maps con la API KEY inyectada --}}
     <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&callback=initMap" async defer></script>
@@ -85,7 +97,6 @@
                     const response = await fetch(pinUrl);
                     let svgText = await response.text();
 
-                    // Inyectar filtro de brillo/inversión al SVG si es modo oscuro
                     if (svgText.includes('<svg')) {
                         const styleInjection = ` style="filter: brightness(0) invert(1);" `;
                         svgText = svgText.replace('<svg', '<svg' + styleInjection);
