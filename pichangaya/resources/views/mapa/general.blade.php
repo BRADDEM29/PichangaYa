@@ -3,44 +3,44 @@
 <x-app-layout>
     <x-slot name="header">
         <hgroup class="flex items-center gap-2 transition-colors duration-300">
-            {{-- Icono Mapa SVG --}}
+            {{-- Icono Mapa SVG (Logo conservado) --}}
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-indigo-600 dark:text-indigo-400" aria-hidden="true">
                 <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
             </svg>
-            <h2 class="font-bold text-xl text-gray-800 dark:text-white leading-tight">
+            <h1 class="font-bold text-xl text-gray-800 dark:text-white leading-tight">
                 Mapa de Canchas Disponibles
-            </h2>
+            </h1>
         </hgroup>
     </x-slot>
 
     {{-- MAIN: Contenido Principal --}}
     <main class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            {{-- SECTION: Tarjeta contenedora --}}
-            <section class="bg-white dark:bg-gray-800 overflow-hidden shadow-2xl sm:rounded-xl border border-gray-100 dark:border-gray-700 transition-colors duration-300">
-                <div class="p-4 sm:p-6">
+        <section class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            {{-- ARTICLE: Tarjeta contenedora --}}
+            <article class="bg-white dark:bg-gray-800 overflow-hidden shadow-2xl sm:rounded-xl border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+                <section class="p-4 sm:p-6">
                     {{-- FIGURE: Semántica para el Mapa --}}
-                    <figure aria-label="Mapa interactivo de ubicación de canchas">
-                        {{-- IMPORTANTE: #map debe ser un DIV para que Google Maps funcione correctamente --}}
-                        <div id="map" class="w-full h-[500px] sm:h-[650px] rounded-lg shadow-inner z-0 border border-gray-200 dark:border-gray-600"></div>
+                    <figure aria-label="Mapa interactivo de ubicación de canchas" class="relative">
+                        {{-- MAPA: Usamos SECTION con ID para el canvas de Google Maps (Reemplaza al div) --}}
+                        <section id="map" class="w-full h-[500px] sm:h-[650px] rounded-lg shadow-inner z-0 border border-gray-200 dark:border-gray-600 block"></section>
                         <figcaption class="sr-only">Mapa mostrando marcadores de todas las canchas registradas en el sistema.</figcaption>
                     </figure>
-                </div>
-            </section>
-        </div>
+                </section>
+            </article>
+        </section>
     </main>
 
-    {{-- Script de Google Maps --}}
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ $apiKey }}&callback=initMap" async defer></script>
+    {{-- Script de Google Maps con la API KEY inyectada --}}
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&callback=initMap" async defer></script>
 
     <script>
-        // Función asíncrona para poder cargar y modificar el SVG
+        // Función asíncrona para cargar el mapa y procesar el SVG
         async function initMap() {
             const cusco = { lat: -13.5319, lng: -71.9675 };
-            const canchas = @json($canchas); 
+            const canchas = @json($canchas ?? []); 
             const isDarkMode = document.documentElement.classList.contains('dark');
 
-            // 1. ESTILOS DEL MAPA (Night Mode vs Light Mode)
+            // 1. ESTILOS DEL MAPA
             const darkMapStyle = [
                 { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
                 { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
@@ -85,6 +85,7 @@
                     const response = await fetch(pinUrl);
                     let svgText = await response.text();
 
+                    // Inyectar filtro de brillo/inversión al SVG si es modo oscuro
                     if (svgText.includes('<svg')) {
                         const styleInjection = ` style="filter: brightness(0) invert(1);" `;
                         svgText = svgText.replace('<svg', '<svg' + styleInjection);
@@ -105,56 +106,61 @@
             const infoWindow = new google.maps.InfoWindow();
 
             // 4. CREAR MARCADORES
-            canchas.forEach((cancha) => {
-                if(!cancha.lat || !cancha.lng) return;
+            if (Array.isArray(canchas)) {
+                canchas.forEach((cancha) => {
+                    if(!cancha.lat || !cancha.lng) return;
 
-                const marker = new google.maps.Marker({
-                    position: { lat: parseFloat(cancha.lat), lng: parseFloat(cancha.lng) },
-                    map: map,
-                    title: cancha.name,
-                    icon: customIcon,
-                    animation: google.maps.Animation.DROP
-                });
+                    const marker = new google.maps.Marker({
+                        position: { lat: parseFloat(cancha.lat), lng: parseFloat(cancha.lng) },
+                        map: map,
+                        title: cancha.name,
+                        icon: customIcon,
+                        animation: google.maps.Animation.DROP
+                    });
 
-                const locationIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 inline-block mr-1 text-gray-400"><path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd" /></svg>`;
+                    // Icono de ubicación (SVG Inline)
+                    const locationIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 inline-block mr-1 text-gray-400"><path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd" /></svg>`;
 
-                // HTML SEMÁNTICO dentro del Popup
-                const contentString = `
-                    <article class="p-1 max-w-[240px] text-center font-sans">
-                        <figure class="relative w-full h-28 mb-2 overflow-hidden rounded-lg shadow-md group">
-                            <img src="${cancha.image}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${cancha.name}">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                            <figcaption class="absolute bottom-1 left-2 text-white text-xs font-bold text-left drop-shadow-md">
-                                ${cancha.name}
-                            </figcaption>
-                        </figure>
-                        
-                        <p class="text-xs text-gray-500 mb-2 flex items-center justify-center">
-                            ${locationIcon} ${cancha.district}
-                        </p>
-                        
-                        <div class="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 mb-2 border border-gray-100">
-                             <span class="text-xs text-gray-400 font-bold uppercase">Tarifa</span>
-                             <p class="text-indigo-600 font-extrabold text-sm">S/ ${cancha.price}</p>
-                        </div>
+                    // HTML SEMÁNTICO dentro del Popup (Cero Divs)
+                    const contentString = `
+                        <article class="p-1 max-w-[240px] text-center font-sans">
+                            <figure class="relative w-full h-28 mb-2 overflow-hidden rounded-lg shadow-md group">
+                                <img src="${cancha.image}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${cancha.name}">
+                                
+                                <span class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent block" aria-hidden="true"></span>
+                                
+                                <figcaption class="absolute bottom-1 left-2 text-white text-xs font-bold text-left drop-shadow-md">
+                                    ${cancha.name}
+                                </figcaption>
+                            </figure>
+                            
+                            <p class="text-xs text-gray-500 mb-2 flex items-center justify-center">
+                                ${locationIcon} ${cancha.district}
+                            </p>
+                            
+                            <section class="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 mb-2 border border-gray-100">
+                                 <span class="text-xs text-gray-400 font-bold uppercase">Tarifa</span>
+                                 <data value="${cancha.price}" class="text-indigo-600 font-extrabold text-sm">S/ ${cancha.price}</data>
+                            </section>
 
-                        <footer class="mt-2">
-                            <a href="${cancha.url}" class="block w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-[11px] font-bold py-2 px-4 rounded-md transition-all shadow-md transform hover:-translate-y-0.5 uppercase tracking-wider">
-                                Reservar Ahora
-                            </a>
-                        </footer>
-                    </article>
-                `;
+                            <footer class="mt-2">
+                                <a href="${cancha.url}" class="block w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-[11px] font-bold py-2 px-4 rounded-md transition-all shadow-md transform hover:-translate-y-0.5 uppercase tracking-wider">
+                                    Reservar Ahora
+                                </a>
+                            </footer>
+                        </article>
+                    `;
 
-                marker.addListener("click", () => {
-                    infoWindow.setContent(contentString);
-                    infoWindow.open({
-                        anchor: marker,
-                        map,
-                        shouldFocus: false,
+                    marker.addListener("click", () => {
+                        infoWindow.setContent(contentString);
+                        infoWindow.open({
+                            anchor: marker,
+                            map,
+                            shouldFocus: false,
+                        });
                     });
                 });
-            });
+            }
         }
     </script>
 </x-app-layout>
