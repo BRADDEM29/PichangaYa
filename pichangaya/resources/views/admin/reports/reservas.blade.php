@@ -3,90 +3,127 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <x-slot name="header">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('admin.dashboard') }}" class="p-2 rounded-full hover:bg-gray-200 transition text-gray-500">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-            </a>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Reporte Detallado: Reservas y Horarios') }}
-            </h2>
-        </div>
+        <header class="flex items-center gap-4 py-1">
+            <nav aria-label="Navegación de retorno">
+                <a href="{{ route('admin.dashboard') }}" 
+                   class="group flex items-center justify-center w-10 h-10 bg-white border border-gray-200 text-gray-600 transition-all duration-300 rounded-xl hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 hover:shadow-sm shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 transition-transform duration-300 group-hover:-translate-x-1">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                    </svg>
+                </a>
+            </nav>
+
+            <span class="h-8 w-px bg-gray-200 hidden sm:block" aria-hidden="true"></span>
+
+            <hgroup>
+                <h1 class="text-xl font-black leading-tight text-gray-800 uppercase tracking-tighter sm:text-2xl">
+                    Reporte <span class="text-indigo-600">Reservas</span>
+                </h1>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">
+                    Panel de Administración • Gestión de Horarios
+                </p>
+            </hgroup>
+        </header>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+    <main class="py-12 bg-gray-50/50">
+        <div class="mx-auto space-y-8 max-w-7xl sm:px-6 lg:px-8">
             
             {{-- SECCIÓN DE GRÁFICOS --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {{-- GRÁFICO 1: ESTADOS --}}
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Distribución por Estados</h3>
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+                <section class="p-6 bg-white border border-gray-100 shadow-xl overflow-hidden sm:rounded-3xl">
+                    <h3 class="flex items-center mb-4 text-lg font-bold text-gray-800">
+                        <div class="p-2 mr-3 bg-indigo-100 rounded-lg text-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
+                            </svg>
+                        </div>
+                        Distribución por Estados
+                    </h3>
                     <div class="h-64">
                         <canvas id="chartStatus"></canvas>
                     </div>
-                </div>
+                </section>
 
-                {{-- GRÁFICO 2: HORARIOS --}}
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Demanda por Horas (Tráfico)</h3>
+                <section class="p-6 bg-white border border-gray-100 shadow-xl overflow-hidden sm:rounded-3xl">
+                    <h3 class="flex items-center mb-4 text-lg font-bold text-gray-800">
+                        <div class="p-2 mr-3 bg-blue-100 rounded-lg text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                        </div>
+                        Demanda por Horas
+                    </h3>
                     <div class="h-64">
                         <canvas id="chartHourly"></canvas>
                     </div>
-                </div>
+                </section>
             </div>
 
-            {{-- 🟢 TABLA DE HISTORIAL COMPLETO --}}
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                    <h3 class="text-lg font-bold text-gray-800 flex items-center">
-                        <span class="mr-2 text-xl">📋</span> Historial Completo de Reservas (Incluye Usuarios Eliminados)
+            {{-- TABLA DE HISTORIAL --}}
+            <article class="overflow-hidden bg-white border border-gray-100 shadow-xl sm:rounded-3xl">
+                <header class="flex flex-col justify-between gap-4 px-6 py-5 border-b border-gray-100 md:flex-row md:items-center bg-gray-50">
+                    <h3 class="flex items-center font-bold text-gray-800 uppercase text-xs tracking-widest">
+                        <div class="p-2 mr-3 bg-indigo-100 rounded-lg text-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-3.75 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                            </svg>
+                        </div>
+                        Historial Completo de Reservas (Usuarios Eliminados Incluidos)
                     </h3>
-                </div>
+                </header>
 
-                <div class="overflow-x-auto border border-gray-100 rounded-xl">
-                    <table class="min-w-full divide-y divide-gray-200">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-100">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Usuario</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Cancha</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Fecha y Hora</th>
-                                <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase">Precio</th>
-                                <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase">Estado</th>
+                                <th class="px-6 py-3 text-[10px] font-bold text-left text-gray-500 uppercase tracking-widest">Usuario</th>
+                                <th class="px-6 py-3 text-[10px] font-bold text-left text-gray-500 uppercase tracking-widest">Cancha</th>
+                                <th class="px-6 py-3 text-[10px] font-bold text-left text-gray-500 uppercase tracking-widest">Fecha y Hora</th>
+                                <th class="px-6 py-3 text-[10px] font-bold text-right text-gray-500 uppercase tracking-widest">Precio</th>
+                                <th class="px-6 py-3 text-[10px] font-bold text-center text-gray-500 uppercase tracking-widest">Estado</th>
+                                <th class="px-6 py-3 text-[10px] font-bold text-center text-gray-400 uppercase tracking-widest">Acción</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="bg-white divide-y divide-gray-100">
                             @forelse($allReservas as $reserva)
-                                <tr class="hover:bg-gray-50 transition">
+                                <tr class="transition cursor-pointer hover:bg-indigo-50/50 group"
+                                    role="link"
+                                    @if($reserva->cancha)
+                                        onclick="window.location='{{ route('admin.canchas.reservas.index', $reserva->cancha) }}'"
+                                    @endif>
+                                    
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="text-sm">
-                                                <p class="font-bold text-gray-900">{{ $reserva->user->name ?? 'N/A' }}</p>
-                                                <p class="text-gray-500 text-xs">{{ $reserva->user->email ?? '' }}</p>
+                                        <div class="text-sm">
+                                            <div class="flex items-center gap-2">
+                                                <p class="font-bold text-gray-900 group-hover:text-indigo-700 transition">{{ $reserva->user->name ?? 'N/A' }}</p>
                                                 @if($reserva->user && $reserva->user->trashed())
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Eliminado</span>
+                                                    <span class="px-1.5 py-0.5 text-[9px] font-black bg-red-50 text-red-600 border border-red-100 rounded uppercase">Eliminado</span>
                                                 @endif
                                             </div>
+                                            <p class="text-[10px] text-gray-400 font-medium">{{ $reserva->user->email ?? '' }}</p>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    <td class="px-6 py-4 text-sm text-gray-700 font-bold">
                                         {{ $reserva->cancha->name ?? 'Cancha eliminada' }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        <div class="font-medium">{{ \Carbon\Carbon::parse($reserva->start_time)->format('d/m/Y') }}</div>
-                                        <div class="text-xs text-gray-400">
+                                    <td class="px-6 py-4 text-sm text-gray-600">
+                                        <div class="font-bold text-gray-800">{{ \Carbon\Carbon::parse($reserva->start_time)->format('d/m/Y') }}</div>
+                                        <div class="text-[10px] font-bold text-gray-400 uppercase">
                                             {{ \Carbon\Carbon::parse($reserva->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($reserva->end_time)->format('H:i') }}
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-black text-gray-800">
+                                    <td class="px-6 py-4 text-sm font-black text-right text-gray-900">
                                         S/ {{ number_format($reserva->total_price, 2) }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-center text-xs">
+                                    <td class="px-6 py-4 text-center">
                                         @php
                                             $statusColors = [
-                                                'fully_paid'   => 'bg-green-100 text-green-800',
-                                                'advance_paid' => 'bg-blue-100 text-blue-800',
-                                                'pending'      => 'bg-yellow-100 text-yellow-800',
-                                                'cancelled'    => 'bg-red-100 text-red-800',
+                                                'fully_paid'   => 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                                                'advance_paid' => 'bg-sky-100 text-sky-800 border-sky-200',
+                                                'pending'      => 'bg-amber-100 text-amber-800 border-amber-200',
+                                                'cancelled'    => 'bg-rose-100 text-rose-800 border-rose-200',
                                             ];
                                             $statusLabels = [
                                                 'fully_paid'   => 'Pagado',
@@ -95,28 +132,35 @@
                                                 'cancelled'    => 'Cancelado',
                                             ];
                                         @endphp
-                                        <span class="px-2.5 py-1 rounded-full font-bold uppercase {{ $statusColors[$reserva->status] ?? 'bg-gray-100' }}">
+                                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase border {{ $statusColors[$reserva->status] ?? 'bg-gray-100 border-gray-200' }}">
                                             {{ $statusLabels[$reserva->status] ?? $reserva->status }}
                                         </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center text-gray-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mx-auto transition transform group-hover:text-indigo-600 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                        </svg>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-10 text-center text-gray-500">No hay registros de reservas en el historial.</td>
+                                    <td colspan="6" class="px-6 py-12 text-center text-gray-400 uppercase text-xs font-bold tracking-widest">
+                                        No hay registros de reservas
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
 
-                {{-- PAGINACIÓN --}}
-                <div class="mt-6">
+                <footer class="px-6 py-4 border-t border-gray-50 bg-gray-50/50">
                     {{ $allReservas->links() }}
-                </div>
-            </div>
+                </footer>
+            </article>
         </div>
-    </div>
-    
+    </main>
+
+    {{-- LÓGICA DE GRÁFICOS ORIGINAL --}}
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             // Chart 1: Estados
@@ -128,12 +172,22 @@
                         labels: ['Pagado', 'Adelanto', 'Pendiente', 'Cancelado'],
                         datasets: [{ 
                             data: [{{ $reservasStatus['fully_paid'] }}, {{ $reservasStatus['advance_paid'] }}, {{ $reservasStatus['pending'] }}, {{ $reservasStatus['cancelled'] }}], 
-                            backgroundColor: ['#22C55E', '#3B82F6', '#EAB308', '#EF4444'],
+                            backgroundColor: ['#10B981', '#0EA5E9', '#F59E0B', '#EF4444'],
                             hoverOffset: 10,
                             borderWidth: 0
                         }]
                     }, 
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '60%' }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { usePointStyle: true, font: { weight: 'bold', size: 11 } }
+                            }
+                        }
+                    }
                 });
             }
 
@@ -148,7 +202,7 @@
                             label: 'Reservas Totales', 
                             data: {!! json_encode(array_values($hourlyData)) !!}, 
                             backgroundColor: '#6366F1',
-                            borderRadius: 3
+                            borderRadius: 8
                         }]
                     }, 
                     options: { 
@@ -156,8 +210,12 @@
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: { 
-                            y: { beginAtZero: true, grid: { display: false }, ticks: { stepSize: 1 } },
-                            x: { grid: { display: false } }
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { borderDash: [5, 5], color: '#f3f4f6' }, 
+                                ticks: { stepSize: 1, font: { weight: 'bold' } } 
+                            },
+                            x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } }
                         }
                     }
                 });
