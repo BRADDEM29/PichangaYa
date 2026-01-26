@@ -34,7 +34,7 @@ class LobbyRoom extends Component
             return redirect()->route('arena.index');
         }
 
-        // Keep Alive: Reiniciar timer a 48h
+        // Keep Alive: Reiniciar timer a 48h si estamos buscando
         if ($this->lobby->status === 'searching') {
             $this->lobby->update(['expires_at' => now()->addHours(48)]);
         }
@@ -43,12 +43,12 @@ class LobbyRoom extends Component
         $this->loadChat(); 
     }
 
-    // 🟢 1. LÓGICA BOTÓN "LISTO" (READY)
+    // 🟢 1. LÓGICA DE ACEPTACIÓN DE PARTIDA
     public function toggleReady()
     {
         if (!$this->userSlot) return;
 
-        // Alternar entre Listo (confirmed_at = hora) y No Listo (confirmed_at = null)
+        // Alternar entre Listo y No Listo
         if ($this->userSlot->confirmed_at) {
             $this->userSlot->update(['confirmed_at' => null]);
         } else {
@@ -56,6 +56,13 @@ class LobbyRoom extends Component
         }
         
         $this->lobby->refresh();
+    }
+
+    // 🟢 NUEVA FUNCIÓN: RECHAZAR PARTIDA
+    public function declineMatch()
+    {
+        // Al rechazar, el usuario abandona la sala
+        $this->exitLobby();
     }
 
     // 🟢 2. LÓGICA CHAT DUAL (PESTAÑAS)
@@ -96,8 +103,7 @@ class LobbyRoom extends Component
             // ENVIAR A MI GRUPO
             Message::create([
                 'sender_id' => $user->id,
-                'party_id' => $user->party_id, // Se vincula al grupo
-                // No ponemos lobby_id para que no salga en el general
+                'party_id' => $user->party_id,
                 'content' => $this->newMessage,
                 'type' => 'text'
             ]);
@@ -105,7 +111,7 @@ class LobbyRoom extends Component
             // ENVIAR A TODOS (GENERAL)
             Message::create([
                 'sender_id' => $user->id,
-                'lobby_id' => $this->lobby->id, // Se vincula a la sala
+                'lobby_id' => $this->lobby->id,
                 'content' => $this->newMessage,
                 'type' => 'text'
             ]);
@@ -132,15 +138,32 @@ class LobbyRoom extends Component
             ->get();
     }
 
-    // --- 🏃 EQUIPOS Y SALIDA ---
-    public function switchTeam()
+    // --- 🏃 EQUIPOS Y SALIDA (DOTA STYLE) ---
+
+    /**
+     * Mover al usuario al equipo seleccionado (A o B)
+     */
+    public function moveToTeam($targetTeam)
     {
+        // 1. Validar que sea un equipo válido
+        if (!in_array($targetTeam, ['A', 'B'])) return;
+
+        // 2. Si ya estoy en ese equipo, no hago nada
         $this->userSlot->refresh();
-        $newTeam = ($this->userSlot->team_side === 'A') ? 'B' : 'A';
-        
-        if ($this->lobby->slots()->where('team_side', $newTeam)->count() >= 7) return;
-        
-        $this->userSlot->update(['team_side' => $newTeam, 'is_captain' => false]);
+        if ($this->userSlot->team_side === $targetTeam) return;
+
+        // 3. Verificar si el equipo objetivo está lleno (Máximo 7)
+        $count = $this->lobby->slots()->where('team_side', $targetTeam)->count();
+        if ($count >= 7) {
+            return; // Equipo lleno
+        }
+
+        // 4. Realizar el cambio (y quitar capitán si lo era)
+        $this->userSlot->update([
+            'team_side' => $targetTeam,
+            'is_captain' => false 
+        ]);
+
         $this->lobby->refresh();
     }
 
@@ -171,6 +194,7 @@ class LobbyRoom extends Component
             if ($this->userSlot) $this->userSlot->delete();
         }
         
+        // Si la sala se queda vacía, se elimina
         if ($this->lobby->slots()->count() === 0) {
             $this->lobby->delete();
         }
@@ -181,15 +205,20 @@ class LobbyRoom extends Component
     public function render()
     {
         $this->lobby->refresh();
-        
-        // Polling constante del chat (se ejecuta cada vez que el front hace ping)
         $this->loadChat(); 
 
         $playerCount = $this->lobby->slots()->count();
         $maxPlayers = 14; 
 
+        // Si se llena la sala, cambiamos estado a 'confirming' para mostrar el modal
         if ($playerCount >= $maxPlayers && $this->lobby->status === 'searching') {
             $this->lobby->update(['status' => 'confirming']);
+        }
+        // Si alguien se sale durante la confirmación, volvemos a buscar
+        elseif ($playerCount < $maxPlayers && $this->lobby->status === 'confirming') {
+            $this->lobby->update(['status' => 'searching']);
+            // Opcional: Resetear confirmaciones si alguien se va
+            // $this->lobby->slots()->update(['confirmed_at' => null]);
         }
 
         return view('livewire.arena.lobby-room', [

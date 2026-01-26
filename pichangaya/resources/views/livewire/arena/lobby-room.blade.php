@@ -17,9 +17,11 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 </a>
 
-                <figure class="h-10 w-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center text-xl font-bold shadow-lg" aria-hidden="true">
-                    ⚽
+                {{-- 🟢 ICONO BALÓN --}}
+                <figure class="h-10 w-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg p-2" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-ball-football"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45" /><path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45" /></svg>
                 </figure>
+                
                 <hgroup>
                     <h1 class="text-lg font-black tracking-wide text-white uppercase">
                         Sala #{{ $lobby->id }} <span class="text-gray-500 mx-2">|</span> {{ $lobby->sport->name }}
@@ -56,118 +58,141 @@
     {{-- MAIN: Contenido del Lobby --}}
     <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
         
-        {{-- SECTION: Equipos (Columna Izquierda) --}}
+        {{-- SECTION: Equipos (Columna Izquierda - Estilo MOBA) --}}
         <section class="lg:col-span-8 space-y-6" aria-label="Equipos">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            @php
+                $teamA = $lobby->slots->where('team_side', 'A')->values();
+                $teamB = $lobby->slots->where('team_side', 'B')->values();
+            @endphp
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 
-                {{-- ARTICLE: Equipo A --}}
-                <article class="bg-gray-800 rounded-2xl overflow-hidden shadow-xl border border-gray-700/50">
-                    <header class="bg-gray-700/50 p-4 border-b border-gray-700 flex justify-between items-center">
-                        <h2 class="font-bold text-blue-400">EQUIPO A</h2>
-                        <span class="text-xs bg-black/40 px-2 py-1 rounded text-gray-400">{{ $lobby->slots->where('team_side', 'A')->count() }}/7</span>
+                {{-- 🟢 EQUIPO A (Local) --}}
+                <article class="space-y-2">
+                    <header class="text-green-400 font-black uppercase tracking-widest text-sm mb-3 border-b border-green-500/30 pb-2 flex justify-between items-end">
+                        <h3>Equipo A (Local)</h3>
+                        <span class="text-xs bg-gray-800 px-2 rounded">{{ $teamA->count() }}/7</span>
                     </header>
-                    
-                    <ul class="p-4 space-y-3">
-                        @foreach($lobby->slots->where('team_side', 'A') as $slot)
-                            <li class="flex items-center justify-between bg-gray-900/40 p-2 rounded-lg border border-gray-700/30">
-                                <div class="flex items-center gap-3">
-                                    <img src="{{ $slot->user->profile_photo_url }}" class="w-10 h-10 rounded-full border-2 {{ $slot->user_id == Auth::id() ? 'border-blue-500' : 'border-gray-600' }}" alt="{{ $slot->user->name }}">
-                                    <div>
-                                        <p class="text-sm font-bold {{ $slot->user_id == Auth::id() ? 'text-white' : 'text-gray-400' }}">{{ $slot->user->name }}</p>
-                                        @if($slot->is_captain) <span class="text-[10px] text-yellow-500 leading-none font-bold">👑 Líder</span> @endif
-                                    </div>
-                                </div>
-                                
-                                {{-- Controles --}}
-                                @if($slot->user_id === Auth::id())
-                                    <div class="flex items-center gap-2">
-                                        <button wire:click="toggleCaptain" class="p-1.5 rounded-lg transition {{ $slot->is_captain ? 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/40' : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white' }}" title="Liderazgo">
-                                            @if($slot->is_captain)
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                            @else
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+
+                    <ul class="space-y-2">
+                        @for ($i = 0; $i < 7; $i++)
+                            @if(isset($teamA[$i]))
+                                {{-- 👤 SLOT OCUPADO --}}
+                                <li class="flex items-center justify-between bg-gradient-to-r from-green-900/40 to-gray-800 p-2 rounded border-l-4 border-green-500 transition hover:bg-gray-700 shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <div class="relative">
+                                            <img src="{{ $teamA[$i]->user->profile_photo_url }}" class="w-10 h-10 rounded shadow-lg border border-gray-600">
+                                            @if($teamA[$i]->is_captain)
+                                                <span class="absolute -top-1 -left-1 text-xs" title="Capitán">👑</span>
                                             @endif
-                                        </button>
-                                        <button wire:click="switchTeam" class="p-1.5 bg-gray-700 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition" title="Cambiar a Equipo B">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                        </button>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="text-sm font-bold {{ $teamA[$i]->user_id === auth()->id() ? 'text-white' : 'text-gray-300' }}">
+                                                {{ $teamA[$i]->user->name }}
+                                            </span>
+                                            
+                                            {{-- 🟢 ESTADO READY --}}
+                                            @if($teamA[$i]->confirmed_at)
+                                                <div class="flex items-center gap-1 text-[10px] text-green-400 font-bold uppercase tracking-wider">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l2 2l4 -4" /></svg>
+                                                    Listo
+                                                </div>
+                                            @else
+                                                <span class="text-[9px] text-gray-500 uppercase tracking-wider">⏳ Esperando</span>
+                                            @endif
+                                        </div>
                                     </div>
-                                @else
-                                    <div>@if($slot->confirmed_at) ✅ @else <span class="w-2 h-2 rounded-full bg-gray-500 inline-block"></span> @endif</div>
-                                @endif
-                            </li>
-                        @endforeach
-                        
-                        {{-- Slots Vacíos --}}
-                        @for($i = $lobby->slots->where('team_side', 'A')->count(); $i < 7; $i++)
-                            <li class="flex items-center justify-center p-3 rounded-lg border border-dashed border-gray-800 text-gray-600 text-xs font-mono">
-                                ESPERANDO JUGADOR...
-                            </li>
+                                    
+                                    @if($teamA[$i]->user_id === auth()->id())
+                                        <button wire:click="toggleCaptain" class="text-gray-500 hover:text-yellow-400 transition" title="Pedir Capitanía">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                                        </button>
+                                    @endif
+                                </li>
+                            @else
+                                {{-- 🌑 SLOT VACÍO --}}
+                                <li class="h-[58px] bg-gray-900/30 border border-gray-700/50 border-dashed rounded flex items-center justify-center group hover:border-green-500/50 transition cursor-pointer"
+                                     wire:click="moveToTeam('A')">
+                                    @if($userSlot->team_side !== 'A')
+                                        <span class="text-[10px] font-bold text-gray-600 group-hover:text-green-400 uppercase tracking-widest transition flex items-center gap-1">
+                                            <svg class="w-3 h-3 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            Unirse
+                                        </span>
+                                    @else
+                                        <span class="text-[10px] text-gray-700 font-mono">VACÍO</span>
+                                    @endif
+                                </li>
+                            @endif
                         @endfor
                     </ul>
-
-                    @if(!$lobby->slots->where('user_id', Auth::id())->count() && $lobby->slots->where('team_side', 'A')->count() < 7)
-                        <footer class="p-4 pt-0">
-                            <button wire:click="joinTeam('A')" class="w-full py-2 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-500/50 rounded-lg text-xs font-bold uppercase tracking-wider transition">
-                                Unirse al Equipo A
-                            </button>
-                        </footer>
-                    @endif
                 </article>
 
-                {{-- ARTICLE: Equipo B --}}
-                <article class="bg-gray-800 rounded-2xl overflow-hidden shadow-xl border border-gray-700/50">
-                    <header class="bg-gray-700/50 p-4 border-b border-gray-700 flex justify-between items-center">
-                        <h2 class="font-bold text-red-400">EQUIPO B</h2>
-                        <span class="text-xs bg-black/40 px-2 py-1 rounded text-gray-400">{{ $lobby->slots->where('team_side', 'B')->count() }}/7</span>
+                {{-- 🔴 EQUIPO B (Visitante) --}}
+                <article class="space-y-2">
+                    <header class="text-red-400 font-black uppercase tracking-widest text-sm mb-3 border-b border-red-500/30 pb-2 flex justify-between items-end">
+                        <h3>Equipo B (Visitante)</h3>
+                        <span class="text-xs bg-gray-800 px-2 rounded">{{ $teamB->count() }}/7</span>
                     </header>
-                    
-                    <ul class="p-4 space-y-3">
-                        @foreach($lobby->slots->where('team_side', 'B') as $slot)
-                            <li class="flex items-center justify-between bg-gray-900/40 p-2 rounded-lg border border-gray-700/30">
-                                <div class="flex items-center gap-3">
-                                    <img src="{{ $slot->user->profile_photo_url }}" class="w-10 h-10 rounded-full border-2 {{ $slot->user_id == Auth::id() ? 'border-red-500' : 'border-gray-600' }}" alt="{{ $slot->user->name }}">
-                                    <div>
-                                        <p class="text-sm font-bold {{ $slot->user_id == Auth::id() ? 'text-white' : 'text-gray-400' }}">{{ $slot->user->name }}</p>
-                                        @if($slot->is_captain) <span class="text-[10px] text-yellow-500 leading-none font-bold">👑 Líder</span> @endif
-                                    </div>
-                                </div>
 
-                                @if($slot->user_id === Auth::id())
-                                    <div class="flex items-center gap-2">
-                                        <button wire:click="toggleCaptain" class="p-1.5 rounded-lg transition {{ $slot->is_captain ? 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/40' : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white' }}" title="Liderazgo">
-                                            @if($slot->is_captain)
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                            @else
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <ul class="space-y-2">
+                        @for ($i = 0; $i < 7; $i++)
+                            @if(isset($teamB[$i]))
+                                {{-- 👤 SLOT OCUPADO --}}
+                                <li class="flex items-center justify-between bg-gradient-to-l from-red-900/40 to-gray-800 p-2 rounded border-r-4 border-red-500 transition hover:bg-gray-700 shadow-sm">
+                                    <div class="flex flex-col items-end flex-1 mr-3">
+                                        <span class="text-sm font-bold {{ $teamB[$i]->user_id === auth()->id() ? 'text-white' : 'text-gray-300' }}">
+                                            {{ $teamB[$i]->user->name }}
+                                        </span>
+                                        
+                                        {{-- 🟢 ESTADO READY --}}
+                                        @if($teamB[$i]->confirmed_at)
+                                            <div class="flex items-center gap-1 text-[10px] text-green-400 font-bold uppercase tracking-wider">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l2 2l4 -4" /></svg>
+                                                Listo
+                                            </div>
+                                        @else
+                                            <span class="text-[9px] text-red-300 uppercase tracking-wider">⏳ Esperando</span>
+                                        @endif
+                                    </div>
+
+                                    <div class="relative flex items-center gap-2">
+                                        @if($teamB[$i]->user_id === auth()->id())
+                                            <button wire:click="toggleCaptain" class="text-gray-500 hover:text-yellow-400 transition" title="Pedir Capitanía">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                                            </button>
+                                        @endif
+
+                                        <div class="relative">
+                                            <img src="{{ $teamB[$i]->user->profile_photo_url }}" class="w-10 h-10 rounded shadow-lg border border-gray-600">
+                                            @if($teamB[$i]->is_captain)
+                                                <span class="absolute -top-1 -right-1 text-xs" title="Capitán">👑</span>
                                             @endif
-                                        </button>
-                                        <button wire:click="switchTeam" class="p-1.5 bg-gray-700 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition transform rotate-180" title="Cambiar a Equipo A">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                        </button>
+                                        </div>
                                     </div>
-                                @else
-                                    <div>@if($slot->confirmed_at) ✅ @else <span class="w-2 h-2 rounded-full bg-gray-500 inline-block"></span> @endif</div>
-                                @endif
-                            </li>
-                        @endforeach
-
-                        @for($i = $lobby->slots->where('team_side', 'B')->count(); $i < 7; $i++)
-                            <li class="flex items-center justify-center p-3 rounded-lg border border-dashed border-gray-800 text-gray-600 text-xs font-mono">
-                                ESPERANDO JUGADOR...
-                            </li>
+                                </li>
+                            @else
+                                {{-- 🌑 SLOT VACÍO --}}
+                                <li class="h-[58px] bg-gray-900/30 border border-gray-700/50 border-dashed rounded flex items-center justify-center group hover:border-red-500/50 transition cursor-pointer"
+                                     wire:click="moveToTeam('B')">
+                                    @if($userSlot->team_side !== 'B')
+                                        <span class="text-[10px] font-bold text-gray-600 group-hover:text-red-400 uppercase tracking-widest transition flex items-center gap-1">
+                                            <svg class="w-3 h-3 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            Unirse
+                                        </span>
+                                    @else
+                                        <span class="text-[10px] text-gray-700 font-mono">VACÍO</span>
+                                    @endif
+                                </li>
+                            @endif
                         @endfor
                     </ul>
-
-                    @if(!$lobby->slots->where('user_id', Auth::id())->count() && $lobby->slots->where('team_side', 'B')->count() < 7)
-                        <footer class="p-4 pt-0">
-                            <button wire:click="joinTeam('B')" class="w-full py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/50 rounded-lg text-xs font-bold uppercase tracking-wider transition">
-                                Unirse al Equipo B
-                            </button>
-                        </footer>
-                    @endif
                 </article>
+
             </div>
+
+            {{-- 🚫 ELIMINADO EL FOOTER CON EL BOTÓN 'ESTOY LISTO' ANTIGUO --}}
+
         </section>
 
         {{-- ASIDE: Columna Derecha (Carrusel + Chat) --}}
@@ -250,15 +275,23 @@
                 </footer>
             </section>
 
-            {{-- FOOTER: Botón Salir --}}
-            <footer class="text-center pt-4">
+            {{-- 🟢 FOOTER: Botón Salir Gigante con SVG Nuevo --}}
+            <footer class="pt-4">
                 <button wire:click="exitLobby" 
                         wire:confirm="¿Seguro que quieres abandonar la sala?"
-                        class="text-sm text-red-400 hover:text-red-300 underline font-bold cursor-pointer transition">
-                    ❌ SALIR DE LA SALA DEFINITIVAMENTE
+                        class="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-black text-sm uppercase rounded-xl shadow-lg border-2 border-red-500 transition-all transform hover:scale-105 flex items-center justify-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M10 10l4 4m0 -4l-4 4" /></svg>
+                    SALIR DE LA SALA DEFINITIVAMENTE
                 </button>
             </footer>
         </aside>
 
     </main>
+
+    {{-- 🟢 AQUÍ INVOCAMOS EL MODAL GLOBAL (Cuando status sea 'confirming') --}}
+    @include('components.arena.match-accept-modal', [
+        'isOpen' => $lobby->status === 'confirming',
+        'userSlot' => $userSlot
+    ])
+
 </div>
