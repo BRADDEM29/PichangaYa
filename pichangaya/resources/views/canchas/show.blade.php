@@ -21,7 +21,7 @@
     {{-- ARTICLE: Contenedor Semántico Principal --}}
     <article class="relative min-h-screen">
 
-        {{-- 🟢 FONDO DECORATIVO (Se mantiene igual, es puramente visual) --}}
+        {{-- 🟢 FONDO DECORATIVO --}}
         <div class="fixed inset-0 z-0 pointer-events-none" aria-hidden="true">
             <div class="absolute inset-0 bg-gray-200 dark:bg-gray-950 transition-colors duration-300"></div>
             <div class="absolute inset-0 opacity-30 dark:opacity-20 bg-cover bg-center bg-no-repeat transition-opacity duration-500" 
@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        {{-- 1. HEADER PRINCIPAL (Título, Precio, Nav) --}}
+        {{-- 1. HEADER PRINCIPAL --}}
         <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm relative z-20 transition-colors duration-300">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -53,18 +53,18 @@
                     </div>
 
                     {{-- Precio Badge --}}
-                    <div class="flex items-center bg-white dark:bg-gray-700 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm transition-colors duration-300">
+                    <section class="flex items-center bg-white dark:bg-gray-700 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm transition-colors duration-300">
                         <div class="text-right">
                             <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Precio desde</p>
                             <p class="text-2xl font-black text-indigo-600 dark:text-indigo-400">S/ {{ number_format($cancha->price_per_hour, 2) }}</p>
                         </div>
-                    </div>
+                    </section>
                 </div>
             </div>
         </header>
 
         {{-- CONTENIDO PRINCIPAL --}}
-        <div class="py-8 relative z-10">
+        <main class="py-8 relative z-10">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
                 {{-- 2. FIGURE: CARRUSEL DE FOTOS --}}
@@ -151,7 +151,7 @@
                     {{-- COLUMNA PRINCIPAL (Izquierda) --}}
                     <div class="lg:col-span-8 space-y-8">
                         
-                        {{-- ALERTAS (Se mantienen divs porque son elementos de UI transitorios) --}}
+                        {{-- ALERTAS --}}
                         @if ($errors->any() || session('error'))
                             <div class="space-y-4" role="alert">
                                 @if ($errors->any())
@@ -184,19 +184,37 @@
                             <header class="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 flex items-center justify-between transition-colors duration-300">
                                 <div class="flex items-center gap-2">
                                     <div class="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-full">
-                                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
                                     </div>
                                     <h3 class="text-lg font-bold text-gray-900 dark:text-white">Elige tu turno</h3>
                                 </div>
                             </header>
                             
-                            {{-- LEYENDA --}}
-                            <div class="px-6 pt-4 flex flex-wrap gap-4 text-xs font-bold" aria-hidden="true">
-                                <div class="flex items-center gap-2"><div class="w-4 h-4 bg-white border border-gray-300 rounded shadow-sm"></div><span class="text-gray-600 dark:text-gray-400">Libre</span></div>
-                                <div class="flex items-center gap-2"><div class="w-4 h-4 bg-yellow-100 border border-yellow-400 rounded shadow-sm"></div><span class="text-yellow-700 dark:text-yellow-500">Por confirmar</span></div>
-                                <div class="flex items-center gap-2"><div class="w-4 h-4 bg-gray-200 border border-gray-400 rounded shadow-sm"></div><span class="text-gray-500 dark:text-gray-400">Ocupado</span></div>
-                                <div class="flex items-center gap-2"><div class="w-4 h-4 bg-indigo-600 border border-indigo-600 rounded shadow-sm"></div><span class="text-indigo-600 dark:text-indigo-400">Tu Juego</span></div>
-                            </div>
+                            {{-- LEYENDA ÚNICA Y PROFESIONAL --}}
+                            <nav class="px-6 pt-4 flex flex-wrap gap-4 text-xs font-bold" aria-label="Leyenda de estados">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-4 h-4 bg-white border border-gray-300 rounded shadow-sm"></div>
+                                    <span class="text-gray-600 dark:text-gray-400">Libre</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-4 h-4 bg-yellow-100 border border-yellow-400 rounded shadow-sm"></div>
+                                    <span class="text-yellow-700 dark:text-yellow-500">Espera</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-4 h-4 bg-indigo-600 border border-indigo-600 rounded shadow-sm"></div>
+                                    <span class="text-indigo-600 dark:text-indigo-400">Tuyo</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-4 h-4 bg-gray-200 border border-gray-400 rounded shadow-sm"></div>
+                                    <span class="text-gray-500 dark:text-gray-400">Ocupado</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-4 h-4 bg-green-500 border border-green-600 rounded shadow-sm animate-pulse"></div>
+                                    <span class="text-green-700 dark:text-green-400">Selección</span>
+                                </div>
+                            </nav>
 
                             <div class="p-6">
                                 @livewire('cancha-reserva-form', ['cancha' => $cancha])
@@ -243,7 +261,6 @@
                                 <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-2">Horarios de Atención</p>
                                 <div class="flex justify-between items-center text-sm">
                                     <span class="text-gray-600 dark:text-gray-400">Lunes a Domingo</span>
-                                    {{-- TIME: Etiqueta semántica --}}
                                     <time class="font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                                         {{ \Carbon\Carbon::parse($cancha->open_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($cancha->close_time)->format('h:i A') }}
                                     </time>
@@ -281,25 +298,21 @@
                                 Ubicación
                             </h3>
                             
-                            {{-- ADDRESS: Semántica para direcciones --}}
                             <address class="not-italic text-sm text-gray-600 dark:text-gray-400 mb-3 border-l-2 border-indigo-400 pl-3">
                                 {{ $cancha->address }}
                             </address>
                             
                             @if($cancha->lat && $cancha->lng)
-                                {{-- FIGURE: Contenedor del Mapa --}}
                                 <figure>
                                     <div id="map-show" class="w-full h-48 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 mb-4 transition-colors duration-300"></div>
                                     <figcaption class="sr-only">Mapa mostrando la ubicación exacta de {{ $cancha->name }}</figcaption>
                                 </figure>
                                 
                                 <div class="grid grid-cols-2 gap-3 mb-4">
-                                    <a href="http://maps.google.com/maps?q={{ $cancha->lat }},{{ $cancha->lng }}" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 py-2.5 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-200 transition border border-gray-200 dark:border-gray-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-map-pin-2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 18.5l-3 -1.5l-6 3v-13l6 -3l6 3l6 -3v7" /><path d="M9 4v13" /><path d="M15 7v5" /><path d="M21.121 20.121a3 3 0 1 0 -4.242 0c.418 .419 1.125 1.045 2.121 1.879c1.051 -.89 1.759 -1.516 2.121 -1.879" /><path d="M19 18v.01" /></svg>
+                                    <a href="https://www.google.com/maps/search/?api=1&query={{ $cancha->lat }},{{ $cancha->lng }}" target="_blank" class="flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 py-2.5 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-200 transition border border-gray-200 dark:border-gray-600">
                                         Google Maps
                                     </a>
                                     <a href="https://waze.com/ul?ll={{ $cancha->lat }},{{ $cancha->lng }}&navigate=yes" target="_blank" class="flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 py-2.5 rounded-lg text-xs font-bold text-blue-700 dark:text-blue-300 transition border border-blue-100 dark:border-blue-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-waze"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6.66 17.52a7 7 0 0 1 -3.66 -4.52c2 0 3 -1 3 -2.51c0 -3.92 2.25 -7.49 7.38 -7.49c4.62 0 7.62 3.51 7.62 8a8.08 8.08 0 0 1 -3.39 6.62" /><path d="M10 18.69a17.29 17.29 0 0 0 3.33 .3h.54" /><path d="M14 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M6 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M16 9h.01" /><path d="M11 9h.01" /></svg>
                                         Waze
                                     </a>
                                 </div>
@@ -315,7 +328,6 @@
                             @endphp
                             
                             <a href="{{ $linkWa }}" target="_blank" class="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
                                 Contactar al Dueño
                             </a>
                         </section>
@@ -323,7 +335,7 @@
                     </aside>
                 </div>
             </div>
-        </div>
+        </main>
 
         {{-- FOOTER --}}
         <footer class="relative z-10">
