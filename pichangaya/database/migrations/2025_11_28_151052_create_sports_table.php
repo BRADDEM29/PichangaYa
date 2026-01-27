@@ -6,22 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('sports', function (Blueprint $table) {
             $table->id();
-        $table->string('name')->unique(); // Ej: Fútbol 7
-        $table->string('icon')->nullable(); // Para guardar un ícono o emoji
-        $table->timestamps();
+            $table->string('name')->unique(); // Ej: Fútbol 7
+            $table->integer('total_players')->default(14); // 🟢 NUEVO: Capacidad total de la sala (Ej: 14 para 7vs7)
+            $table->string('icon')->nullable(); 
+            $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('sports');
