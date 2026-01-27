@@ -1,8 +1,9 @@
 <?php
-
+// C:\laragon\www\PichangaYa\pichangaya\app\Livewire\CanchaReservaForm.php
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\Attributes\On; // 🟢 Necesario para el atributo #[On]
 use Illuminate\Http\Request;
 use App\Models\Cancha;
 use App\Models\Reserva;
@@ -27,6 +28,21 @@ class CanchaReservaForm extends Component
         'time' => 'required', 
         'duration' => 'required|integer|min:1|max:24', 
     ];
+
+    /**
+     * 🟢 ESCUCHADOR PARA ACTUALIZAR LA CANCHA DESDE EL FORMULARIO DE TORNEO
+     */
+    #[On('updateCancha')]
+    public function updateCancha($id)
+    {
+        $nuevaCancha = Cancha::find($id);
+        if ($nuevaCancha) {
+            $this->cancha = $nuevaCancha;
+            $this->resetSelection(); // Limpiamos selección previa al cambiar de cancha
+            $this->generateTimeSlots();
+            $this->calculatePrice();
+        }
+    }
 
     public function mount(Cancha $cancha, Reserva $reserva = null)
     {
@@ -68,6 +84,12 @@ class CanchaReservaForm extends Component
             $this->time = $clickedTime;
             $this->duration = 1;
             $this->calculatePrice();
+            
+            // 🟢 DESPACHAR EVENTO PARA EL FORMULARIO DE TORNEOS
+            $this->dispatch('time-selected', [
+                'date' => $this->date,
+                'time' => $this->time
+            ]);
             return;
         }
 
@@ -88,6 +110,11 @@ class CanchaReservaForm extends Component
                 $this->duration = $newDuration;
             }
             $this->calculatePrice();
+
+            $this->dispatch('time-selected', [
+                'date' => $this->date,
+                'time' => $this->time
+            ]);
             return;
         }
 
@@ -107,6 +134,11 @@ class CanchaReservaForm extends Component
         }
 
         $this->calculatePrice();
+
+        $this->dispatch('time-selected', [
+            'date' => $this->date,
+            'time' => $this->time
+        ]);
     }
 
     public function resetSelection()
@@ -114,11 +146,16 @@ class CanchaReservaForm extends Component
         $this->time = '';
         $this->duration = 1;
         $this->total_price = 0;
+
+        $this->dispatch('time-selected', [
+            'date' => $this->date,
+            'time' => ''
+        ]);
     }
 
     public function calculatePrice()
     {
-        if ($this->duration > 0) {
+        if ($this->duration > 0 && isset($this->cancha)) {
             $this->total_price = $this->cancha->price_per_hour * $this->duration;
         } else {
             $this->total_price = 0;
@@ -128,6 +165,8 @@ class CanchaReservaForm extends Component
     public function generateTimeSlots()
     {
         $this->timeSlots = [];
+
+        if (!isset($this->cancha)) return;
 
         $openTime = Carbon::parse($this->date . ' ' . $this->cancha->open_time);
         $closeTime = Carbon::parse($this->date . ' ' . $this->cancha->close_time);
@@ -169,35 +208,30 @@ class CanchaReservaForm extends Component
                 
                 if ($currentSlot->lt($resEnd) && $slotEnd->gt($resStart)) {
                     
-                    // Si editamos, ignoramos visualmente nuestra propia reserva
                     if ($this->reservaEdicion && $this->reservaEdicion->id === $reserva->id) {
                         continue; 
                     }
 
-                    // 🟢 SOLUCIÓN DEL AZUL 🟢
                     $estadosConfirmados = ['confirmed', 'paid', 'fully_paid', 'advance', 'advance_paid'];
                     
                     if ($reserva->user_id == Auth::id()) {
                         if (in_array($reserva->status, $estadosConfirmados)) {
-                            // ES MÍA Y CONFIRMADA -> AZUL
                             $isMyBooking = true;
                             $isOccupied = true; 
                         } elseif ($reserva->status === 'pending') {
-                            // Por defecto la dejamos AMARILLA (Pendiente) para que sepas que falta pagar
                             $isPending = true;
                             $isPast = false;
                         }
                     } else {
-                        // NO ES MÍA
                         if ($reserva->status === 'pending') {
                             if ($reserva->created_at > now()->subMinutes(10)) {
                                 $isPending = true;
                                 $isPast = false; 
                             } else {
-                                $isOccupied = true; // Vencido
+                                $isOccupied = true; 
                             }
                         } else {
-                            $isOccupied = true; // Ocupado gris
+                            $isOccupied = true; 
                         }
                     }
                 }
@@ -289,28 +323,18 @@ class CanchaReservaForm extends Component
         }
     }
 
-    /**
-     * Verifica el estado de la reserva cada vez que wire:poll se dispara.
-     * Si el estado ya no es válido para edición, redirige.
-     */
     public function checkReservaStatus()
     {
-        // Si estamos editando una reserva existente
         if ($this->reservaEdicion) {
-            // Refrescamos los datos desde la BD para obtener el estado actual
             $this->reservaEdicion->refresh();
 
-            // Lista de estados que permiten seguir editando
-            // Si el admin lo cambia a 'cancelled' o algo raro, te saca
             $estadosPermitidos = ['confirmed', 'paid', 'fully_paid', 'advance', 'advance_paid', 'pending'];
 
             if (!in_array($this->reservaEdicion->status, $estadosPermitidos)) {
-                // Si el estado cambió a algo no permitido (ej: cancelado), te expulsa
                 return redirect()->to('http://localhost:8000/mis-reservas');
             }
         }
 
-        // Refrescar los slots visuales por si alguien más reservó hace 1 segundo
         $this->generateTimeSlots();
     }
 

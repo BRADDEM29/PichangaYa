@@ -174,7 +174,8 @@
             </div>
 
             @auth
-                @if(auth()->user()->isVerifiedForBooking())
+                {{-- 🟢 MEJORA: El Admin salta la verificación, el cliente normal NO --}}
+                @if(auth()->user()->role === 'admin' || auth()->user()->isVerifiedForBooking())
                     {{-- BOTÓN HABILITADO --}}
                     <button wire:click="save" 
                         class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold py-3.5 px-6 rounded-xl transition duration-200 shadow-lg shadow-indigo-200 flex justify-center items-center gap-2 transform active:scale-[0.98]"
@@ -191,7 +192,7 @@
                         </div>
                     </button>
                 @else
-                    {{-- BOTÓN BLOQUEADO CON MENSAJE --}}
+                    {{-- BOTÓN BLOQUEADO CON MENSAJE PARA CLIENTES NO VERIFICADOS --}}
                     <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
                         <div class="flex items-start gap-3">
                             <svg class="w-6 h-6 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -1,144 +1,163 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-black text-2xl text-gray-800 leading-tight flex items-center gap-2">
-            <span class="text-indigo-600">🏆</span> Crear Torneo Versátil
-        </h2>
+        <header class="flex items-center gap-3">
+            <div class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+                <svg class="w-6 h-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+            </div>
+            <h2 class="font-black text-2xl text-gray-800 dark:text-white leading-tight">
+                Configurar Nuevo Torneo
+            </h2>
+        </header>
     </x-slot>
 
-    <div class="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-8 bg-gray-50 dark:bg-gray-900 min-h-screen font-sans">
+        <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            <form action="{{ route('admin.tournaments.store') }}" method="POST" id="tournamentForm">
+            <form action="{{ route('admin.tournaments.store') }}" method="POST" id="tournamentForm" class="space-y-8">
                 @csrf
-                
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {{-- Input oculto que capturará la fecha/hora desde Livewire --}}
+                <input type="hidden" name="start_date" id="final_start_date">
+
+                {{-- PASO 1: INFORMACIÓN BÁSICA --}}
+                <section class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <header class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/30">
+                        <h3 class="flex items-center gap-2 font-bold text-gray-800 dark:text-white">
+                            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-600 text-white text-[10px]">1</span>
+                            Información General
+                        </h3>
+                    </header>
                     
-                    {{-- COLUMNA IZQUIERDA: Configuración --}}
-                    <div class="lg:col-span-1 space-y-6">
-                        
-                        {{-- Tarjeta: Datos Básicos --}}
-                        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
-                            <h3 class="font-bold text-gray-700 dark:text-gray-200 mb-4 border-b pb-2">⚙️ Configuración</h3>
-                            
-                            {{-- Nombre --}}
-                            <div class="mb-4">
-                                <label class="block text-sm font-bold text-gray-600 dark:text-gray-400 mb-1">Nombre del Evento</label>
-                                <input type="text" name="name" class="w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500" placeholder="Ej: Copa Relámpago" required>
+                    <fieldset class="p-6 space-y-4">
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-widest">Nombre del Torneo</label>
+                                <input type="text" name="name" class="w-full rounded-2xl border-gray-200 dark:bg-gray-700 dark:border-gray-600 focus:ring-indigo-500 py-3" placeholder="Ej: Copa de Verano 2024" required>
                             </div>
 
-                            {{-- Selección de Cancha (Modelo Cancha) --}}
-                            <div class="mb-4">
-                                <label class="block text-sm font-bold text-gray-600 dark:text-gray-400 mb-1">📍 Sede (Cancha)</label>
-                                <select name="cancha_id" class="w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500" required>
-                                    <option value="" disabled selected>-- Selecciona una cancha --</option>
-                                    @foreach($canchas as $cancha)
-                                        <option value="{{ $cancha->id }}">
-                                            {{ $cancha->name }} 
-                                            @if($cancha->district) - {{ $cancha->district->name }} @endif
-                                            (S/ {{ number_format($cancha->price_per_hour, 2) }}/h)
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            {{-- Fecha y Hora --}}
-                            <div class="mb-4">
-                                <label class="block text-sm font-bold text-gray-600 dark:text-gray-400 mb-1">📅 Inicio</label>
-                                <input type="datetime-local" name="start_date" class="w-full rounded-lg border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500" required>
-                            </div>
-                        </div>
-
-                        {{-- Botón Submit --}}
-                        <button type="submit" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black text-lg rounded-xl shadow-xl transform transition hover:scale-[1.02]">
-                            GENERAR BRACKET
-                        </button>
-                    </div>
-
-                    {{-- COLUMNA DERECHA: Equipos Dinámicos --}}
-                    <div class="lg:col-span-2">
-                        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 h-full">
-                            <div class="flex justify-between items-center mb-6 border-b pb-4">
-                                <div>
-                                    <h3 class="font-bold text-xl text-gray-800 dark:text-white">Participantes</h3>
-                                    <p class="text-xs text-gray-500">Agrega 4, 5, 7, 9... los equipos que desees. El sistema calculará los pases directos (Byes).</p>
-                                </div>
-                                <div class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full font-black text-xl" id="teamCounter">
-                                    0
+                            <div>
+                                <label class="block text-[10px] font-black uppercase text-gray-400 mb-1 tracking-widest">Sede del Evento</label>
+                                <div class="relative">
+                                    {{-- Usamos wire:model o un evento JS para decirle a Livewire qué cancha cargar --}}
+                                    <select name="cancha_id" id="cancha_select" 
+                                        onchange="window.dispatchEvent(new CustomEvent('cancha-changed', { detail: { id: this.value } }))"
+                                        class="w-full rounded-2xl border-gray-200 dark:bg-gray-700 dark:border-gray-600 focus:ring-indigo-500 py-3 appearance-none shadow-sm" required>
+                                        <option value="" disabled selected>Selecciona una cancha comercial...</option>
+                                        @foreach($canchas as $cancha)
+                                            <option value="{{ $cancha->id }}">{{ $cancha->name }} — S/ {{ $cancha->price_per_hour }}/h</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+                    </fieldset>
+                </section>
 
-                            {{-- Contenedor de Inputs --}}
-                            <div id="teamsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                                {{-- Aquí se insertan los inputs con JS --}}
-                            </div>
-
-                            {{-- Botones de Acción --}}
-                            <div class="mt-6 flex gap-3">
-                                <button type="button" onclick="addTeamInput()" class="flex-1 py-3 border-2 border-dashed border-gray-300 text-gray-500 font-bold rounded-lg hover:border-indigo-500 hover:text-indigo-500 hover:bg-indigo-50 transition flex items-center justify-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                                    Agregar Equipo
-                                </button>
-                                <button type="button" onclick="addTeamInput(true)" class="px-4 py-3 bg-gray-100 text-gray-600 font-bold rounded-lg hover:bg-gray-200 transition" title="Agregar espacio vacío (Bye)">
-                                    + Bye
-                                </button>
-                            </div>
+                {{-- PASO 2: HORARIO (TU CALENDARIO LIVEWIRE) --}}
+                <section class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden border-t-4 border-t-indigo-600">
+                    <header class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-indigo-50/30 dark:bg-indigo-900/10">
+                        <h3 class="flex items-center gap-2 font-bold text-gray-800 dark:text-white">
+                            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-600 text-white text-[10px]">2</span>
+                            Disponibilidad en Tiempo Real
+                        </h3>
+                    </header>
+                    <div class="p-6">
+                        <div class="rounded-2xl border border-dashed border-gray-200 dark:border-gray-600 p-2 bg-white dark:bg-gray-800">
+                            {{-- Llamamos a tu componente tal cual, pasándole la primera cancha por defecto --}}
+                            @livewire('cancha-reserva-form', ['cancha' => $canchas->first()])
                         </div>
                     </div>
-                </div>
+                </section>
+
+                {{-- PASO 3: EQUIPOS --}}
+                <section class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <header class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/30 flex justify-between items-center">
+                        <h3 class="flex items-center gap-2 font-bold text-gray-800 dark:text-white">
+                            <span class="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-600 text-white text-[10px]">3</span>
+                            Participantes
+                        </h3>
+                        <output id="teamCounter" class="text-xs font-black bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full">0</output>
+                    </header>
+                    
+                    <div class="p-6">
+                        <div id="teamsContainer" class="grid grid-cols-1 gap-3 mb-6">
+                            {{-- JS Inyecta inputs aquí --}}
+                        </div>
+
+                        <nav class="flex gap-3">
+                            <button type="button" onclick="addTeamInput()" class="flex-1 py-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-2xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-bold text-sm transition-all flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                                Añadir Equipo
+                            </button>
+                            <button type="button" onclick="addTeamInput(true)" class="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-400 font-medium text-sm hover:text-indigo-600 transition-colors">
+                                + Bye
+                            </button>
+                        </nav>
+                    </div>
+                </section>
+
+                <footer class="pt-4">
+                    <button type="submit" class="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xl rounded-3xl shadow-xl shadow-indigo-200 dark:shadow-none transition-all transform active:scale-[0.98] flex items-center justify-center gap-4">
+                        <span>CREAR TORNEO AHORA</span>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                    </button>
+                </footer>
             </form>
-        </div>
+        </main>
     </div>
 
-    {{-- Script para manejo dinámico de equipos --}}
     <script>
-        // Inicializamos con 4 equipos por defecto
+        // 1. ESCUCHAR EL SELECT DE SEDE PARA ACTUALIZAR LIVEWIRE
+        window.addEventListener('cancha-changed', event => {
+            const canchaId = event.detail.id;
+            // Emitimos evento a Livewire para que cargue la nueva cancha
+            // Nota: Asegúrate que tu componente Livewire tenga un listener para esto o usa una prop reactiva
+            Livewire.dispatch('updateCancha', { id: canchaId });
+        });
+
+        // 2. CAPTURAR LA SELECCIÓN DEL CALENDARIO
+        // Tu componente Livewire debe emitir este evento al seleccionar una hora
+        window.addEventListener('time-selected', event => {
+            const { date, time } = event.detail;
+            document.getElementById('final_start_date').value = `${date} ${time}`;
+            
+            // Opcional: Feedback visual de que se seleccionó la hora
+            console.log("Horario seleccionado para el torneo:", date, time);
+        });
+
+        // Lógica de equipos original
         document.addEventListener('DOMContentLoaded', () => {
             for(let i=0; i<4; i++) addTeamInput();
         });
 
         function addTeamInput(isBye = false) {
             const container = document.getElementById('teamsContainer');
-            const index = container.children.length + 1;
-            
-            const div = document.createElement('div');
-            div.className = "flex items-center gap-2 animate-fade-in-up";
-            
-            const inputHtml = isBye 
-                ? `<input type="text" name="teams[]" value="BYE" readonly class="flex-1 bg-gray-100 text-gray-400 italic border-gray-200 rounded-lg cursor-not-allowed text-sm" />`
-                : `<div class="relative w-full">
-                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 font-bold text-xs">${index}</span>
-                     <input type="text" name="teams[]" class="w-full pl-8 border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Nombre del Equipo" required>
-                   </div>`;
+            const section = document.createElement('div');
+            section.className = "flex items-center gap-3 animate-in slide-in-from-top-1 duration-200";
+            const inputClass = "w-full rounded-2xl border-gray-100 dark:border-gray-700 dark:bg-gray-900 text-sm focus:ring-indigo-500 py-3 shadow-sm font-bold";
+            const content = isBye 
+                ? `<input type="text" name="teams[]" value="BYE (DESCANSO)" readonly class="${inputClass} bg-gray-50 text-gray-400 italic cursor-not-allowed">`
+                : `<input type="text" name="teams[]" required placeholder="Nombre del equipo..." class="${inputClass}">`;
 
-            div.innerHTML = `
-                ${inputHtml}
-                <button type="button" onclick="this.parentElement.remove(); updateCounter();" class="text-red-400 hover:text-red-600 transition p-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+            section.innerHTML = `
+                <div class="flex-1 relative group">
+                    ${content}
+                    <div class="absolute left-[-12px] top-1/2 -translate-y-1/2 w-1.5 h-6 bg-indigo-100 dark:bg-indigo-900 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+                <button type="button" onclick="this.parentElement.remove(); updateCounter();" class="p-2 text-gray-300 hover:text-red-500 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             `;
-            
-            container.appendChild(div);
+            container.appendChild(section);
             updateCounter();
-            
-            // Auto scroll al final
-            container.scrollTop = container.scrollHeight;
         }
 
         function updateCounter() {
-            const count = document.getElementById('teamsContainer').children.length;
-            document.getElementById('teamCounter').innerText = count;
+            document.getElementById('teamCounter').value = document.getElementById('teamsContainer').children.length;
         }
     </script>
-    
-    <style>
-        @keyframes fade-in-up {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-up { animation: fade-in-up 0.3s ease-out forwards; }
-        /* Scrollbar personalizado */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
-    </style>
 </x-app-layout>
