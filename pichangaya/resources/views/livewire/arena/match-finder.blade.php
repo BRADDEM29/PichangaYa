@@ -19,7 +19,7 @@
                 <hgroup>
                     <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mb-2 flex flex-col md:flex-row items-center gap-3 drop-shadow-lg">
                         <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
-                            Buscador Dota 2
+                            Buscador 
                         </span>
                         
                         {{-- Indicador de Estado --}}
