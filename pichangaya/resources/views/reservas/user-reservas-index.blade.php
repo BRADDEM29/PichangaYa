@@ -99,7 +99,7 @@
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach ($reservas as $reserva)
                                     @php
-                                        // CONFIGURACIÓN DE ESTADOS
+                                        // CONFIGURACIÓN DE COLORES PARA EL BADGE DE ESTADO
                                         $statusConfig = [
                                             'pending'      => ['label' => 'Pendiente',       'color' => 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600', 'dot' => 'bg-gray-500'],
                                             'confirmed'    => ['label' => 'Confirmada',      'color' => 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800', 'dot' => 'bg-blue-500'],
@@ -113,13 +113,17 @@
                                         $statusLabel   = $config['label'];
                                         $dotColor      = $config['dot'];
 
-                                        // LÓGICA DE ACCIONES (CORE LOGIC)
-                                        $isPending = $reserva->status === 'pending';
-                                        $isPast    = $reserva->start_time <= now();
+                                        // LÓGICA DE ACCIONES (ACTUALIZADA)
+                                        $isCancelled = $reserva->status === 'cancelled';
+                                        $isPending   = $reserva->status === 'pending';
+                                        $isPaid      = in_array($reserva->status, ['advance_paid', 'fully_paid']);
+                                        $isPast      = $reserva->start_time <= now();
 
-                                        $canAction = $isPending && !$isPast;
-                                        $canEdit   = $canAction;
-                                        $canCancel = $canAction;
+                                        // Definición de si está "Vencida" (Pendiente pero ya pasó la hora)
+                                        $isExpired   = $isPending && $isPast;
+
+                                        // Solo se puede editar si es pendiente, NO ha pasado la hora y NO está cancelada
+                                        $canAction   = $isPending && !$isPast && !$isCancelled;
                                     @endphp
                                     
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
@@ -179,30 +183,42 @@
                                             </span>
                                         </td>
 
-                                        {{-- ACCIONES --}}
+                                        {{-- ACCIONES DE ESCRITORIO (Lógica Condicional Completa) --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <nav class="flex items-center justify-end space-x-3">
                                                 
+                                                {{-- CASO 1: ACCIONABLE (Pendiente y Futuro) --}}
                                                 @if ($canAction)
-                                                    {{-- BOTÓN EDITAR (Solo Pending) --}}
-                                                    <a href="{{ route('reservas.edit', $reserva) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200 transition p-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30" title="Editar Reserva">
+                                                    <a href="{{ route('reservas.edit', $reserva) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 transition p-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30" title="Editar Reserva">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                     </a>
 
-                                                    {{-- BOTÓN CANCELAR (Solo Pending) --}}
                                                     <form action="{{ route('reservas.cancel', $reserva) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Seguro que deseas cancelar? Esta acción es irreversible.');">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-200 transition p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30" title="Cancelar Reserva">
+                                                        @csrf @method('PUT')
+                                                        <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 transition p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30" title="Cancelar Reserva">
                                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                         </button>
                                                     </form>
-                                                @else
-                                                    {{-- SI NO SE PUEDE EDITAR (Pagado o Cancelado) --}}
-                                                    <span class="text-gray-300 dark:text-gray-600 cursor-not-allowed px-2 flex items-center justify-end" title="Acción no disponible">
-                                                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+
+                                                {{-- CASO 2: CANCELADA --}}
+                                                @elseif ($isCancelled)
+                                                    <span class="px-3 py-1 bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400 text-xs font-bold rounded-full border border-red-200 dark:border-red-800">
+                                                        CANCELADA
+                                                    </span>
+
+                                                {{-- CASO 3: VENCIDA --}}
+                                                @elseif ($isExpired)
+                                                    <span class="px-3 py-1 bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400 text-xs font-bold rounded-full border border-gray-200 dark:border-gray-600" title="El tiempo del partido ya pasó">
+                                                        VENCIDO
+                                                    </span>
+
+                                                {{-- CASO 4: PAGADO --}}
+                                                @elseif ($isPaid)
+                                                    <span class="text-emerald-500 dark:text-emerald-400 flex items-center gap-1 text-xs font-bold" title="Reserva Pagada">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
                                                         </svg>
+                                                        LISTO
                                                     </span>
                                                 @endif
 
@@ -231,9 +247,13 @@
                                 $statusLabel   = $configMobile['label'];
                                 $statusColorBg = $configMobile['side'];
 
-                                $isPending = $reserva->status === 'pending';
-                                $isPast    = $reserva->start_time <= now();
-                                $canAction = $isPending && !$isPast;
+                                // LÓGICA DE ACCIONES (ACTUALIZADA TAMBIÉN PARA MÓVIL)
+                                $isCancelled = $reserva->status === 'cancelled';
+                                $isPending   = $reserva->status === 'pending';
+                                $isPaid      = in_array($reserva->status, ['advance_paid', 'fully_paid']);
+                                $isPast      = $reserva->start_time <= now();
+                                $isExpired   = $isPending && $isPast;
+                                $canAction   = $isPending && !$isPast && !$isCancelled;
                             @endphp
 
                             <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-5 relative overflow-hidden">
@@ -270,33 +290,45 @@
                                     Solicitado: {{ $reserva->created_at->format('d/m/Y h:i A') }}
                                 </p>
 
-                                {{-- Botones Móvil (FOOTER) --}}
-                                @if($canAction)
-                                    <footer class="flex gap-2 pl-2">
-                                        <a href="{{ route('reservas.edit', $reserva) }}" class="flex-1 text-center py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-bold hover:bg-indigo-100 transition flex items-center justify-center gap-1">
+                                {{-- FOOTER MÓVIL (Lógica Condicional Completa) --}}
+                                <footer class="pl-2 mt-2">
+                                    @if($canAction)
+                                        <div class="flex gap-2">
+                                            <a href="{{ route('reservas.edit', $reserva) }}" class="flex-1 text-center py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-bold hover:bg-indigo-100 transition flex items-center justify-center gap-1">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                                                 </svg>
                                                 Editar
-                                        </a>
+                                            </a>
 
-                                        <form action="{{ route('reservas.cancel', $reserva) }}" method="POST" class="flex-1" onsubmit="return confirm('¿Cancelar reserva?');">
-                                            @csrf
-                                            @method('PUT')
-                                            <button type="submit" class="w-full py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg text-sm font-bold hover:bg-red-100 transition flex items-center justify-center gap-1">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                                </svg>
-                                                Cancelar
-                                            </button>
-                                        </form>
-                                    </footer>
-                                @else
-                                    {{-- Mensaje de bloqueo en móvil --}}
-                                    <p class="mt-2 text-center text-xs text-gray-400 italic bg-gray-50 dark:bg-gray-700/30 py-2 rounded">
-                                        No se pueden realizar cambios
-                                    </p>
-                                @endif
+                                            <form action="{{ route('reservas.cancel', $reserva) }}" method="POST" class="flex-1" onsubmit="return confirm('¿Cancelar reserva?');">
+                                                @csrf @method('PUT')
+                                                <button type="submit" class="w-full py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg text-sm font-bold hover:bg-red-100 transition flex items-center justify-center gap-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                                    </svg>
+                                                    Cancelar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    
+                                    @elseif ($isCancelled)
+                                        <div class="text-center py-2 bg-red-50 dark:bg-red-900/10 text-red-500 rounded-lg text-xs font-bold border border-red-100 dark:border-red-800/50 uppercase tracking-widest">
+                                            Reserva Cancelada
+                                        </div>
+
+                                    @elseif ($isExpired)
+                                        <div class="text-center py-2 bg-gray-50 dark:bg-gray-800 text-gray-400 rounded-lg text-xs font-bold border border-gray-100 dark:border-gray-700 uppercase tracking-widest">
+                                            Tiempo Finalizado
+                                        </div>
+
+                                    @else
+                                        <div class="text-center py-2 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 rounded-lg text-xs font-bold border border-emerald-100 dark:border-emerald-800/50 uppercase tracking-widest">
+                                            Reserva Completada
+                                        </div>
+                                    @endif
+                                </footer>
+
                             </article>
                         @endforeach
                     </section>

@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use Livewire\Attributes\On; // 🟢 Necesario para el atributo #[On]
+use Livewire\Attributes\On; 
 use Illuminate\Http\Request;
 use App\Models\Cancha;
 use App\Models\Reserva;
@@ -16,6 +16,11 @@ class CanchaReservaForm extends Component
     public Cancha $cancha;
     public ?Reserva $reservaEdicion = null;
     
+    public bool $isTournamentMode = false;
+
+    // 🟢 NUEVA PROPIEDAD para guardar múltiples horas en modo torneo
+    public $selectedSlots = []; 
+
     public $date = '';
     public $time = ''; 
     public $duration = 1;
@@ -29,24 +34,22 @@ class CanchaReservaForm extends Component
         'duration' => 'required|integer|min:1|max:24', 
     ];
 
-    /**
-     * 🟢 ESCUCHADOR PARA ACTUALIZAR LA CANCHA DESDE EL FORMULARIO DE TORNEO
-     */
     #[On('updateCancha')]
     public function updateCancha($id)
     {
         $nuevaCancha = Cancha::find($id);
         if ($nuevaCancha) {
             $this->cancha = $nuevaCancha;
-            $this->resetSelection(); // Limpiamos selección previa al cambiar de cancha
+            $this->resetSelection(); 
             $this->generateTimeSlots();
             $this->calculatePrice();
         }
     }
 
-    public function mount(Cancha $cancha, Reserva $reserva = null)
+    public function mount(Cancha $cancha, Reserva $reserva = null, $isTournamentMode = false)
     {
         $this->cancha = $cancha;
+        $this->isTournamentMode = $isTournamentMode;
         
         if ($reserva && $reserva->exists) {
             $this->reservaEdicion = $reserva;
@@ -74,62 +77,65 @@ class CanchaReservaForm extends Component
 
     public function selectTimeSlot($clickedTime)
     {
+        // 1. Validar si el slot está bloqueado visualmente (Deshabilitado)
         foreach ($this->timeSlots as $slot) {
             if ($slot['value'] === $clickedTime && ($slot['disabled'] ?? false)) {
-                return;
+                // Si es mío y estoy editando, permito click. Si no, retorno.
+                if(!($slot['is_my_booking'] ?? false)) {
+                    return;
+                }
             }
         }
 
+        // 🟢 2. LÓGICA MODO TORNEO: Multiselección (Toggle)
+        if ($this->isTournamentMode) {
+            if (in_array($clickedTime, $this->selectedSlots)) {
+                // Si ya está, lo quitamos (deseleccionar)
+                $this->selectedSlots = array_diff($this->selectedSlots, [$clickedTime]);
+            } else {
+                // Si no está, lo agregamos
+                $this->selectedSlots[] = $clickedTime;
+            }
+            
+            // Recalculamos precio basado en cantidad de slots seleccionados
+            $this->calculatePrice();
+            return; // 🛑 Importante: Detenemos aquí para no ejecutar lógica normal
+        }
+
+        // 3. Lógica de selección normal (Usuario final - Rangos)
         if (!$this->time) {
             $this->time = $clickedTime;
             $this->duration = 1;
-            $this->calculatePrice();
-            
-            // 🟢 DESPACHAR EVENTO PARA EL FORMULARIO DE TORNEOS
-            $this->dispatch('time-selected', [
-                'date' => $this->date,
-                'time' => $this->time
-            ]);
-            return;
-        }
-
-        $start = Carbon::parse($this->date . ' ' . $this->time);
-        $clicked = Carbon::parse($this->date . ' ' . $clickedTime);
-        $endOfSelection = $start->copy()->addHours($this->duration);
-
-        if ($clicked->gte($start) && $clicked->lt($endOfSelection)) {
-            if ($clicked->eq($start)) {
-                if ($this->duration == 1) {
-                    $this->resetSelection(); 
-                } else {
-                    $this->time = $start->addHour()->format('H:i'); 
-                    $this->duration--; 
-                }
-            } else {
-                $newDuration = $start->diffInHours($clicked);
-                $this->duration = $newDuration;
-            }
-            $this->calculatePrice();
-
-            $this->dispatch('time-selected', [
-                'date' => $this->date,
-                'time' => $this->time
-            ]);
-            return;
-        }
-
-        if ($clicked->lt($start)) {
-            $this->time = $clickedTime;
-            $this->duration = 1;
         } else {
-            $potentialDuration = $start->diffInHours($clicked) + 1;
-            $potentialEnd = $start->copy()->addHours($potentialDuration);
+            $start = Carbon::parse($this->date . ' ' . $this->time);
+            $clicked = Carbon::parse($this->date . ' ' . $clickedTime);
+            $endOfSelection = $start->copy()->addHours($this->duration);
 
-            if ($this->isRangeAvailable($start, $potentialEnd)) {
-                $this->duration = $potentialDuration;
-            } else {
+            if ($clicked->gte($start) && $clicked->lt($endOfSelection)) {
+                if ($clicked->eq($start)) {
+                    if ($this->duration == 1) {
+                        $this->resetSelection(); 
+                        return;
+                    } else {
+                        $this->time = $start->addHour()->format('H:i'); 
+                        $this->duration--; 
+                    }
+                } else {
+                    $this->duration = $start->diffInHours($clicked);
+                }
+            } elseif ($clicked->lt($start)) {
                 $this->time = $clickedTime;
                 $this->duration = 1;
+            } else {
+                $potentialDuration = $start->diffInHours($clicked) + 1;
+                $potentialEnd = $start->copy()->addHours($potentialDuration);
+
+                if ($this->isRangeAvailable($start, $potentialEnd)) {
+                    $this->duration = $potentialDuration;
+                } else {
+                    $this->time = $clickedTime;
+                    $this->duration = 1;
+                }
             }
         }
 
@@ -137,7 +143,8 @@ class CanchaReservaForm extends Component
 
         $this->dispatch('time-selected', [
             'date' => $this->date,
-            'time' => $this->time
+            'time' => $this->time,
+            'duration' => $this->duration 
         ]);
     }
 
@@ -146,6 +153,7 @@ class CanchaReservaForm extends Component
         $this->time = '';
         $this->duration = 1;
         $this->total_price = 0;
+        $this->selectedSlots = []; // Limpiamos selección múltiple
 
         $this->dispatch('time-selected', [
             'date' => $this->date,
@@ -155,10 +163,20 @@ class CanchaReservaForm extends Component
 
     public function calculatePrice()
     {
-        if ($this->duration > 0 && isset($this->cancha)) {
-            $this->total_price = $this->cancha->price_per_hour * $this->duration;
-        } else {
-            $this->total_price = 0;
+        if (!isset($this->cancha)) return;
+
+        // 🟢 Cálculo diferente si es Torneo
+        if ($this->isTournamentMode) {
+            $count = count($this->selectedSlots);
+            $this->total_price = $this->cancha->price_per_hour * $count;
+        } 
+        // Cálculo Normal
+        else {
+            if ($this->duration > 0) {
+                $this->total_price = $this->cancha->price_per_hour * $this->duration;
+            } else {
+                $this->total_price = 0;
+            }
         }
     }
 
@@ -175,8 +193,9 @@ class CanchaReservaForm extends Component
             $closeTime->addDay();
         }
 
+        // Traemos reservas, ignorando canceladas
         $occupied = Reserva::where('cancha_id', $this->cancha->id)
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', 'cancelled') 
             ->where(function ($query) use ($openTime, $closeTime) {
                 $query->whereBetween('start_time', [$openTime, $closeTime])
                       ->orWhereBetween('end_time', [$openTime, $closeTime]);
@@ -201,6 +220,7 @@ class CanchaReservaForm extends Component
             $isOccupied = false;
             $isPending = false;
             $isMyBooking = false;
+            $isTournament = false; 
 
             foreach ($occupied as $reserva) {
                 $resStart = Carbon::parse($reserva->start_time);
@@ -210,6 +230,11 @@ class CanchaReservaForm extends Component
                     
                     if ($this->reservaEdicion && $this->reservaEdicion->id === $reserva->id) {
                         continue; 
+                    }
+
+                    if ($reserva->payment_type === 'tournament') {
+                        $isTournament = true;
+                        $isOccupied = true;
                     }
 
                     $estadosConfirmados = ['confirmed', 'paid', 'fully_paid', 'advance', 'advance_paid'];
@@ -227,9 +252,7 @@ class CanchaReservaForm extends Component
                             if ($reserva->created_at > now()->subMinutes(10)) {
                                 $isPending = true;
                                 $isPast = false; 
-                            } else {
-                                $isOccupied = true; 
-                            }
+                            } 
                         } else {
                             $isOccupied = true; 
                         }
@@ -243,7 +266,8 @@ class CanchaReservaForm extends Component
                 'disabled' => ($isPast || $isOccupied || $isPending) && !$isMyBooking, 
                 'is_occupied' => $isOccupied,
                 'is_pending' => $isPending,
-                'is_my_booking' => $isMyBooking, 
+                'is_my_booking' => $isMyBooking,
+                'is_tournament' => $isTournament, 
             ];
 
             $currentSlot->addHour();
@@ -273,6 +297,50 @@ class CanchaReservaForm extends Component
 
     public function save()
     {
+        // 🟢 LÓGICA DE GUARDADO PARA TORNEO (Múltiples Bloques)
+        if ($this->isTournamentMode) {
+            
+            if (empty($this->selectedSlots)) {
+                $this->addError('selectedSlots', 'Debes seleccionar al menos una hora.');
+                return;
+            }
+
+            $successCount = 0;
+
+            foreach ($this->selectedSlots as $slotTime) {
+                $start = Carbon::parse($this->date . ' ' . $slotTime);
+                $end = $start->copy()->addHour(); // Asumimos bloques de 1 hora individuales
+
+                // Verificar disponibilidad de ESTE bloque específico
+                if ($this->isRangeAvailable($start, $end)) {
+                    Reserva::create([
+                        'cancha_id'    => $this->cancha->id,
+                        'user_id'      => Auth::id(),
+                        'start_time'   => $start,
+                        'end_time'     => $end,
+                        'total_price'  => $this->cancha->price_per_hour,
+                        'payment_type' => 'tournament', // Flag importante
+                        'status'       => 'confirmed', // Bloqueo directo
+                        'details'      => 'Bloqueo por Torneo'
+                    ]);
+                    $successCount++;
+                }
+            }
+
+            // Reset y feedback
+            $this->reset(['selectedSlots', 'total_price']);
+            $this->generateTimeSlots(); // Refrescar visualmente
+            
+            if ($successCount > 0) {
+                session()->flash('success', "Se han bloqueado {$successCount} horas para el torneo.");
+            } else {
+                session()->flash('error', 'No se pudieron bloquear las horas seleccionadas (ya estaban ocupadas).');
+            }
+            return; // 🛑 Salimos para no ejecutar el guardado normal
+        }
+
+
+        // 🔵 LÓGICA DE GUARDADO NORMAL (Usuario Standard)
         $this->validate();
 
         try {
@@ -327,14 +395,12 @@ class CanchaReservaForm extends Component
     {
         if ($this->reservaEdicion) {
             $this->reservaEdicion->refresh();
-
             $estadosPermitidos = ['confirmed', 'paid', 'fully_paid', 'advance', 'advance_paid', 'pending'];
 
             if (!in_array($this->reservaEdicion->status, $estadosPermitidos)) {
                 return redirect()->to('http://localhost:8000/mis-reservas');
             }
         }
-
         $this->generateTimeSlots();
     }
 
