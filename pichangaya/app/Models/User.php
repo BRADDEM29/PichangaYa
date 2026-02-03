@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 use App\Notifications\ResetPasswordNotification;
+use App\Actions\Fortify\UpdateUserProfileInformation;
 
 class User extends Authenticatable
 {
@@ -291,5 +292,30 @@ class User extends Authenticatable
     {
         // Verifica: 1. Email verificado, 2. Tiene teléfono principal
         return !is_null($this->email_verified_at) && !empty($this->phone);
+    }
+
+    /**
+     * Update the user's profile photo.
+     *
+     * @param  mixed  $photo  <-- Nota que ahora aceptamos "mixed" (cualquier cosa)
+     * @param  string  $storagePath
+     * @return void
+     */
+    // 👇 BORRA "UploadedFile" DE AQUÍ ABAJO
+    public function updateProfilePhoto($photo, $storagePath = 'profile-photos') 
+    {
+        tap($this->profile_photo_path, function ($previous) use ($photo, $storagePath) {
+            
+            // Tu helper procesará la imagen (sea de Livewire o normal)
+            $path = \App\Helpers\ImageHelper::upload($photo, $storagePath); 
+            
+            $this->forceFill([
+                'profile_photo_path' => $path,
+            ])->save();
+
+            if ($previous) {
+                Storage::disk($this->profilePhotoDisk())->delete($previous);
+            }
+        });
     }
 }

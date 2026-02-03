@@ -1,26 +1,28 @@
 <x-app-layout>
     {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\profile\show.blade.php --}}
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Perfil de Usuario') }}
-        </h2>
+        <header>
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                {{ __('Perfil de Usuario') }}
+            </h2>
+        </header>
     </x-slot>
 
-    <div class="bg-gray-100 dark:bg-gray-950 min-h-screen transition-colors duration-300">
+    <main class="bg-gray-100 dark:bg-gray-950 min-h-screen transition-colors duration-300">
         <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
 
-            {{-- 🟢 SECCIÓN DE VERIFICACIÓN --}}
-            <div id="verification-section" class="md:grid md:grid-cols-3 md:gap-6 mb-10">
+            {{-- SECCIÓN DE VERIFICACIÓN --}}
+            <section id="verification-section" class="md:grid md:grid-cols-3 md:gap-6 mb-10">
                 <x-section-title>
                     <x-slot name="title">Verificación de Contacto</x-slot>
                     <x-slot name="description">Verifica tu correo o tu celular para poder realizar reservas.</x-slot>
                 </x-section-title>
 
-                <div class="mt-5 md:mt-0 md:col-span-2">
+                <article class="mt-5 md:mt-0 md:col-span-2">
                     <div class="px-4 py-5 bg-white dark:bg-gray-800 sm:p-6 shadow sm:rounded-lg space-y-6">
                         
                         {{-- 1. VERIFICACIÓN DE CORREO --}}
-                        <div class="pb-6 border-b border-gray-100 dark:border-gray-700"
+                        <section class="pb-6 border-b border-gray-100 dark:border-gray-700"
                              x-data="{ 
                                 step: 'init', 
                                 code: '', 
@@ -55,19 +57,21 @@
                                 }
                              }">
                             
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                                <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                Correo Electrónico
+                            <header class="flex items-center gap-2">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                    Correo Electrónico
+                                </h3>
                                 @if(Auth::user()->hasVerifiedEmail())
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800 border border-green-200">VERIFICADO</span>
                                 @else
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-800 border border-red-200">PENDIENTE</span>
                                 @endif
-                            </h3>
+                            </header>
                             
-                            <div class="mt-2 text-sm text-gray-600 dark:text-gray-400 ml-7">
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 ml-7">
                                 {{ Auth::user()->email }}
-                            </div>
+                            </p>
 
                             @if(!Auth::user()->hasVerifiedEmail())
                                 <div class="mt-3 ml-7">
@@ -80,11 +84,11 @@
                                         <p x-show="error" class="text-red-600 font-bold text-xs mt-2 p-2 bg-red-50 border border-red-200 rounded" x-text="error"></p>
                                     </div>
 
-                                    {{-- Input Código (MEJORADO DISEÑO) --}}
+                                    {{-- Input Código --}}
                                     <div x-show="step === 'code'" class="mt-4 space-y-3">
-                                        {{-- Mensaje de éxito --}}
-                                        <div class="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-md border border-blue-100 dark:border-blue-800">
-                                            ✅ <span x-text="message"></span>
+                                        <div class="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-md border border-blue-100 dark:border-blue-800 flex items-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            <span x-text="message"></span>
                                         </div>
                                         
                                         <label class="block text-xs font-bold text-gray-500 uppercase">Introduce el código:</label>
@@ -101,22 +105,22 @@
                                     </div>
                                 </div>
                             @endif
-                        </div>
+                        </section>
 
                         {{-- 2. VERIFICACIÓN DE CELULAR --}}
-                        <div x-data="{ 
+                        <section x-data="{ 
                                 step: 'input', 
                                 phone: '{{ Auth::user()->phone }}',
                                 code: '',
                                 loading: false,
-                                message: '',
+                                message: '', 
                                 error: '',
                                 async sendCode() {
                                     this.loading = true; this.error = ''; this.message = '';
                                     try {
                                         await axios.post('{{ route('verification.send') }}', { channel: 'sms', phone: this.phone });
                                         this.step = 'code';
-                                        this.message = 'Código simulado en LOG (storage/logs/laravel.log)';
+                                        this.message = 'Código enviado correctamente.';
                                     } catch (e) {
                                         this.error = e.response.data.message || 'Error al enviar código';
                                     }
@@ -134,26 +138,28 @@
                                 }
                              }">
                             
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                                <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                                Número de Celular
+                            <header class="flex items-center gap-2">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                    Número de Celular
+                                </h3>
                                 @if(Auth::user()->phone_verified_at)
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800 border border-green-200">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                         VERIFICADO
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-800 border border-orange-200">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         PENDIENTE
                                     </span>
                                 @endif
-                            </h3>
+                            </header>
 
                             @if(Auth::user()->phone_verified_at)
-                                <div class="mt-2 text-sm text-gray-600 dark:text-gray-400 ml-7">
+                                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 ml-7">
                                     {{ Auth::user()->phone }}
-                                </div>
+                                </p>
                             @else
                                 <div class="ml-7 mt-3">
                                     <div x-show="step === 'input'">
@@ -184,11 +190,11 @@
                                     </div>
                                 </div>
                             @endif
-                        </div>
+                        </section>
 
                     </div>
-                </div>
-            </div>
+                </article>
+            </section>
             
             <x-section-border class="dark:border-gray-800" />
 
@@ -198,34 +204,29 @@
             @endif
 
             @if (strtolower(Auth::user()->role) === 'owner')
-                <div class="mt-10 sm:mt-0">
+                <section class="mt-10 sm:mt-0">
                     @livewire('profile.manage-user-phones')
-                </div>
+                </section>
                 <x-section-border class="dark:border-gray-800" />
             @endif
 
             @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::updatePasswords()))
-                <div class="mt-10 sm:mt-0">
+                <section class="mt-10 sm:mt-0">
                     @livewire('profile.update-password-form')
-                </div>
+                </section>
                 <x-section-border class="dark:border-gray-800" />
             @endif
 
-             <div class="mt-10 sm:mt-0">
+             <section class="mt-10 sm:mt-0">
                 @livewire('profile.logout-other-browser-sessions-form')
-            </div>
+            </section>
 
             @if (Laravel\Jetstream\Jetstream::hasAccountDeletionFeatures())
                 <x-section-border class="dark:border-gray-800" />
-                <div class="mt-10 sm:mt-0">
+                <section class="mt-10 sm:mt-0">
                     @livewire('profile.delete-user-form')
-                </div>
+                </section>
             @endif
         </div>
-    </div>
+    </main>
 </x-app-layout>
-
-<style>
-    .dark .bg-white { background-color: #1f2937 !important; color: #f3f4f6 !important; }
-    .dark .border-gray-200 { border-color: #374151 !important; }
-</style>
