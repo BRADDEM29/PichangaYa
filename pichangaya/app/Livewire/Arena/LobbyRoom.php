@@ -17,7 +17,6 @@ class LobbyRoom extends Component
     public $lobby;
     public $userSlot;
     
-    // UI
     public $chatTab = 'general';
     public $newMessage = '';
     public $carouselItems;
@@ -25,15 +24,31 @@ class LobbyRoom extends Component
     public function mount(Lobby $lobby)
     {
         $this->lobby = $lobby;
-        $this->userSlot = $this->lobby->slots()->where('user_id', Auth::id())->first();
+        
+        // 1. CORREGIR CAPACIDAD (CRÍTICO PARA ARREGLAR TENIS 1/14)
+        // Hacemos esto antes de nada para que la vista renderice bien
+        $this->fixLobbyCapacity(); 
+
+        // 2. LIMPIEZA DE DUPLICADOS
+        $mySlots = $this->lobby->slots()->where('user_id', Auth::id())->get();
+        if ($mySlots->count() > 1) {
+            $keep = $mySlots->first();
+            LobbySlot::where('lobby_id', $this->lobby->id)
+                ->where('user_id', Auth::id())
+                ->where('id', '!=', $keep->id)
+                ->delete();
+            $this->userSlot = $keep;
+            $this->lobby->refresh(); 
+        } else {
+            $this->userSlot = $mySlots->first();
+        }
         
         if (!$this->userSlot) {
             return redirect()->route('arena.index');
         }
 
-        // 1. CORRECCIÓN INICIAL
-        $this->fixLobbyCapacity();
-        $this->checkLobbyStatus(); // Forzar revisión al entrar
+        // Revisar estado inicial
+        $this->checkLobbyStatus(); 
 
         if ($this->lobby->status === 'searching') {
             $this->lobby->update(['expires_at' => now()->addHours(48)]);
@@ -42,36 +57,26 @@ class LobbyRoom extends Component
         $this->loadEntertainment();
     }
 
-    /**
-     * 🛡️ OBTENER CAPACIDAD SEGURA
-     * Evita que el valor sea null o 0.
-     */
-    public function getSafeMaxSlots()
+    // Calcula capacidad correcta según nombre del deporte
+    public function calculateBaseSlots()
     {
-        // Si la BD dice 0 o null, asumimos 14 por seguridad
-        if (!$this->lobby->max_slots || $this->lobby->max_slots < 2) {
-            return 14; 
-        }
-        return $this->lobby->max_slots;
-    }
-
-    public function fixLobbyCapacity()
-    {
-        $this->lobby->refresh();
         $sportName = strtolower($this->lobby->sport->name ?? '');
         
-        // Valores Base
-        $baseSlots = 14; 
-        if (str_contains($sportName, 'tenis') || str_contains($sportName, 'padel') || str_contains($sportName, '1vs1')) $baseSlots = 2;
-        elseif (str_contains($sportName, 'futbol 5') || str_contains($sportName, 'fútbol 5')) $baseSlots = 10;
-        elseif (str_contains($sportName, 'futbol 7') || str_contains($sportName, 'fútbol 7')) $baseSlots = 14;
-        elseif (str_contains($sportName, 'voley') || str_contains($sportName, 'vóley')) $baseSlots = 12;
-        elseif (str_contains($sportName, 'basket') || str_contains($sportName, 'básquet')) $baseSlots = 10;
+        if (str_contains($sportName, 'tenis') || str_contains($sportName, 'padel') || str_contains($sportName, '1vs1')) return 2;
+        elseif (str_contains($sportName, 'futbol 5') || str_contains($sportName, 'fútbol 5')) return 10;
+        elseif (str_contains($sportName, 'basket') || str_contains($sportName, 'básquet')) return 10;
+        elseif (str_contains($sportName, 'voley') || str_contains($sportName, 'vóley')) return 12;
+        
+        return 14; 
+    }
 
-        $isFutbol = str_contains($sportName, 'futbol') || str_contains($sportName, 'fútbol');
-
-        // Si hay error en BD (valor < 2) o es fútbol con valor incorrecto, CORREGIR
-        if ($this->lobby->max_slots < 2 || ($isFutbol && $this->lobby->max_slots !== $baseSlots)) {
+    // Fuerza la corrección en la BD si está mal
+    public function fixLobbyCapacity()
+    {
+        $baseSlots = $this->calculateBaseSlots();
+        
+        // Si la BD dice un número diferente al que debería ser por deporte, lo corregimos
+        if ($this->lobby->max_slots !== $baseSlots) {
             $this->lobby->update(['max_slots' => $baseSlots]);
             $this->lobby->refresh();
         }
@@ -79,34 +84,42 @@ class LobbyRoom extends Component
 
     public function increaseCapacity()
     {
+        // No permitir aumentar en Tenis/Futbol, solo otros
         $sportName = strtolower($this->lobby->sport->name ?? '');
-        if (str_contains($sportName, 'futbol') || str_contains($sportName, 'fútbol')) return;
+        if (str_contains($sportName, 'futbol') || str_contains($sportName, 'fútbol') || str_contains($sportName, 'tenis')) return;
 
         $this->lobby->increment('max_slots', 2);
         $this->lobby->refresh();
-        $this->checkLobbyStatus(); // Revisar estado tras cambio
+        $this->checkLobbyStatus(); 
     }
 
     /**
-     * 🟢 REVISIÓN CONSTANTE DE ESTADO
+     * LÓGICA ANTI-DOBLE NOTIFICACIÓN
      */
     public function checkLobbyStatus()
     {
+        // 1. Refrescar desde BD para tener el dato real
         $this->lobby->refresh();
+        
         $playerCount = $this->lobby->slots()->count();
-        $maxPlayers = $this->getSafeMaxSlots(); // Usamos el valor seguro
+        $maxPlayers = $this->lobby->max_slots; // Usamos el valor directo de BD ya corregido
 
-        // CASO 1: SE LLENÓ (Searching -> Confirming)
+        // CASO 1: SE LLENÓ
         if ($playerCount >= $maxPlayers && $this->lobby->status === 'searching') {
-            $this->lobby->update(['status' => 'confirming', 'expires_at' => now()->addHours(2)]);
             
-            try {
-                $users = $this->lobby->slots->map(fn($s) => $s->user);
-                Notification::send($users, new LobbyFullNotification($this->lobby));
-            } catch (\Exception $e) {}
+            // 2. BLOQUEO: Cambiamos estado ANTES de notificar
+            $updated = $this->lobby->update(['status' => 'confirming', 'expires_at' => now()->addHours(2)]);
+            
+            // 3. SOLO SI EL UPDATE FUE EXITOSO (True), enviamos notificación
+            if ($updated) {
+                try {
+                    $users = $this->lobby->slots->map(fn($s) => $s->user);
+                    Notification::send($users, new LobbyFullNotification($this->lobby, $playerCount, $maxPlayers));
+                } catch (\Exception $e) {}
+            }
+
         } 
-        // CASO 2: NO ESTÁ LLENO (Cualquier estado -> Searching)
-        // Esto arregla tu bug: Si hay menos jugadores que el máximo, ¡FUERZA SEARCHING!
+        // CASO 2: SE VACIÓ
         elseif ($playerCount < $maxPlayers && $this->lobby->status !== 'searching') {
             $this->lobby->update(['status' => 'searching', 'expires_at' => now()->addHours(48)]);
         }
@@ -114,15 +127,22 @@ class LobbyRoom extends Component
 
     public function checkStartGame()
     {
-        $maxPlayers = $this->getSafeMaxSlots();
+        $this->lobby->refresh();
+        
+        // Si ya está listo, abortamos para no notificar doble
+        if ($this->lobby->status === 'ready_to_play') return;
+
+        $maxPlayers = $this->lobby->max_slots;
         $confirmedCount = $this->lobby->slots()->whereNotNull('confirmed_at')->count();
 
         if ($this->lobby->status === 'confirming' && $confirmedCount >= $maxPlayers) {
+            
+            // BLOQUEO: Cambiar estado primero
             $this->lobby->update(['status' => 'ready_to_play']);
             
             $captains = $this->lobby->slots->where('is_captain', true)->map(fn($s) => $s->user);
             try {
-                Notification::send($captains, new ReadyForReservationNotification($this->lobby));
+                Notification::send($captains, new ReadyForReservationNotification($this->lobby, $confirmedCount, $maxPlayers));
             } catch (\Exception $e) {}
         }
     }
@@ -136,10 +156,9 @@ class LobbyRoom extends Component
         $this->checkStartGame();
     }
 
-    // --- CARGA DATOS ---
     public function loadEntertainment()
     {
-        // Sin filtrar por sport_id aun para evitar error 500
+        // Filtro seguro
         $this->carouselItems = Cancha::where('district_id', $this->lobby->district_id)
             ->where('is_active', true)
             ->with(['media', 'district'])
@@ -150,9 +169,11 @@ class LobbyRoom extends Component
     {
         if (!in_array($targetTeam, ['A', 'B'])) return;
         $this->userSlot->refresh();
+        if ($this->userSlot->confirmed_at) return;
+
         if ($this->userSlot->team_side === $targetTeam) return;
 
-        $maxPlayers = $this->getSafeMaxSlots();
+        $maxPlayers = $this->lobby->max_slots;
         $maxPerTeam = intdiv($maxPlayers, 2);
         
         if ($this->lobby->slots()->where('team_side', $targetTeam)->count() >= $maxPerTeam) return;
@@ -189,16 +210,12 @@ class LobbyRoom extends Component
 
     public function render()
     {
-        $this->checkLobbyStatus();
         $this->lobby->load(['messages.sender', 'slots.user']);
         
-        // Pasamos maxPlayers calculado de forma segura
-        $safeMax = $this->getSafeMaxSlots();
-
         return view('livewire.arena.lobby-room', [
             'lobbyMessages' => $this->lobby->messages()->latest()->take(50)->get()->reverse(),
             'playerCount' => $this->lobby->slots->count(),
-            'maxPlayers' => $safeMax, // ¡IMPORTANTE! Usamos la variable segura aquí
+            'maxPlayers' => $this->lobby->max_slots, // Usamos valor real de BD
             'confirmedCount' => $this->lobby->slots->whereNotNull('confirmed_at')->count()
         ]);
     }

@@ -9,7 +9,16 @@ class Lobby extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['sport_id', 'district_id', 'status', 'expires_at'];
+    // 🔴 AQUÍ FALTABA 'max_slots' y 'created_by'
+    // Al agregarlos, Laravel ya permite guardar el número 2 (o 10, o 12)
+    protected $fillable = [
+        'sport_id', 
+        'district_id', 
+        'status', 
+        'expires_at', 
+        'max_slots',   // <--- ¡ESTO FALTABA!
+        'created_by'   // <--- Esto también es importante para saber quién creó la sala
+    ];
 
     protected $casts = [
         'expires_at' => 'datetime',
@@ -38,6 +47,7 @@ class Lobby extends Model
     {
         return $this->slots()->count();
     }
+    
     public function messages()
     {
         return $this->hasMany(Message::class);

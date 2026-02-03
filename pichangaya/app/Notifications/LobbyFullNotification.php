@@ -4,7 +4,6 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\MailMessage;
 use App\Models\Lobby;
 
 class LobbyFullNotification extends Notification
@@ -12,29 +11,32 @@ class LobbyFullNotification extends Notification
     use Queueable;
 
     public $lobby;
+    public $playerCount;
+    public $maxPlayers;
 
-    public function __construct(Lobby $lobby)
+    public function __construct(Lobby $lobby, $playerCount = null, $maxPlayers = null)
     {
         $this->lobby = $lobby;
+        $this->playerCount = $playerCount ?? $lobby->slots()->count();
+        $this->maxPlayers = $maxPlayers ?? $lobby->max_slots;
     }
 
     public function via($notifiable)
     {
-        // Puedes agregar 'mail' aquí si quieres enviar correos también
         return ['database']; 
     }
 
     public function toDatabase($notifiable)
     {
         return [
-            // CAMBIO: Mensaje de urgencia y límite de tiempo (2 horas)
-            'titulo'  => '⚠️ SALA LLENA - ACCIÓN REQUERIDA',
-            'mensaje' => "El lobby está completo. Tienes 2 HORAS para confirmar tu asistencia o serás expulsado automáticamente.",
-            'icono'   => 'clock', // Cambiado a reloj para indicar cuenta regresiva
+            'titulo'  => '⚠️ SALA LLENA',
+            // Mensaje dinámico con conteo real
+            'mensaje' => "El lobby está completo ({$this->playerCount}/{$this->maxPlayers}). Confirma tu asistencia ahora.",
+            'icono'   => 'clock', 
             'url'     => route('lobby.show', $this->lobby->id),
             'id'      => $this->lobby->id,
-            'color'   => 'text-yellow-500', // Color amarillo de advertencia
-            'action_required' => true // Mantenemos este flag para resaltar la notificación en la UI
+            'color'   => 'text-yellow-500',
+            'action_required' => true 
         ];
     }
 }
