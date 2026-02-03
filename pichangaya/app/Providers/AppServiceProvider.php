@@ -1,5 +1,5 @@
 <?php
-
+//C:\laragon\www\PichangaYa\pichangaya\app\Providers\AppServiceProvider.php
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;

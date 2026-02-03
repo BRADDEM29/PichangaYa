@@ -1,5 +1,5 @@
 <?php
-
+//C:\laragon\www\PichangaYa\pichangaya\app\Providers\JetstreamServiceProvider.php
 namespace App\Providers;
 
 use App\Actions\Jetstream\DeleteUser;
