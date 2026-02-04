@@ -11,14 +11,10 @@ class LobbyFullNotification extends Notification
     use Queueable;
 
     public $lobby;
-    public $playerCount;
-    public $maxPlayers;
 
-    public function __construct(Lobby $lobby, $playerCount = null, $maxPlayers = null)
+    public function __construct(Lobby $lobby)
     {
         $this->lobby = $lobby;
-        $this->playerCount = $playerCount ?? $lobby->slots()->count();
-        $this->maxPlayers = $maxPlayers ?? $lobby->max_slots;
     }
 
     public function via($notifiable)
@@ -28,10 +24,19 @@ class LobbyFullNotification extends Notification
 
     public function toDatabase($notifiable)
     {
+        // Obtenemos los datos frescos usando el nuevo helper del modelo
+        $total = $this->lobby->max_slots;
+        $confirmados = $this->lobby->confirmed_count;
+        $deporte = strtoupper($this->lobby->sport->name ?? 'DEPORTE');
+
         return [
-            'titulo'  => '⚠️ SALA LLENA',
-            // Mensaje dinámico con conteo real
-            'mensaje' => "El lobby está completo ({$this->playerCount}/{$this->maxPlayers}). Confirma tu asistencia ahora.",
+            // Título limpio sin emojis
+            'titulo'  => "SALA LLENA - {$deporte}",
+            
+            // Mensaje informativo con conteo real
+            'mensaje' => "La sala ha alcanzado {$total} jugadores. Estado de confirmación: {$confirmados}/{$total}. Ingresa para confirmar.",
+            
+            // Icono SVG (clave de texto para que el frontend ponga el SVG)
             'icono'   => 'clock', 
             'url'     => route('lobby.show', $this->lobby->id),
             'id'      => $this->lobby->id,

@@ -9,43 +9,48 @@ class Lobby extends Model
 {
     use HasFactory;
 
-    // 🔴 AQUÍ FALTABA 'max_slots' y 'created_by'
-    // Al agregarlos, Laravel ya permite guardar el número 2 (o 10, o 12)
+    // Aseguramos que los campos necesarios sean permitidos
     protected $fillable = [
         'sport_id', 
         'district_id', 
         'status', 
         'expires_at', 
-        'max_slots',   // <--- ¡ESTO FALTABA!
-        'created_by'   // <--- Esto también es importante para saber quién creó la sala
+        'max_slots',
+        'created_by'
     ];
 
     protected $casts = [
         'expires_at' => 'datetime',
     ];
 
-    // Deporte (Fútbol 7, Vóley)
+    // Relación: Deporte
     public function sport()
     {
         return $this->belongsTo(Sport::class);
     }
 
-    // Ubicación
+    // Relación: Ubicación
     public function district()
     {
         return $this->belongsTo(District::class);
     }
 
-    // Jugadores dentro
+    // Relación: Jugadores (Slots)
     public function slots()
     {
         return $this->hasMany(LobbySlot::class);
     }
     
-    // Helper: Contar jugadores
+    // Helper: Total de jugadores en la sala
     public function getPlayerCountAttribute()
     {
         return $this->slots()->count();
+    }
+
+    // NUEVO: Helper para contar cuántos han dado "Check" (Confirmado)
+    public function getConfirmedCountAttribute()
+    {
+        return $this->slots()->whereNotNull('confirmed_at')->count();
     }
     
     public function messages()
