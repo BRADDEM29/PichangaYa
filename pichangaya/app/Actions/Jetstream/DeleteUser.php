@@ -3,6 +3,7 @@
 namespace App\Actions\Jetstream;
 
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Laravel\Jetstream\Contracts\DeletesUsers;
 
 class DeleteUser implements DeletesUsers
@@ -12,8 +13,15 @@ class DeleteUser implements DeletesUsers
      */
     public function delete(User $user): void
     {
-        $user->deleteProfilePhoto();
-        $user->tokens->each->delete();
-        $user->delete();
+        DB::transaction(function () use ($user) {
+            // 1. Borrar foto
+            $user->deleteProfilePhoto();
+
+            // 2. TODO: Descomentar para la App Móvil
+            // $user->tokens->each->delete(); 
+
+            // 4. Soft Delete
+            $user->delete();
+        });
     }
 }

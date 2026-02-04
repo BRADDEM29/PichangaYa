@@ -1,5 +1,5 @@
 <?php
-//C:\laragon\www\PichangaYa\pichangaya\app\Models\Tournament.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,9 +13,10 @@ class Tournament extends Model
         'name',
         'description',
         'start_date',
-        'status', // 'open', 'active', 'finished'
+        'status',
         'created_by',
         'prize_description',
+        'cancha_id',
     ];
 
     // Relación con los partidos
@@ -24,9 +25,11 @@ class Tournament extends Model
         return $this->hasMany(Matches::class);
     }
 
-    // Relación con los equipos
+    // CORRECCIÓN FINAL AQUÍ:
     public function teams()
     {
-        return $this->hasMany(TournamentTeam::class);
+        // Le decimos explícitamente: 
+        // "Busca en el modelo TournamentTeam, usando la columna 'tournament_id'"
+        return $this->hasMany(TournamentTeam::class, 'tournament_id');
     }
 }

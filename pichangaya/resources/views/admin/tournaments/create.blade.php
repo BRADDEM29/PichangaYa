@@ -1,4 +1,5 @@
 <x-app-layout>
+    {{-- C:\laragon\www\PichangaYa\pichangaya\resources\views\admin\tournaments\create.blade.php --}}
     <x-slot name="header">
         <header class="flex items-center justify-between">
             <div class="flex items-center gap-3">

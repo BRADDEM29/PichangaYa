@@ -7,6 +7,7 @@ use App\Models\Tournament;
 use App\Models\TournamentTeam;
 use App\Models\Matches;
 use App\Models\Reserva;
+use App\Models\Cancha; // Importado explícitamente
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -22,7 +23,8 @@ class TournamentController extends Controller
 
     public function create()
     {
-        $canchas = \App\Models\Cancha::where('is_active', true)->with('district')->get();
+        // Uso App\Models\Cancha directamente o el alias importado arriba
+        $canchas = Cancha::where('is_active', true)->with('district')->get();
         return view('admin.tournaments.create', compact('canchas'));
     }
 
@@ -59,10 +61,8 @@ class TournamentController extends Controller
                 'user_id'      => auth()->id(),
                 'cancha_id'    => $request->cancha_id,
                 'start_time'   => $request->start_date,
-                
                 // 🟢 SOLUCIÓN APLICADA AQUÍ: (int) forzar entero
                 'end_time'     => Carbon::parse($request->start_date)->addHours((int) $request->duration),
-                
                 'status'       => 'fully_paid',
                 'payment_type' => 'tournament', // Para pintar morado
                 'total_price'  => 0,
@@ -143,6 +143,121 @@ class TournamentController extends Controller
 
             return redirect()->route('admin.tournaments.index')->with('success', 'Torneo y reserva de cancha creados exitosamente.');
         });
+    }
+
+    /**
+     * MUESTRA LA VISTA DE EDICIÓN (Nuevo)
+     */
+    public function edit(Tournament $tournament)
+    {
+        // Asumiendo que la relación en el modelo Tournament es 'teams' (hasMany TournamentTeam)
+        $tournament->load('teams'); 
+        $canchas = Cancha::where('is_active', true)->get();
+
+        return view('admin.tournaments.edit', compact('tournament', 'canchas'));
+    }
+
+    /**
+     * ACTUALIZA EL TORNEO (Nuevo)
+     * Nota: Modificar equipos reiniciando el bracket es complejo. 
+     * Aquí se asume actualización básica y re-sincronización simple.
+     */
+    public function update(Request $request, Tournament $tournament)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'start_date' => 'required|date',
+            'cancha_id' => 'nullable|exists:canchas,id',
+        ]);
+
+        // 1. CAPTURAR DATOS ANTIGUOS (Clave para encontrar la reserva)
+        // Usamos getOriginal para asegurarnos de tener el dato puro de la BD
+        $oldCanchaId = $tournament->getOriginal('cancha_id');
+        $oldStartDate = $tournament->getOriginal('start_date'); 
+
+        // 2. ACTUALIZAR EL TORNEO
+        $tournament->update([
+            'name' => $request->name,
+            'start_date' => $request->start_date,
+            'cancha_id' => $request->cancha_id,
+        ]);
+
+        // ---------------------------------------------------------
+        // GESTIÓN DE RESERVA (CORREGIDA PARA FECHAS)
+        // ---------------------------------------------------------
+        
+        if ($oldCanchaId) {
+            // Formateamos la fecha antigua para que coincida con MySQL (Y-m-d H:i:s)
+            $formattedOldDate = \Carbon\Carbon::parse($oldStartDate)->format('Y-m-d H:i:s');
+
+            // Buscamos la reserva
+            $reserva = \App\Models\Reserva::where('cancha_id', $oldCanchaId)
+                ->where('start_time', $formattedOldDate) // Búsqueda exacta
+                ->first();
+
+            // Si no la encuentra por fecha exacta, intentamos buscarla en el mismo minuto
+            // (por si acaso los segundos difieren 00 vs 01)
+            if (!$reserva) {
+                $reserva = \App\Models\Reserva::where('cancha_id', $oldCanchaId)
+                    ->where('start_time', 'like', substr($formattedOldDate, 0, 16) . '%') // Busca hasta el minuto
+                    ->first();
+            }
+
+            if ($reserva) {
+                if ($request->cancha_id) {
+                    // Actualizamos fecha y cancha
+                    $duration = 3; 
+                    try {
+                        $duration = $reserva->end_time->diffInHours($reserva->start_time);
+                    } catch (\Exception $e) {}
+
+                    $reserva->update([
+                        'cancha_id' => $request->cancha_id,
+                        'start_time' => $request->start_date,
+                        'end_time' => \Carbon\Carbon::parse($request->start_date)->addHours($duration),
+                    ]);
+                } else {
+                    // Si quitaron la cancha, borramos reserva
+                    $reserva->delete();
+                }
+            }
+        }
+        // Si no tenía cancha antes pero ahora sí
+        elseif (!$oldCanchaId && $request->cancha_id) {
+            \App\Models\Reserva::create([
+                'cancha_id' => $request->cancha_id,
+                'user_id' => auth()->id(),
+                'start_time' => $request->start_date,
+                'end_time' => \Carbon\Carbon::parse($request->start_date)->addHours(3),
+                'total_price' => 0,
+                'status' => 'confirmed',
+            ]);
+        }
+
+        return redirect()->route('admin.tournaments.index')
+            ->with('success', 'Torneo actualizado correctamente.');
+    }
+
+    /**
+     * ELIMINAR TORNEO (Nuevo)
+     */
+    public function destroy(Tournament $tournament)
+    {
+        DB::transaction(function () use ($tournament) {
+            // Eliminar la reserva asociada para liberar la cancha
+            Reserva::where('description', 'LIKE', '%Bloqueo automático: Torneo ' . $tournament->name . '%')
+                ->delete();
+
+            // Eliminar partidos y equipos (Cascade en BD preferiblemente, o manual)
+            $tournament->matches()->delete(); 
+            $tournament->teams()->delete();
+            
+            // Eliminar torneo
+            $tournament->delete();
+        });
+
+        return redirect()->route('admin.tournaments.index')
+            ->with('success', 'Torneo eliminado y cancha liberada.');
     }
 
     public function show(Tournament $tournament)

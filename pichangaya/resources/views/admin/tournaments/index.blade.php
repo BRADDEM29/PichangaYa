@@ -46,9 +46,12 @@
                             <tbody>
                                 @foreach($tournaments as $t)
                                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                                        {{-- Nombre --}}
                                         <td class="px-6 py-4 font-bold text-gray-900 dark:text-white">
                                             {{ $t->name }}
                                         </td>
+                                        
+                                        {{-- Estado --}}
                                         <td class="px-6 py-4">
                                             @if($t->status === 'finished')
                                                 <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2.5 py-0.5 rounded border border-yellow-200">FINALIZADO</span>
@@ -58,27 +61,54 @@
                                                 <span class="bg-gray-100 text-gray-800 text-xs font-bold px-2.5 py-0.5 rounded border border-gray-200">PENDIENTE</span>
                                             @endif
                                         </td>
+
+                                        {{-- Fecha --}}
                                         <td class="px-6 py-4">
                                             {{ \Carbon\Carbon::parse($t->start_date)->format('d/m/Y') }}
                                         </td>
+
+                                        {{-- Conteo Equipos --}}
                                         <td class="px-6 py-4">
                                             {{ $t->teams()->count() }} Equipos
                                         </td>
-                                        <td class="px-6 py-4 text-right space-x-2">
-                                        {{-- Botón Público --}}
-                                        <a href="{{ route('arena.show', $t->id) }}" target="_blank" class="text-gray-500 hover:text-blue-500 text-xs font-bold uppercase">
-                                            Ver como Público
-                                        </a>
 
-                                        {{-- 🟢 BOTÓN ADMIN PARA GESTIONAR --}}
-                                        <a href="{{ route('admin.tournaments.manage', $t->id) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1.5 px-3 rounded text-xs flex-inline items-center gap-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 inline">
-                                                <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
-                                                <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
-                                            </svg>
-                                            Gestionar Bracket
-                                        </a>
-                                    </td>
+                                        {{-- 🟢 ACCIONES MEJORADAS (ICONOS) --}}
+                                        <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
+                                            {{-- Botón Público --}}
+                                            <a href="{{ route('arena.show', $t->id) }}" target="_blank" class="text-gray-400 hover:text-indigo-500 transition-colors" title="Ver Link Público">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                                </svg>
+                                            </a>
+
+                                            {{-- Separador vertical --}}
+                                            <div class="h-4 w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
+
+                                            {{-- BOTÓN GESTIONAR BRACKET --}}
+                                            <a href="{{ route('admin.tournaments.manage', $t->id) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-lg shadow-sm transition-all" title="Gestionar Partidos">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                                                </svg>
+                                            </a>
+
+                                            {{-- BOTÓN EDITAR --}}
+                                            <a href="{{ route('admin.tournaments.edit', $t->id) }}" class="bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-900 p-2 rounded-lg border border-blue-200 dark:border-blue-800 transition-all" title="Editar Configuración">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                                                </svg>
+                                            </a>
+
+                                            {{-- BOTÓN ELIMINAR --}}
+                                            <form action="{{ route('admin.tournaments.destroy', $t->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro? Se borrarán todos los equipos y partidos asociados.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900 p-2 rounded-lg border border-red-200 dark:border-red-800 transition-all ml-2" title="Eliminar Torneo">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

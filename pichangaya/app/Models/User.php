@@ -318,4 +318,19 @@ class User extends Authenticatable
             }
         });
     }
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function ($user) {
+            // Verificamos si es un borrado suave (Soft Delete) y NO un borrado forzado (Force Delete)
+            // Si es Force Delete, el registro desaparece, así que el email se libera solo.
+            // Si es Soft Delete, el registro se queda, así que HAY que cambiar el email.
+            if (! $user->isForceDeleting()) {
+                $user->email = 'borrado_' . time() . '_' . $user->id . '_' . $user->email;
+                $user->save();
+            }
+        });
+    }
 }

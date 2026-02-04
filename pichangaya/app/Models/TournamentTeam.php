@@ -1,5 +1,5 @@
 <?php
-//C:\laragon\www\PichangaYa\pichangaya\app\Models\TournamentTeam.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,6 +9,9 @@ class TournamentTeam extends Model
 {
     use HasFactory;
 
+    // 🟢 FORZAMOS EL NOMBRE DE LA TABLA TAL CUAL ESTÁ EN TU MIGRACIÓN
+    protected $table = 'tournament_teams';
+
     protected $fillable = [
         'tournament_id',
         'team_name',
@@ -17,6 +20,6 @@ class TournamentTeam extends Model
 
     public function tournament()
     {
-        return $this->belongsTo(Tournament::class);
+        return $this->belongsTo(Tournament::class, 'tournament_id');
     }
 }
