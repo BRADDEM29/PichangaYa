@@ -66,7 +66,7 @@ class TournamentController extends Controller
                 'status'       => 'fully_paid',
                 'payment_type' => 'tournament', // Para pintar morado
                 'total_price'  => 0,
-                'description'  => 'Bloqueo automático: Torneo ' . $tournament->name,
+                // 'description' => ... (Eliminado para evitar errores de BD)
             ]);
 
             // 3. Calcular tamaño del Bracket (4, 8, 16, 32)
@@ -183,7 +183,7 @@ class TournamentController extends Controller
         ]);
 
         // ---------------------------------------------------------
-        // GESTIÓN DE RESERVA (CORREGIDA PARA FECHAS)
+        // GESTIÓN DE RESERVA (CORREGIDA PARA FECHAS Y DURACIÓN)
         // ---------------------------------------------------------
         
         if ($oldCanchaId) {
@@ -196,25 +196,27 @@ class TournamentController extends Controller
                 ->first();
 
             // Si no la encuentra por fecha exacta, intentamos buscarla en el mismo minuto
-            // (por si acaso los segundos difieren 00 vs 01)
             if (!$reserva) {
                 $reserva = \App\Models\Reserva::where('cancha_id', $oldCanchaId)
-                    ->where('start_time', 'like', substr($formattedOldDate, 0, 16) . '%') // Busca hasta el minuto
+                    ->where('start_time', 'like', substr($formattedOldDate, 0, 16) . '%') 
                     ->first();
             }
 
             if ($reserva) {
                 if ($request->cancha_id) {
-                    // Actualizamos fecha y cancha
-                    $duration = 3; 
-                    try {
-                        $duration = $reserva->end_time->diffInHours($reserva->start_time);
-                    } catch (\Exception $e) {}
+                    // 🟢 CAMBIO CLAVE:
+                    // Priorizamos la duración que viene del formulario ($request->duration).
+                    // Si no viene (null), entonces calculamos la antigua.
+                    $newDuration = $request->duration ?? $reserva->end_time->diffInHours($reserva->start_time);
+                    
+                    // Aseguramos que sea entero para sumar horas correctamente
+                    $newDuration = (int) $newDuration;
 
                     $reserva->update([
                         'cancha_id' => $request->cancha_id,
                         'start_time' => $request->start_date,
-                        'end_time' => \Carbon\Carbon::parse($request->start_date)->addHours($duration),
+                        // Aquí sumamos la NUEVA duración al inicio
+                        'end_time' => \Carbon\Carbon::parse($request->start_date)->addHours($newDuration),
                     ]);
                 } else {
                     // Si quitaron la cancha, borramos reserva
@@ -224,11 +226,14 @@ class TournamentController extends Controller
         }
         // Si no tenía cancha antes pero ahora sí
         elseif (!$oldCanchaId && $request->cancha_id) {
+            // Si viene una duración del formulario, la usamos. Si no, 3 horas por defecto.
+            $newDuration = $request->duration ? (int) $request->duration : 3;
+
             \App\Models\Reserva::create([
                 'cancha_id' => $request->cancha_id,
                 'user_id' => auth()->id(),
                 'start_time' => $request->start_date,
-                'end_time' => \Carbon\Carbon::parse($request->start_date)->addHours(3),
+                'end_time' => \Carbon\Carbon::parse($request->start_date)->addHours($newDuration),
                 'total_price' => 0,
                 'status' => 'confirmed',
             ]);
@@ -244,15 +249,22 @@ class TournamentController extends Controller
     public function destroy(Tournament $tournament)
     {
         DB::transaction(function () use ($tournament) {
-            // Eliminar la reserva asociada para liberar la cancha
-            Reserva::where('description', 'LIKE', '%Bloqueo automático: Torneo ' . $tournament->name . '%')
-                ->delete();
+            
+            // 1. ELIMINAR RESERVA (BLOQUEO)
+            // Como no tienes columna 'description' ni 'observaciones',
+            // buscamos la reserva que coincida con la Cancha y la Hora de Inicio del torneo.
+            if ($tournament->cancha_id && $tournament->start_date) {
+                Reserva::where('cancha_id', $tournament->cancha_id)
+                    ->where('start_time', $tournament->start_date) 
+                    ->delete();
+            }
 
-            // Eliminar partidos y equipos (Cascade en BD preferiblemente, o manual)
+            // 2. Eliminar partidos y equipos
+            // (Usamos delete() directo en la relación para asegurarnos)
             $tournament->matches()->delete(); 
             $tournament->teams()->delete();
             
-            // Eliminar torneo
+            // 3. Eliminar el torneo
             $tournament->delete();
         });
 

@@ -25,11 +25,10 @@ class Tournament extends Model
         return $this->hasMany(Matches::class);
     }
 
-    // CORRECCIÓN FINAL AQUÍ:
+    
     public function teams()
     {
-        // Le decimos explícitamente: 
-        // "Busca en el modelo TournamentTeam, usando la columna 'tournament_id'"
+        // Importante: Usar TournamentTeam::class, NO Team::class
         return $this->hasMany(TournamentTeam::class, 'tournament_id');
     }
 }
