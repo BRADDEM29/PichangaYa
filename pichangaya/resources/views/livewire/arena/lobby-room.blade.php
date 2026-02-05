@@ -26,7 +26,9 @@
         </dialog>
     @endif
 
-    <nav class="relative z-40 bg-gray-900 shadow-md"><livewire:navigation-menu /></nav>
+    <nav class="relative z-40 bg-gray-900 shadow-md">
+        <livewire:navigation-menu />
+    </nav>
 
     <header class="bg-gray-800 border-b border-gray-700 py-4 px-4 shadow-lg sticky top-0 z-30">
         <section class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
@@ -52,11 +54,9 @@
         
         <section class="lg:col-span-8 space-y-8" aria-label="Zona de Equipos">
             @php
-                // 🔥 ESTO ES LO QUE ARREGLA LA VISTA DEL TENIS (1/2 en vez de 1/14)
                 $slotsPerTeam = max(1, intdiv($maxPlayers, 2)); 
                 $teamA = $lobby->slots->where('team_side', 'A')->values();
                 $teamB = $lobby->slots->where('team_side', 'B')->values();
-                $isFutbol = str_contains(strtolower($lobby->sport->name), 'futbol');
             @endphp
 
             <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -72,10 +72,10 @@
                                 <li class="flex items-center justify-between bg-gray-700/50 p-3 rounded-lg border border-gray-600 shadow-sm animate-in fade-in">
                                     <figure class="flex items-center gap-3 flex-1">
                                         <img src="{{ $teamA[$i]->user->profile_photo_url }}" class="w-10 h-10 rounded-lg object-cover border border-gray-500">
-                                        <div class="flex flex-col">
+                                        <figcaption class="flex flex-col">
                                             <span class="text-xs font-bold text-white truncate max-w-[100px]">{{ $teamA[$i]->user->name }}</span>
                                             <span class="text-[10px] {{ $teamA[$i]->confirmed_at ? 'text-green-400' : 'text-gray-500' }}">{{ $teamA[$i]->confirmed_at ? 'Confirmado' : 'Pendiente' }}</span>
-                                        </div>
+                                        </figcaption>
                                     </figure>
                                     <aside class="flex items-center gap-2">
                                         @if($teamA[$i]->user_id === auth()->id())
@@ -87,9 +87,6 @@
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                             </span>
                                         @endif
-                                        @if($teamA[$i]->user_id === auth()->id())
-                                            <button wire:click="toggleCaptain" class="text-gray-500 hover:text-yellow-400 p-1">{{ $teamA[$i]->is_captain ? '👑' : '©' }}</button>
-                                        @elseif($teamA[$i]->is_captain) <span class="text-xl">👑</span> @endif
                                     </aside>
                                 </li>
                             @else
@@ -116,10 +113,10 @@
                                 <li class="flex items-center justify-between bg-gray-700/50 p-3 rounded-lg border border-gray-600 shadow-sm animate-in fade-in">
                                     <figure class="flex items-center gap-3 flex-1">
                                         <img src="{{ $teamB[$i]->user->profile_photo_url }}" class="w-10 h-10 rounded-lg object-cover border border-gray-500">
-                                        <div class="flex flex-col">
+                                        <figcaption class="flex flex-col">
                                             <span class="text-xs font-bold text-white truncate max-w-[100px]">{{ $teamB[$i]->user->name }}</span>
                                             <span class="text-[10px] {{ $teamB[$i]->confirmed_at ? 'text-green-400' : 'text-gray-500' }}">{{ $teamB[$i]->confirmed_at ? 'Confirmado' : 'Pendiente' }}</span>
-                                        </div>
+                                        </figcaption>
                                     </figure>
                                     <aside class="flex items-center gap-2">
                                         @if($teamB[$i]->user_id === auth()->id())
@@ -131,9 +128,6 @@
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                                             </span>
                                         @endif
-                                        @if($teamB[$i]->user_id === auth()->id())
-                                            <button wire:click="toggleCaptain" class="text-gray-500 hover:text-yellow-400 p-1">{{ $teamB[$i]->is_captain ? '👑' : '©' }}</button>
-                                        @elseif($teamB[$i]->is_captain) <span class="text-xl">👑</span> @endif
                                     </aside>
                                 </li>
                             @else
@@ -148,15 +142,6 @@
                     </ul>
                 </article>
             </section>
-
-            @if(!$isFutbol && $lobby->status === 'searching')
-                <nav class="flex justify-center mt-4">
-                    <button wire:click="increaseCapacity" wire:loading.attr="disabled" class="flex items-center gap-2 px-6 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-full text-xs font-bold uppercase tracking-widest text-gray-300 hover:text-white transition shadow-lg transform hover:scale-105 active:scale-95">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                        <span>Agregar Cupos (+2)</span>
-                    </button>
-                </nav>
-            @endif
         </section>
 
         <aside class="lg:col-span-4 flex flex-col gap-6 h-full">
@@ -172,7 +157,7 @@
                                 @if($cancha->media->first())
                                     <img src="{{ $cancha->media->first()->getUrl() }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                                 @else
-                                    <div class="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500 text-xs">Sin Foto</div>
+                                    <span class="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500 text-xs">Sin Foto</span>
                                 @endif
                                 <footer class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent flex flex-col justify-end p-4">
                                     <h4 class="text-xl font-black text-white leading-none mb-1 group-hover:text-yellow-400 transition">{{ $cancha->name }}</h4>
@@ -193,13 +178,13 @@
                     @forelse($lobbyMessages as $msg)
                         <li class="flex flex-col {{ $msg->user_id === auth()->id() ? 'items-end' : 'items-start' }}">
                             <span class="text-[10px] text-gray-500 mb-1 px-1">{{ $msg->sender->name }}</span>
-                            <div class="max-w-[85%] px-3 py-2 rounded-xl text-sm shadow-sm {{ $msg->user_id === auth()->id() ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-700 text-gray-200 rounded-bl-none' }}">
+                            <p class="max-w-[85%] px-3 py-2 rounded-xl text-sm shadow-sm {{ $msg->user_id === auth()->id() ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-700 text-gray-200 rounded-bl-none' }}">
                                 {{ $msg->content }}
-                            </div>
+                            </p>
                         </li>
                     @empty
                         <li class="h-full flex flex-col items-center justify-center opacity-30 text-xs text-gray-500">
-                            <span>Di hola... 👋</span>
+                            <span>No hay mensajes...</span>
                         </li>
                     @endforelse
                 </ul>
