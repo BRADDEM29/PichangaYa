@@ -146,7 +146,9 @@
                             <div class="livewire-cancha-form">
                                 @livewire('cancha-reserva-form', [
                                     'cancha' => $canchas->find($tournament->cancha_id), 
-                                    'isTournamentMode' => true
+                                    'isTournamentMode' => true,
+                                    // 🟢 NUEVO: Le pasamos el ID para que NO lo pinte azul (bloqueado)
+                                    'ignoringReservaId' => $reserva?->id 
                                 ])
                             </div>
                         </div>

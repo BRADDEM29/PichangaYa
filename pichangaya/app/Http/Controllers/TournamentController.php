@@ -150,11 +150,23 @@ class TournamentController extends Controller
      */
     public function edit(Tournament $tournament)
     {
-        // Asumiendo que la relación en el modelo Tournament es 'teams' (hasMany TournamentTeam)
         $tournament->load('teams'); 
         $canchas = Cancha::where('is_active', true)->get();
 
-        return view('admin.tournaments.edit', compact('tournament', 'canchas'));
+        // 🟢 NUEVO: Buscamos la reserva asociada para poder "liberarla" visualmente
+        // Intentamos buscar por fecha exacta (lo más común)
+        $reserva = Reserva::where('cancha_id', $tournament->cancha_id)
+                    ->where('start_time', $tournament->start_date)
+                    ->first();
+
+        // Si no la encuentra exacta (por segundos), buscamos en el mismo minuto
+        if (!$reserva && $tournament->start_date) {
+            $reserva = Reserva::where('cancha_id', $tournament->cancha_id)
+                ->where('start_time', 'like', substr($tournament->start_date, 0, 16) . '%')
+                ->first();
+        }
+
+        return view('admin.tournaments.edit', compact('tournament', 'canchas', 'reserva'));
     }
 
     /**

@@ -16,6 +16,9 @@ class CanchaReservaForm extends Component
     public ?Cancha $cancha = null; 
     public ?Reserva $reservaEdicion = null;
     
+    // 🟢 NUEVO: Propiedad para almacenar el ID de la reserva a ignorar (Torneos)
+    public $ignoringReservaId = null; 
+
     // El modo torneo sigue existiendo para la SELECCIÓN (arrastrar),
     // pero ya no afecta visualmente a las reservas pasadas.
     public bool $isTournamentMode = false;
@@ -45,7 +48,8 @@ class CanchaReservaForm extends Component
         }
     }
 
-    public function mount($cancha = null, Reserva $reserva = null, $isTournamentMode = false)
+    // 🟢 ACTUALIZADO: Recibe $ignoringReservaId
+    public function mount($cancha = null, Reserva $reserva = null, $isTournamentMode = false, $ignoringReservaId = null)
     {
         if ($cancha) {
             $this->cancha = $cancha;
@@ -54,6 +58,7 @@ class CanchaReservaForm extends Component
         }
 
         $this->isTournamentMode = $isTournamentMode;
+        $this->ignoringReservaId = $ignoringReservaId; // Guardamos el ID a ignorar
         
         if ($reserva && $reserva->exists) {
             $this->reservaEdicion = $reserva;
@@ -175,7 +180,11 @@ class CanchaReservaForm extends Component
         }
 
         $occupied = Reserva::where('cancha_id', $this->cancha->id)
-            ->where('status', '!=', 'cancelled') 
+            ->where('status', '!=', 'cancelled')
+            // 🟢 ACTUALIZADO: Ignoramos la reserva del torneo actual para que salga libre
+            ->when($this->ignoringReservaId, function($q) {
+                $q->where('id', '!=', $this->ignoringReservaId);
+            })
             ->where(function ($query) use ($openTime, $closeTime) {
                 $query->whereBetween('start_time', [$openTime, $closeTime])
                       ->orWhereBetween('end_time', [$openTime, $closeTime]);
@@ -243,7 +252,6 @@ class CanchaReservaForm extends Component
                 'is_occupied' => $isOccupied,
                 'is_pending' => $isPending,
                 'is_my_booking' => $isMyBooking,
-                // Ya no pasamos 'is_tournament' específico, todo es ocupado normal
             ];
 
             $currentSlot->addHour();
@@ -255,6 +263,10 @@ class CanchaReservaForm extends Component
             ->where('status', '!=', 'cancelled')
             ->when($this->reservaEdicion, function($q) {
                 $q->where('id', '!=', $this->reservaEdicion->id);
+            })
+            // 🟢 ACTUALIZADO: Validamos también al verificar el rango
+            ->when($this->ignoringReservaId, function($q) {
+                $q->where('id', '!=', $this->ignoringReservaId);
             })
             ->where(function ($query) use ($start, $end) {
                 $query->where('start_time', '<', $end)
