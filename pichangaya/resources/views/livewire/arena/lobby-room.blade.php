@@ -1,6 +1,6 @@
 <section class="fixed inset-0 z-50 bg-[#0f172a] text-white overflow-y-auto custom-scrollbar flex flex-col" wire:poll.3s="checkLobbyStatus">
     
-    {{-- MODAL --}}
+    {{-- MODAL DE PARTIDA ENCONTRADA --}}
     @if($lobby->status === 'ready_to_play')
         <dialog open class="fixed inset-0 z-[60] flex items-center justify-center w-full h-full bg-black/90 backdrop-blur-md p-4 animate-in fade-in">
             <article class="bg-gray-900 border-2 border-green-500 rounded-2xl p-8 max-w-lg w-full text-center shadow-[0_0_50px_rgba(34,197,94,0.3)] relative overflow-hidden">
@@ -16,7 +16,7 @@
                     </section>
                     <nav class="grid grid-cols-2 gap-4">
                         <button wire:click="exitLobby" wire:confirm="¿Rechazar y salir?" class="py-4 bg-gray-800 hover:bg-red-900 border border-gray-600 text-gray-300 hover:text-white font-bold rounded-xl uppercase tracking-widest transition shadow-lg text-sm">RECHAZAR</button>
-                        <a href="http://localhost:8000/mis-reservas" class="py-4 bg-green-500 hover:bg-green-400 text-black font-black text-xl rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.5)] transform hover:scale-105 transition uppercase flex justify-center items-center gap-2">
+                        <a href="{{ route('reservas.user.index') }}" class="py-4 bg-green-500 hover:bg-green-400 text-black font-black text-xl rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.5)] transform hover:scale-105 transition uppercase flex justify-center items-center gap-2">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             <span>ACEPTAR</span>
                         </a>
@@ -26,10 +26,12 @@
         </dialog>
     @endif
 
+    {{-- BARRA DE NAVEGACIÓN SUPERIOR --}}
     <nav class="relative z-40 bg-gray-900 shadow-md">
         <livewire:navigation-menu />
     </nav>
 
+    {{-- HEADER DEL LOBBY --}}
     <header class="bg-gray-800 border-b border-gray-700 py-4 px-4 shadow-lg sticky top-0 z-30">
         <section class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <h1 class="text-xl md:text-2xl font-black uppercase italic tracking-tighter flex items-center gap-2">
@@ -50,8 +52,10 @@
         </section>
     </header>
 
+    {{-- CONTENIDO PRINCIPAL --}}
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
         
+        {{-- ZONA DE EQUIPOS (IZQUIERDA) --}}
         <section class="lg:col-span-8 space-y-8" aria-label="Zona de Equipos">
             @php
                 $slotsPerTeam = max(1, intdiv($maxPlayers, 2)); 
@@ -144,7 +148,10 @@
             </section>
         </section>
 
+        {{-- BARRA LATERAL (CARRUSEL + CHAT) --}}
         <aside class="lg:col-span-4 flex flex-col gap-6 h-full">
+            
+            {{-- CARRUSEL DE CANCHAS AGRANDADO --}}
             @if($carouselItems && $carouselItems->count() > 0)
                 <section class="bg-gray-800 rounded-2xl p-4 border border-gray-700 shadow-xl overflow-hidden">
                     <header class="flex items-center gap-2 mb-4">
@@ -153,15 +160,23 @@
                     </header>
                     <section class="flex flex-col gap-4">
                         @foreach($carouselItems as $cancha)
-                            <article class="group relative h-64 bg-gray-900 rounded-xl overflow-hidden border border-gray-700 cursor-pointer hover:border-yellow-400 transition-all shadow-lg transform hover:scale-[1.02]">
+                            {{-- 🟢 CAMBIO: Altura h-96 para mayor impacto --}}
+                            <article class="group relative h-96 bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 cursor-pointer hover:border-yellow-400 transition-all shadow-2xl transform hover:scale-[1.01]">
                                 @if($cancha->media->first())
                                     <img src="{{ $cancha->media->first()->getUrl() }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                                 @else
-                                    <span class="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500 text-xs">Sin Foto</span>
+                                    <span class="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500 text-xs uppercase tracking-widest">Sin Foto</span>
                                 @endif
-                                <footer class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent flex flex-col justify-end p-4">
-                                    <h4 class="text-xl font-black text-white leading-none mb-1 group-hover:text-yellow-400 transition">{{ $cancha->name }}</h4>
-                                    <p class="text-[10px] text-gray-300">{{ $cancha->district->name }}</p>
+                                
+                                {{-- Degradado ajustado para mejor legibilidad --}}
+                                <footer class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-6">
+                                    <h4 class="text-2xl font-black text-white leading-none mb-2 group-hover:text-yellow-400 transition uppercase italic tracking-tighter">
+                                        {{ $cancha->name }}
+                                    </h4>
+                                    <div class="flex items-center gap-2 text-gray-300">
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        <p class="text-xs font-bold uppercase tracking-widest">{{ $cancha->district->name }}</p>
+                                    </div>
                                 </footer>
                             </article>
                         @endforeach
@@ -169,6 +184,7 @@
                 </section>
             @endif
 
+            {{-- CHAT --}}
             <section class="flex-1 bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden flex flex-col shadow-xl min-h-[400px]">
                 <header class="bg-gray-900 p-4 border-b border-gray-700 flex items-center gap-2">
                     <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
