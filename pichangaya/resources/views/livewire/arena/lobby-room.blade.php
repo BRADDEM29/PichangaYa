@@ -1,21 +1,44 @@
 <section class="fixed inset-0 z-50 bg-[#0f172a] text-white overflow-y-auto custom-scrollbar flex flex-col" wire:poll.3s="checkLobbyStatus">
     
-    {{-- MODAL DE PARTIDA ENCONTRADA --}}
+    {{-- MODAL DE PARTIDA ENCONTRADA (SOLO SI TODOS ESTÁN LISTOS) --}}
     @if($lobby->status === 'ready_to_play')
         <dialog open class="fixed inset-0 z-[60] flex items-center justify-center w-full h-full bg-black/90 backdrop-blur-md p-4 animate-in fade-in">
             <article class="bg-gray-900 border-2 border-green-500 rounded-2xl p-8 max-w-lg w-full text-center shadow-[0_0_50px_rgba(34,197,94,0.3)] relative overflow-hidden">
+                {{-- Efecto de fondo --}}
                 <figure class="absolute inset-0 bg-green-500/10 animate-pulse pointer-events-none"></figure>
+                
+                {{-- Cabecera del Modal --}}
                 <header class="relative z-10 space-y-4">
-                    <h2 class="text-3xl md:text-4xl font-black italic tracking-tighter text-white uppercase drop-shadow-lg">PARTIDA ENCONTRADA</h2>
-                    <p class="text-green-400 font-bold tracking-widest text-sm uppercase animate-bounce">Sala Llena • Todos Listos</p>
+                    <h2 class="text-3xl md:text-4xl font-black italic tracking-tighter text-white uppercase drop-shadow-lg">
+                        PARTIDA ENCONTRADA
+                    </h2>
+                    <p class="text-green-400 font-bold tracking-widest text-sm uppercase animate-bounce">
+                        Sala Llena • Todos Listos
+                    </p>
                 </header>
+
+                {{-- Cuerpo del Modal --}}
                 <footer class="mt-8 relative z-10 space-y-6">
                     <section class="bg-gray-800/50 p-4 rounded-xl border border-gray-700">
-                        <p class="text-sm text-gray-300 font-mono">Deporte: <span class="text-white font-bold uppercase">{{ $lobby->sport->name }}</span></p>
-                        <p class="text-sm text-gray-300 font-mono mt-1">Jugadores Listos: <span class="text-green-400 font-bold text-lg">{{ $confirmedCount }}/{{ $maxPlayers }}</span></p>
+                        {{-- 🟢 AQUÍ ESTÁ EL CAMBIO: Datos Dinámicos --}}
+                        <p class="text-sm text-gray-300 font-mono">
+                            Deporte: <span class="text-white font-bold uppercase">{{ $lobby->sport->name }}</span>
+                        </p>
+                        <p class="text-sm text-gray-300 font-mono mt-1">
+                            Jugadores Listos: 
+                            <span class="text-green-400 font-bold text-lg">
+                                {{-- Contamos dinámicamente los que tienen check --}}
+                                {{ $lobby->slots->whereNotNull('confirmed_at')->count() }}/{{ $lobby->max_slots }}
+                            </span>
+                        </p>
                     </section>
+
+                    {{-- Botones de Acción --}}
                     <nav class="grid grid-cols-2 gap-4">
-                        <button wire:click="exitLobby" wire:confirm="¿Rechazar y salir?" class="py-4 bg-gray-800 hover:bg-red-900 border border-gray-600 text-gray-300 hover:text-white font-bold rounded-xl uppercase tracking-widest transition shadow-lg text-sm">RECHAZAR</button>
+                        <button wire:click="exitLobby" wire:confirm="¿Rechazar y salir?" class="py-4 bg-gray-800 hover:bg-red-900 border border-gray-600 text-gray-300 hover:text-white font-bold rounded-xl uppercase tracking-widest transition shadow-lg text-sm">
+                            RECHAZAR
+                        </button>
+                        
                         <a href="{{ route('reservas.user.index') }}" class="py-4 bg-green-500 hover:bg-green-400 text-black font-black text-xl rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.5)] transform hover:scale-105 transition uppercase flex justify-center items-center gap-2">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             <span>ACEPTAR</span>
@@ -160,7 +183,6 @@
                     </header>
                     <section class="flex flex-col gap-4">
                         @foreach($carouselItems as $cancha)
-                            {{-- 🟢 CAMBIO: Altura h-96 para mayor impacto --}}
                             <article class="group relative h-96 bg-gray-900 rounded-2xl overflow-hidden border border-gray-700 cursor-pointer hover:border-yellow-400 transition-all shadow-2xl transform hover:scale-[1.01]">
                                 @if($cancha->media->first())
                                     <img src="{{ $cancha->media->first()->getUrl() }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
@@ -168,7 +190,6 @@
                                     <span class="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500 text-xs uppercase tracking-widest">Sin Foto</span>
                                 @endif
                                 
-                                {{-- Degradado ajustado para mejor legibilidad --}}
                                 <footer class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-6">
                                     <h4 class="text-2xl font-black text-white leading-none mb-2 group-hover:text-yellow-400 transition uppercase italic tracking-tighter">
                                         {{ $cancha->name }}
